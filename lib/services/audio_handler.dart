@@ -284,24 +284,35 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   AudioSource _createAudioSource(MediaItem mediaItem) {
     final url = mediaItem.extras!['url'] as String;
-    if (url.contains('/cache') ||
-        (Get.find<SettingsScreenController>().cacheSongs.isTrue &&
-            url.contains("http"))) {
-      printINFO("Playing Using LockCaching");
-      isPlayingUsingLockCachingSource = true;
-      return LockCachingAudioSource(
-        Uri.parse(url),
-        cacheFile: File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
+    final isHttp = url.startsWith("http://") || url.startsWith("https://");
+    if (isHttp) {
+      if (url.contains('/cache') ||
+          (Get.find<SettingsScreenController>().cacheSongs.isTrue)) {
+        printINFO("Playing Using LockCaching");
+        isPlayingUsingLockCachingSource = true;
+        return LockCachingAudioSource(
+          Uri.parse(url),
+          cacheFile: File("$_cacheDir/cachedSongs/${mediaItem.id}.mp3"),
+          tag: mediaItem,
+        );
+      }
+
+      printINFO("Playing Using AudioSource.uri");
+      isPlayingUsingLockCachingSource = false;
+      return AudioSource.uri(
+        Uri.tryParse(url)!,
+        tag: mediaItem,
+      );
+    } else {
+      printINFO("Playing Local Audio File: $url");
+      isPlayingUsingLockCachingSource = false;
+      final filePath =
+          url.startsWith("file://") ? Uri.parse(url).toFilePath() : url;
+      return AudioSource.file(
+        filePath,
         tag: mediaItem,
       );
     }
-
-    printINFO("Playing Using AudioSource.uri");
-    isPlayingUsingLockCachingSource = false;
-    return AudioSource.uri(
-      Uri.tryParse(url)!,
-      tag: mediaItem,
-    );
   }
 
   @override
@@ -849,6 +860,41 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   Future<HMStreamingData> checkNGetUrl(String songId,
       {bool generateNewUrl = false, bool offlineReplacementUrl = false}) async {
     printINFO("Requested id : $songId");
+    if (songId.startsWith('local_') ||
+        songId.startsWith('/') ||
+        songId.startsWith('file://')) {
+      final localSongsBox = await Hive.openBox("LocalSongsCache");
+      String filePath = "";
+      if (localSongsBox.containsKey(songId)) {
+        final cached = localSongsBox.get(songId);
+        if (cached is Map) {
+          filePath = cached['url'] ?? cached['path'] ?? '';
+        }
+      }
+      if (filePath.isEmpty) {
+        filePath = songId.startsWith('local_')
+            ? songId.substring(6)
+            : (songId.startsWith('file://')
+                ? Uri.parse(songId).toFilePath()
+                : songId);
+      }
+      final file = File(filePath);
+      if (file.existsSync()) {
+        final localAudio = Audio(
+            itag: 140,
+            audioCodec: Codec.mp4a,
+            bitrate: 320,
+            duration: 0,
+            loudnessDb: 0,
+            url: file.path,
+            size: file.lengthSync());
+        return HMStreamingData(
+            playable: true,
+            statusMSG: "OK",
+            highQualityAudio: localAudio,
+            lowQualityAudio: localAudio);
+      }
+    }
     final songDownloadsBox = Hive.box("SongDownloads");
     if (!offlineReplacementUrl &&
         (await Hive.openBox("SongsCache")).containsKey(songId)) {

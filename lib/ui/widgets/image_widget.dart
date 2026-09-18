@@ -56,7 +56,28 @@ class ImageWidget extends StatelessWidget {
     final bool hasLocalFile =
         localThumbFile != null && localThumbFile.existsSync();
 
+    final bool isLocalUri = imageUrl.startsWith("file://") ||
+        (imageUrl.startsWith("/") && !imageUrl.startsWith("http"));
+    final File? localArtFile = isLocalUri
+        ? File(imageUrl.startsWith("file://")
+            ? Uri.parse(imageUrl).toFilePath()
+            : imageUrl)
+        : null;
+    final bool hasLocalArt = localArtFile != null && localArtFile.existsSync();
+
     Widget buildCachedImage() {
+      if (imageUrl.isEmpty || isLocalUri) {
+        return Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondary,
+              shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
+              borderRadius: artist != null ? null : BorderRadius.circular(10),
+            ),
+            child: Image.asset(
+                "assets/icons/${song != null ? "song" : artist != null ? "artist" : "album"}.png"));
+      }
+
       return CachedNetworkImage(
         height: size,
         width: size,
@@ -118,7 +139,18 @@ class ImageWidget extends StatelessWidget {
                 return buildCachedImage();
               },
             )
-          : buildCachedImage(),
+          : (hasLocalArt
+              ? Image.file(
+                  localArtFile,
+                  height: size,
+                  width: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (BuildContext context, Object error,
+                      StackTrace? stackTrace) {
+                    return buildCachedImage();
+                  },
+                )
+              : buildCachedImage()),
     );
   }
 }

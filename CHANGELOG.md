@@ -1,5 +1,29 @@
 # 🚀 Odd Verse Changelog
 
+## [v1.0.1] - Next Update (In Progress)
+
+### 🎵 Artist Hub Sorting Engine
+- **Multiple Sort Modes**: Sort artist songs, videos, and albums by:
+  - **Newest First** (Default on initial load)
+  - **Most Popular / Views** (Instant ranking by play count & popularity)
+  - **Oldest First** (Ascending chronological order)
+  - **Alphabetical (A–Z / Z–A)** (Title-based sorting)
+- **Zero-Latency In-Memory Sorting**: Instantly updates lists client-side without consuming unnecessary background network or RAM.
+
+### 📁 Local & Offline Music Engine
+- **Internal Storage & SD Card Scanner**: Automatically discovers audio files (`.mp3`, `.m4a`, `.flac`, `.wav`, `.aac`, `.ogg`, `.opus`) across internal phone memory and external MicroSD cards.
+- **Dedicated "Local Songs" Library Tab**: Placed right beside online Songs (`[ Songs ] [ Local Songs ] [ Playlists ] [ Albums ] [ Artists ]`).
+- **Embedded Tag & Artwork Extraction**: Displays embedded ID3/MP4 metadata, titles, artists, and embedded album cover artwork with on-demand zero-RAM caching.
+- **Exclude Folders in Settings**: Easily exclude noisy directories (e.g. WhatsApp audio, recordings, ringtones) with real-time library filtering.
+- **Standard Native Player Controls**: Full queue management, shuffle, repeat, background playback, notification controls, and equalizer support for all local files.
+
+### 🎨 Apple Music-Inspired Minimal Aesthetics
+- **Clean Sleek Cards**: Modernized search genre cards and home headers with borderless clean aesthetics.
+- **Enhanced Contrast & Spacing**: Polished typography and fluid tab switches across Artist pages.
+
+### 🛠️ Stability & Upgradability
+- **Direct Seamless App Upgrade**: Configured versionCode `2002` allowing direct in-place update over previous release builds without uninstalling.
+
 ## [v1.0.0] - Initial Release
 
 ### ⚡ Performance & Streaming Engine

@@ -5,6 +5,7 @@ import '/ui/widgets/modification_list.dart';
 import '../../../models/playlist.dart';
 import '../../widgets/piped_sync_widget.dart';
 import 'library_controller.dart';
+import 'local_songs_controller.dart';
 import '../../widgets/content_list_widget_item.dart';
 import '../../widgets/list_widget.dart';
 import '../../widgets/sort_widget.dart';
@@ -87,6 +88,123 @@ class SongsLibraryWidget extends StatelessWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     )),
                   );
+          })
+        ],
+      ),
+    );
+  }
+}
+
+class LocalSongsLibraryWidget extends StatelessWidget {
+  const LocalSongsLibraryWidget({super.key, this.isBottomNavActive = false});
+  final bool isBottomNavActive;
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = context.isLandscape ? 50.0 : 90.0;
+    final localSongsController = Get.put(LocalSongsController());
+
+    return Padding(
+      padding: isBottomNavActive
+          ? const EdgeInsets.only(left: 15)
+          : EdgeInsets.only(left: 5.0, top: topPadding),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          isBottomNavActive
+              ? const SizedBox(
+                  height: 10,
+                )
+              : Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "libLocalSongs".tr,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+          Obx(() {
+            return SortWidget(
+              tag: "LocalSongSort",
+              screenController: localSongsController,
+              itemCountTitle: "${localSongsController.localSongsList.length}",
+              itemIcon: Icons.folder_open_rounded,
+              titleLeftPadding: 9,
+              requiredSortTypes: buildSortTypeSet(true, true),
+              isSearchFeatureRequired: true,
+              isSongDeletetioFeatureRequired: false,
+              onSort: (type, ascending) {
+                localSongsController.onSort(type, ascending);
+              },
+              onSearch: localSongsController.onSearch,
+              onSearchClose: localSongsController.onSearchClose,
+              onSearchStart: localSongsController.onSearchStart,
+            );
+          }),
+          Obx(() {
+            if (localSongsController.isScanning.value &&
+                localSongsController.localSongsList.isEmpty) {
+              return Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Scanning storage for music...",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (localSongsController.localSongsList.isNotEmpty) {
+              return ListWidget(
+                localSongsController.localSongsList,
+                "Device Songs",
+                true,
+                isPlaylistOrAlbum: true,
+                playlist: Playlist(
+                    title: "Device Songs",
+                    playlistId: "LocalSongsCache",
+                    thumbnailUrl: "",
+                    isCloudPlaylist: false),
+              );
+            }
+
+            return Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.audio_file_outlined,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.secondary.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "noLocalSongs".tr,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => localSongsController.loadLocalSongs(forceRescan: true),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: Text("rescanLocal".tr),
+                    )
+                  ],
+                ),
+              ),
+            );
           })
         ],
       ),

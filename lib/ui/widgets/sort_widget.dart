@@ -15,13 +15,18 @@ enum SortType {
   Date,
   Duration,
   RecentlyPlayed,
+  Popularity,
 }
 
 Set<SortType> buildSortTypeSet(
     [bool dateRequired = false,
     bool durationRequired = false,
-    bool recentlyPlayedRequired = false]) {
+    bool recentlyPlayedRequired = false,
+    bool popularityRequired = false]) {
   Set<SortType> requiredSortTypes = {};
+  if (popularityRequired) {
+    requiredSortTypes.add(SortType.Popularity);
+  }
   if (dateRequired) {
     requiredSortTypes.add(SortType.Date);
   }
@@ -117,6 +122,19 @@ class SortWidget extends StatelessWidget {
                         ],
                       ),
                     ),
+                    requiredSortTypes.contains(SortType.Popularity)
+                        ? Obx(
+                            () => _customIconButton(
+                              isSelected:
+                                  controller.sortType.value == SortType.Popularity,
+                              icon: Icons.trending_up,
+                              tooltip: "sortByPopularity".tr,
+                              onPressed: () {
+                                controller.onSortByPopularity(onSort);
+                              },
+                            ),
+                          )
+                        : const SizedBox.shrink(),
                     Obx(
                       () => _customIconButton(
                         isSelected:
@@ -311,6 +329,11 @@ class SortWidgetController extends GetxController {
 
   void onSortByName(Function onSort) {
     sortType.value = SortType.Name;
+    onSort(sortType.value, isAscending.value);
+  }
+
+  void onSortByPopularity(Function onSort) {
+    sortType.value = SortType.Popularity;
     onSort(sortType.value, isAscending.value);
   }
 

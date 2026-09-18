@@ -22,6 +22,19 @@ class MediaItemBuilder {
       }
     }
 
+    Uri? parsedArtUri;
+    if (json["thumbnails"] != null &&
+        (json["thumbnails"] as List).isNotEmpty) {
+      final thumbUrl = (json["thumbnails"][0]['url'] ?? "").toString();
+      if (thumbUrl.startsWith("http://") || thumbUrl.startsWith("https://")) {
+        parsedArtUri = Uri.tryParse(Thumbnail(thumbUrl).high);
+      } else if (thumbUrl.isNotEmpty) {
+        parsedArtUri = thumbUrl.startsWith("file://")
+            ? Uri.tryParse(thumbUrl)
+            : Uri.file(thumbUrl);
+      }
+    }
+
     return MediaItem(
         id: json["videoId"],
         title: json["title"],
@@ -30,7 +43,7 @@ class MediaItemBuilder {
             : toDuration(json['length']),
         album: album != null ? album['name'] : null,
         artist: artistName,
-        artUri: Uri.parse(Thumbnail(json["thumbnails"][0]['url']).high),
+        artUri: parsedArtUri,
         extras: {
           'url': json['url'] ?? url,
           'length': json['length'],

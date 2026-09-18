@@ -13,6 +13,7 @@ import '../../widgets/export_file_dialog.dart';
 import '../../widgets/backup_dialog.dart';
 import '../../widgets/restore_dialog.dart';
 import '../Library/library_controller.dart';
+import '../Library/local_songs_controller.dart';
 import '../../widgets/snackbar.dart';
 import '/ui/widgets/link_piped.dart';
 import '/services/music_service.dart';
@@ -914,6 +915,109 @@ class SettingsScreen extends StatelessWidget {
                         settingsController.setExportedLocation();
                       },
                     ),
+                ],
+              ),
+              CustomExpansionTile(
+                title: "Local Music & Folders",
+                icon: Icons.folder_special_outlined,
+                children: [
+                  ListTile(
+                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                    title: const Text("Scan Device Storage"),
+                    subtitle: Text(
+                      "Search internal storage and SD card for audio files",
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    trailing: TextButton.icon(
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text("Rescan"),
+                      onPressed: () async {
+                        final localCtrl = Get.put(LocalSongsController());
+                        final messenger = ScaffoldMessenger.of(context);
+                        await localCtrl.loadLocalSongs(forceRescan: true);
+                        if (!context.mounted) return;
+                        messenger.showSnackBar(
+                          snackbar(
+                            context,
+                            "Found ${localCtrl.localSongsList.length} local songs",
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  ListTile(
+                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                    title: const Text("Exclude Folder"),
+                    subtitle: Text(
+                      "Hide songs from WhatsApp, ringtones, or custom folders",
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.create_new_folder_outlined),
+                      tooltip: "Pick folder to exclude",
+                      onPressed: () async {
+                        final localCtrl = Get.put(LocalSongsController());
+                        final messenger = ScaffoldMessenger.of(context);
+                        String? selectedDir =
+                            await FilePicker.platform.getDirectoryPath();
+                        if (selectedDir != null && selectedDir.isNotEmpty) {
+                          await localCtrl.addExcludedFolder(selectedDir);
+                          if (!context.mounted) return;
+                          messenger.showSnackBar(
+                            snackbar(
+                              context,
+                              "Excluded folder: $selectedDir",
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                  Builder(builder: (context) {
+                    final localCtrl = Get.put(LocalSongsController());
+                    final excluded = localCtrl.getExcludedFolders();
+                    if (excluded.isEmpty) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16.0, vertical: 8.0),
+                        child: Text(
+                          "No folders excluded. All detected music will be shown.",
+                          style: TextStyle(fontSize: 13, color: Colors.grey),
+                        ),
+                      );
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Padding(
+                          padding:
+                              EdgeInsets.only(left: 16.0, top: 8.0, bottom: 4.0),
+                          child: Text(
+                            "Excluded Folders List:",
+                            style: TextStyle(
+                                fontWeight: FontWeight.w600, fontSize: 13),
+                          ),
+                        ),
+                        ...excluded.map((folder) => ListTile(
+                              dense: true,
+                              contentPadding:
+                                  const EdgeInsets.only(left: 16, right: 10),
+                              leading: const Icon(Icons.folder_off_outlined,
+                                  size: 20),
+                              title: Text(folder,
+                                  style: const TextStyle(fontSize: 13)),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.close_rounded, size: 18),
+                                tooltip: "Remove exclusion",
+                                onPressed: () async {
+                                  await localCtrl.removeExcludedFolder(folder);
+                                  (context as Element).markNeedsBuild();
+                                },
+                              ),
+                            )),
+                      ],
+                    );
+                  }),
                 ],
               ),
               CustomExpansionTile(

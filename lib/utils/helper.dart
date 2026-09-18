@@ -37,12 +37,21 @@ void sortSongsNVideos(
   Comparator compareFunction;
 
   switch (sortType) {
+    case SortType.Popularity:
+      compareFunction = (a, b) {
+        final aPop = a.extras?['views'] ?? a.extras?['playCount'] ?? a.extras?['popularity'] ?? 0;
+        final bPop = b.extras?['views'] ?? b.extras?['playCount'] ?? b.extras?['popularity'] ?? 0;
+        if (aPop is Comparable && bPop is Comparable) {
+          return aPop.compareTo(bPop);
+        }
+        return 0.compareTo(0);
+      };
+      break;
     case SortType.Date:
       compareFunction = (a, b) {
-        if (a.extras!['date'] == null || b.extras!['date'] == null) {
-          return 0.compareTo(0);
-        }
-        return a.extras!['date'].compareTo(b.extras!['date']);
+        final aDate = a.extras?['date'] ?? a.extras?['year'] ?? "";
+        final bDate = b.extras?['date'] ?? b.extras?['year'] ?? "";
+        return (aDate.toString()).compareTo(bDate.toString());
       };
       break;
     case SortType.Duration:
@@ -73,17 +82,17 @@ void sortAlbumNSingles(
 
   switch (sortType) {
     case SortType.Date:
-      compareFunction =
-          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase());
-      break;
-    case SortType.Name:
-    default:
       compareFunction = (a, b) {
         if (a.year == null || b.year == null) {
           return 0.compareTo(0);
         }
         return a.year!.compareTo(b.year!);
       };
+      break;
+    case SortType.Name:
+    default:
+      compareFunction =
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase());
       break;
   }
 

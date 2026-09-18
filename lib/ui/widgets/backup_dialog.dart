@@ -214,7 +214,7 @@ class BackupDialogController extends GetxController {
     final exportDirPath = pickedFolderPath.toString();
 
     compressFilesInBackground(filesToExport,
-            '$exportDirPath/${DateTime.now().millisecondsSinceEpoch.toString()}.hmb')
+            '$exportDirPath/${DateTime.now().millisecondsSinceEpoch.toString()}.ovb')
         .then((_) {
       backupRunning.value = false;
       isbackupCompleted.value = true;

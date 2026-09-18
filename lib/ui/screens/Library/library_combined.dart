@@ -74,6 +74,7 @@ class CombinedLibrary extends StatelessWidget {
           controller: tabCon.tabController,
           tabs: [
             Tab(text: "songs".tr),
+            Tab(text: "localSongs".tr),
             Tab(text: "playlists".tr),
             Tab(text: "albums".tr),
             Tab(text: "artists".tr),
@@ -89,6 +90,9 @@ class CombinedLibrary extends StatelessWidget {
         controller: tabCon.tabController,
         children: const [
           SongsLibraryWidget(
+            isBottomNavActive: true,
+          ),
+          LocalSongsLibraryWidget(
             isBottomNavActive: true,
           ),
           PlaylistNAlbumLibraryWidget(
@@ -108,7 +112,7 @@ class CombinedLibraryController extends GetxController
   @override
   void onInit() {
     super.onInit();
-    tabController = TabController(vsync: this, length: 4);
+    tabController = TabController(vsync: this, length: 5);
   }
 
   @override

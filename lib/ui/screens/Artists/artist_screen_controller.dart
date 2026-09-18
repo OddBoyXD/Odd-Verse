@@ -156,6 +156,17 @@ class ArtistScreenController extends GetxController
       }
     });
    }
+    // Default sort: Newest First (SortType.Date, descending)
+    if (sepataredContent[tabName]?['results'] != null) {
+      final list = sepataredContent[tabName]['results'].toList();
+      if (tabName == "Songs" || tabName == "Videos") {
+        sortSongsNVideos(list, SortType.Date, false);
+      } else if (tabName == "Albums" || tabName == "Singles") {
+        sortAlbumNSingles(list, SortType.Date, false);
+      }
+      sepataredContent[tabName]['results'] = list;
+    }
+
     isSeparatedArtistContentFetced.value = true;
   }
 

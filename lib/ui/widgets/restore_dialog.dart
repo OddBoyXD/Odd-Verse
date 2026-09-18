@@ -143,7 +143,7 @@ class RestoreDialogController extends GetxController {
         .pickFiles(
             dialogTitle: "Select backup file",
             type: GetPlatform.isWindows ? FileType.custom : FileType.any,
-            allowedExtensions: GetPlatform.isWindows ? ['hmb'] : null,
+            allowedExtensions: GetPlatform.isWindows ? ['ovb', 'hmb'] : null,
             allowMultiple: false);
 
     final String? pickedFile = pickedFileResult?.files.first.path;
