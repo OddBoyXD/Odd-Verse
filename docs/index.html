@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Odd Verse — Next-Gen High Performance Music Player</title>
+  <meta name="description" content="Odd Verse is an ultra-fast, privacy-first, zero-ad music streaming player featuring 150ms instant start, 5MB burst buffering, Indic lyrics transliteration, and SponsorBlock.">
+  <meta name="theme-color" content="#0d0e15">
+  <meta property="og:title" content="Odd Verse — High Performance Streaming Music Player">
+  <meta property="og:description" content="Experience lightning-fast audio playback with zero ads, instant buffering, and synced lyrics.">
+  <meta property="og:image" content="assets/logo.png">
+  <meta property="og:url" content="https://oddverse.invmc.in">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- Google Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <link rel="icon" type="image/png" href="assets/logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient background glow effects -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <!-- Navigation -->
+  <header class="navbar" id="navbar">
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <img src="assets/logo.png" alt="Odd Verse Logo" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-name">ODD VERSE</span>
+          <span class="brand-tag">v1.0.0</span>
+        </div>
+      </a>
+
+      <nav class="nav-links" id="navLinks">
+        <a href="#features" class="nav-item">Features</a>
+        <a href="#performance" class="nav-item">Performance</a>
+        <a href="#architecture" class="nav-item">Engine</a>
+        <a href="#downloads" class="nav-item">Download</a>
+        <a href="#faq" class="nav-item">FAQ</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="https://github.com/OddBoyXdxd69/Odd-Verse" target="_blank" rel="noopener noreferrer" class="btn btn-github">
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span class="desktop-only">GitHub</span>
+        </a>
+        <a href="#downloads" class="btn btn-primary btn-sm">
+          <span>Get App</span>
+          <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+        </a>
+        <button class="mobile-toggle" id="menuToggle" aria-label="Toggle Navigation">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer -->
+  <div class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-links">
+      <a href="#features" class="drawer-item">✨ Features</a>
+      <a href="#performance" class="drawer-item">⚡ Performance</a>
+      <a href="#architecture" class="drawer-item">🛠️ Audio Engine</a>
+      <a href="#downloads" class="drawer-item">📦 Downloads</a>
+      <a href="#faq" class="drawer-item">❓ FAQ</a>
+      <a href="https://github.com/OddBoyXdxd69/Odd-Verse" target="_blank" class="drawer-item">🐙 Source Code</a>
+    </div>
+  </div>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-content">
+          <div class="badge-pill">
+            <span class="pulse-dot"></span>
+            <span>Odd Verse v1.0.0 Official Release</span>
+          </div>
+
+          <h1 class="hero-title">
+            Music Streaming, <br>
+            <span class="gradient-text">Engineered for Speed.</span>
+          </h1>
+
+          <p class="hero-desc">
+            Experience ultra-low latency audio with <strong>150ms instant start</strong>, <strong>5 MB burst buffering</strong>, synced Indic transliteration, SponsorBlock skipping, and zero advertisements.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="#downloads" class="btn btn-primary btn-lg">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              <span>Download APK</span>
+            </a>
+            <a href="#features" class="btn btn-secondary btn-lg">
+              <span>Explore Features</span>
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </a>
+          </div>
+
+          <div class="hero-meta">
+            <div class="meta-item">
+              <span class="meta-icon">🛡️</span>
+              <span>100% Free & No Ads</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-icon">⚡</span>
+              <span>Android 7.0+ Ready</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-icon">🔒</span>
+              <span>Keystore Signed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Mockup & Visualizer -->
+        <div class="hero-visual">
+          <div class="player-card">
+            <div class="player-header">
+              <div class="player-status">
+                <span class="live-indicator"></span>
+                <span>NOW STREAMING</span>
+              </div>
+              <span class="bitrate-tag">320 KBPS • LOSSLESS</span>
+            </div>
+
+            <div class="album-art-container">
+              <img src="assets/banner.jpg" alt="Odd Verse Artwork" class="album-art">
+              <div class="art-overlay">
+                <div class="audio-waves" id="audioWaves">
+                  <span class="wave-bar"></span>
+                  <span class="wave-bar"></span>
+                  <span class="wave-bar"></span>
+                  <span class="wave-bar"></span>
+                  <span class="wave-bar"></span>
+                  <span class="wave-bar"></span>
+                  <span class="wave-bar"></span>
+                  <span class="wave-bar"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="song-info">
+              <div class="song-title">Odd Verse Soundstage</div>
+              <div class="song-artist">ExoPlayer Turbo • Native C++ Audio</div>
+            </div>
+
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-fill"></div>
+              </div>
+              <div class="time-row">
+                <span>01:42</span>
+                <span class="sponsorblock-tag">SponsorBlock Active</span>
+                <span>03:54</span>
+              </div>
+            </div>
+
+            <div class="player-controls">
+              <button class="ctrl-btn" aria-label="Previous">⏮</button>
+              <button class="ctrl-btn play-btn" id="playPreviewBtn" aria-label="Play/Pause">⏸</button>
+              <button class="ctrl-btn" aria-label="Next">⏭</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Performance Stats Section -->
+    <section class="stats-section" id="performance">
+      <div class="container">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number gradient-text">150<span class="unit">ms</span></div>
+            <div class="stat-label">Instant Playback Start</div>
+            <p class="stat-sub">Aggressive initial buffer pre-load triggers playback in under a fraction of a second.</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-number gradient-text">5.0<span class="unit">MB</span></div>
+            <div class="stat-label">Burst Buffering</div>
+            <p class="stat-sub">Saturates network connections to keep music playing seamlessly even on unstable signals.</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-number gradient-text">2<span class="unit">ms</span></div>
+            <div class="stat-label">Hive Local Cache</div>
+            <p class="stat-sub">Stale-while-revalidate local DB serves cached pages in 2ms with silent background refresh.</p>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-number gradient-text">0<span class="unit">%</span></div>
+            <div class="stat-label">Zero Ads & Trackers</div>
+            <p class="stat-sub">No promotional interruptions, no trackers, and complete telemetry-free privacy.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Features Grid -->
+    <section class="features-section" id="features">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">POWERFUL CAPABILITIES</span>
+          <h2 class="section-title">Built for the Modern Audiophile</h2>
+          <p class="section-desc">Engineered from the ground up with high performance Flutter and native C++ audio extensions.</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon-box">⚡</div>
+            <h3 class="feature-title">ExoPlayer Turbo Engine</h3>
+            <p class="feature-text">
+              Custom-tuned <code>AndroidLoadControl</code> with predictive upcoming track pre-fetching. No pauses between tracks.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-box">🌐</div>
+            <h3 class="feature-title">Indic Transliteration</h3>
+            <p class="feature-text">
+              Real-time synchronized romanization of Hindi, Punjabi, and Gurmukhi lyrics directly in the synced player view.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-box">🛡️</div>
+            <h3 class="feature-title">Integrated SponsorBlock</h3>
+            <p class="feature-text">
+              Intelligently skips non-music intros, promotional intervals, and YouTube video noise automatically.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-box">🎵</div>
+            <h3 class="feature-title">Direct Audio Sharing</h3>
+            <p class="feature-text">
+              Extract and export pure M4A / AAC audio files with intact metadata tags and artwork straight to your storage.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-box">🎨</div>
+            <h3 class="feature-title">Dynamic Material You</h3>
+            <p class="feature-text">
+              Fluid dynamic color palette that seamlessly extracts vibrant tones from the currently playing album artwork.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon-box">🧹</div>
+            <h3 class="feature-title">Deep Cache Purge</h3>
+            <p class="feature-text">
+              Granular cache management tools in Settings allowing 1-tap instant cache cleanup and memory optimization.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Download APK Variants Section -->
+    <section class="downloads-section" id="downloads">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">GET THE APP</span>
+          <h2 class="section-title">Download Odd Verse v1.0.0</h2>
+          <p class="section-desc">Select the package built specifically for your device architecture.</p>
+        </div>
+
+        <div class="downloads-grid">
+          <!-- ARM64 (Recommended) -->
+          <div class="download-card featured">
+            <div class="card-badge">RECOMMENDED</div>
+            <div class="card-header">
+              <div class="arch-name">64-bit ARM</div>
+              <div class="arch-code">arm64-v8a</div>
+            </div>
+            <div class="card-desc">For 99% of all modern Android phones (Samsung, Xiaomi, OnePlus, Pixel, Realme, etc.)</div>
+            <div class="card-meta">
+              <span class="meta-tag">Size: ~16.1 MB</span>
+              <span class="meta-tag">Android 7.0+</span>
+            </div>
+            <a href="https://github.com/OddBoyXdxd69/Odd-Verse/releases/download/v1.0.0/OddVerse-v1.0.0-arm64-v8a.apk" class="btn btn-primary btn-block">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              <span>Download arm64-v8a</span>
+            </a>
+          </div>
+
+          <!-- Universal -->
+          <div class="download-card">
+            <div class="card-header">
+              <div class="arch-name">Universal APK</div>
+              <div class="arch-code">All Architectures</div>
+            </div>
+            <div class="card-desc">Contains all native binaries combined. Guaranteed compatibility across any Android hardware.</div>
+            <div class="card-meta">
+              <span class="meta-tag">Size: ~36.7 MB</span>
+              <span class="meta-tag">All Devices</span>
+            </div>
+            <a href="https://github.com/OddBoyXdxd69/Odd-Verse/releases/download/v1.0.0/OddVerse-v1.0.0-universal.apk" class="btn btn-secondary btn-block">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              <span>Download Universal</span>
+            </a>
+          </div>
+
+          <!-- ARM 32-bit -->
+          <div class="download-card">
+            <div class="card-header">
+              <div class="arch-name">32-bit ARM</div>
+              <div class="arch-code">armeabi-v7a</div>
+            </div>
+            <div class="card-desc">Designed specifically for older or budget Android smartphones and lightweight tablets.</div>
+            <div class="card-meta">
+              <span class="meta-tag">Size: ~15.9 MB</span>
+              <span class="meta-tag">Legacy Devices</span>
+            </div>
+            <a href="https://github.com/OddBoyXdxd69/Odd-Verse/releases/download/v1.0.0/OddVerse-v1.0.0-armeabi-v7a.apk" class="btn btn-secondary btn-block">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              <span>Download armeabi-v7a</span>
+            </a>
+          </div>
+
+          <!-- x86_64 Emulator -->
+          <div class="download-card">
+            <div class="card-header">
+              <div class="arch-name">64-bit x86</div>
+              <div class="arch-code">x86_64</div>
+            </div>
+            <div class="card-desc">Optimized for Android emulators (BlueStacks, LDPlayer), Chromebooks, and Intel/AMD tablets.</div>
+            <div class="card-meta">
+              <span class="meta-tag">Size: ~16.3 MB</span>
+              <span class="meta-tag">Emulators & PC</span>
+            </div>
+            <a href="https://github.com/OddBoyXdxd69/Odd-Verse/releases/download/v1.0.0/OddVerse-v1.0.0-x86_64.apk" class="btn btn-secondary btn-block">
+              <svg class="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+              </svg>
+              <span>Download x86_64</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Installation Instructions -->
+        <div class="install-guide">
+          <h3 class="guide-title">📲 How to Install</h3>
+          <div class="steps-grid">
+            <div class="step-box">
+              <div class="step-num">1</div>
+              <div class="step-text">Download the <strong>arm64-v8a</strong> APK (or Universal) above.</div>
+            </div>
+            <div class="step-box">
+              <div class="step-num">2</div>
+              <div class="step-text">Open the downloaded file and tap <strong>Install</strong>.</div>
+            </div>
+            <div class="step-box">
+              <div class="step-num">3</div>
+              <div class="step-text">If prompted, enable <em>"Allow from this source"</em> in Android settings.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture & Comparison Section -->
+    <section class="architecture-section" id="architecture">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">HIGH-PERFORMANCE BENCHMARK</span>
+          <h2 class="section-title">Why Odd Verse Outperforms the Rest</h2>
+        </div>
+
+        <div class="comparison-table-wrapper">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th class="highlight">Odd Verse</th>
+                <th>Standard Apps</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Playback Start Latency</td>
+                <td class="highlight"><span class="check">⚡ 150ms Instant</span></td>
+                <td>1,200ms – 2,500ms</td>
+              </tr>
+              <tr>
+                <td>Network Buffering</td>
+                <td class="highlight"><span class="check">🚀 5 MB Burst Saturated</span></td>
+                <td>Standard ~500 KB</td>
+              </tr>
+              <tr>
+                <td>Cache Loading Speed</td>
+                <td class="highlight"><span class="check">⚡ 2ms Hive Local DB</span></td>
+                <td>Slow HTTP re-fetch</td>
+              </tr>
+              <tr>
+                <td>SponsorBlock Integration</td>
+                <td class="highlight"><span class="check">✓ Built-in Silent Skip</span></td>
+                <td>✗ None</td>
+              </tr>
+              <tr>
+                <td>Indic Synced Transliteration</td>
+                <td class="highlight"><span class="check">✓ Hindi / Punjabi Romanized</span></td>
+                <td>✗ None</td>
+              </tr>
+              <tr>
+                <td>Advertisements</td>
+                <td class="highlight"><span class="check">✓ 0% Ads (Clean)</span></td>
+                <td>✗ Banner & Video Ads</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">COMMON QUESTIONS</span>
+          <h2 class="section-title">Frequently Asked Questions</h2>
+        </div>
+
+        <div class="faq-accordion">
+          <details class="faq-item" open>
+            <summary class="faq-question">
+              <span>Is Odd Verse completely free with zero ads?</span>
+              <span class="faq-toggle">+</span>
+            </summary>
+            <div class="faq-answer">
+              Yes, 100%. Odd Verse is an open-source music streaming client that does not contain any advertisements, third-party analytics trackers, or paid subscriptions.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span>Which APK should I download for my phone?</span>
+              <span class="faq-toggle">+</span>
+            </summary>
+            <div class="faq-answer">
+              For almost all modern Android phones produced in the last 6+ years, choose the <strong>64-bit ARM (arm64-v8a)</strong> APK. If you're not sure, the <strong>Universal APK</strong> will run on any Android device.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span>How does Indic transliteration work?</span>
+              <span class="faq-toggle">+</span>
+            </summary>
+            <div class="faq-answer">
+              Odd Verse includes native phonetic transliteration algorithms that automatically convert synced Hindi, Punjabi, and Gurmukhi script lyrics into readable Latin/English alphabet characters in real-time.
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">
+              <span>Is Odd Verse safe to install on Android?</span>
+              <span class="faq-toggle">+</span>
+            </summary>
+            <div class="faq-answer">
+              Yes, every release APK is cryptographically signed with a secure master keystore and built directly through transparent GitHub Actions pipelines from the public source repository.
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="Odd Verse" class="footer-logo">
+        <div>
+          <div class="footer-title">ODD VERSE</div>
+          <div class="footer-copy">Crafted & Maintained by <strong>OddBoyXdxd69</strong></div>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <a href="https://github.com/OddBoyXdxd69/Odd-Verse" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+        <a href="https://github.com/OddBoyXdxd69/Odd-Verse/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+        <a href="#downloads">Download APK</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="container">
+        <span>© 2026 Odd Verse. High-Performance Open Source Audio Client.</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
