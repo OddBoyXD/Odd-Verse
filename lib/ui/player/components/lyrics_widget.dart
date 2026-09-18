@@ -187,6 +187,7 @@ class YtmSyncedLyricsView extends StatefulWidget {
 
 class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _viewportKey = GlobalKey();
   final List<GlobalKey> _itemKeys = [];
   int _lastActiveIndex = -1;
   bool _userInteracting = false;
@@ -196,13 +197,27 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
   void initState() {
     super.initState();
     _initKeys();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final currentPos =
+            widget.playerController.progressBarStatus.value.current;
+        final activeIndex = _findActiveIndex(currentPos);
+        if (activeIndex >= 0) {
+          _lastActiveIndex = activeIndex;
+          _scrollToActive(activeIndex);
+        }
+      }
+    });
   }
 
   @override
   void didUpdateWidget(covariant YtmSyncedLyricsView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.lyrics.length != widget.lyrics.length) {
+    if (oldWidget.lyrics != widget.lyrics) {
       _initKeys();
+      _lastActiveIndex = -1;
+      _userInteracting = false;
+      _resumeTimer?.cancel();
     }
   }
 
@@ -222,14 +237,39 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
 
   void _scrollToActive(int index) {
     if (_userInteracting || index < 0 || index >= _itemKeys.length) return;
-    final context = _itemKeys[index].currentContext;
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 400),
-        curve: Curves.easeOutCubic,
-        alignment: 0.5,
-      );
+    if (!_scrollController.hasClients) return;
+
+    final itemContext = _itemKeys[index].currentContext;
+    final viewportContext = _viewportKey.currentContext;
+
+    if (itemContext != null && viewportContext != null) {
+      final itemBox = itemContext.findRenderObject() as RenderBox?;
+      final viewportBox = viewportContext.findRenderObject() as RenderBox?;
+
+      if (itemBox != null &&
+          viewportBox != null &&
+          itemBox.hasSize &&
+          viewportBox.hasSize) {
+        final itemOffset =
+            itemBox.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+        final currentScrollOffset = _scrollController.offset;
+        final viewportHeight = viewportBox.size.height;
+        final itemHeight = itemBox.size.height;
+
+        final targetOffset = currentScrollOffset +
+            itemOffset -
+            (viewportHeight / 2) +
+            (itemHeight / 2);
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        final minScroll = _scrollController.position.minScrollExtent;
+        final clampedOffset = targetOffset.clamp(minScroll, maxScroll);
+
+        _scrollController.animateTo(
+          clampedOffset,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+        );
+      }
     }
   }
 
@@ -276,6 +316,10 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
           _userInteracting = true;
           _resumeTimer?.cancel();
         },
+        onPointerMove: (_) {
+          _userInteracting = true;
+          _resumeTimer?.cancel();
+        },
         onPointerUp: (_) {
           _startResumeTimer();
         },
@@ -288,15 +332,20 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
                 notification.dragDetails != null) {
               _userInteracting = true;
               _resumeTimer?.cancel();
+            } else if (notification is ScrollUpdateNotification &&
+                notification.dragDetails != null) {
+              _userInteracting = true;
+              _resumeTimer?.cancel();
             } else if (notification is ScrollEndNotification) {
               _startResumeTimer();
             }
             return false;
           },
           child: SingleChildScrollView(
+            key: _viewportKey,
             controller: _scrollController,
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 120),
+            padding: widget.padding,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: List.generate(widget.lyrics.length, (index) {
