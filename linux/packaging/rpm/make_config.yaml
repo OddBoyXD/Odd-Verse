@@ -1,10 +1,10 @@
 icon: assets/icons/icon.png
 summary: An application to stream Music
 group: Application/Multimedia
-vendor: OddBoyXdxd69
-packager: OddBoyXdxd69
+vendor: OddBoyXD
+packager: OddBoyXD
 license: GPLv3
-url: https://github.com/OddBoyXdxd69/Odd-Verse
+url: https://github.com/OddBoyXD/Odd-Verse
 
 requires:
   - mpv-libs

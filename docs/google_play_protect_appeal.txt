@@ -29,7 +29,7 @@ We confirm that this application:
 - Complies fully with Android security and developer safety guidelines.
 
 Official Release APK Download Link:
-https://github.com/OddBoyXdxd69/Odd-Verse/releases/download/v1.0.0/OddVerse-v1.0.0-arm64-v8a.apk
+https://github.com/OddBoyXD/Odd-Verse/releases/download/v1.0.0/OddVerse-v1.0.0-arm64-v8a.apk
 
 Keystore Certificate SHA-256 Fingerprint:
 F7:0C:15:F1:BC:52:61:5F:3D:21:62:FD:2C:DE:13:C0:45:8A:6E:C6:9D:59:7B:A6:B2:46:91:22:38:FD:CD:A7

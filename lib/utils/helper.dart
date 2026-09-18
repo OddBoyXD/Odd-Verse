@@ -173,7 +173,7 @@ void sortArtist(
 Future<bool> newVersionCheck(String currentVersion) async {
   try {
     final tags = (await Dio()
-            .get("https://api.github.com/repos/OddBoyXdxd69/Odd-Verse/tags"))
+            .get("https://api.github.com/repos/OddBoyXD/Odd-Verse/tags"))
         .data;
     final availableVersion = tags[0]['name'] as String;
     List currentVersion_ = currentVersion.substring(1).split(".");

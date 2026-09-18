@@ -66,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
                             onTap: () {
                               launchUrl(
                                 Uri.parse(
-                                  'https://github.com/OddBoyXdxd69/Odd-Verse/releases/latest',
+                                  'https://github.com/OddBoyXD/Odd-Verse/releases/latest',
                                 ),
                                 mode: LaunchMode.externalApplication,
                               );
@@ -1188,7 +1188,7 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () {
                       launchUrl(
                         Uri.parse(
-                          'https://github.com/OddBoyXdxd69/Odd-Verse',
+                          'https://github.com/OddBoyXD/Odd-Verse',
                         ),
                         mode: LaunchMode.externalApplication,
                       );

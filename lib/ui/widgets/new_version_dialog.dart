@@ -30,7 +30,7 @@ class NewVersionDialog extends StatelessWidget {
                       onPressed: () {
                         launchUrl(
                           Uri.parse(
-                            'https://github.com/OddBoyXdxd69/Odd-Verse/releases/latest',
+                            'https://github.com/OddBoyXD/Odd-Verse/releases/latest',
                           ),
                           mode: LaunchMode.externalApplication,
                         );

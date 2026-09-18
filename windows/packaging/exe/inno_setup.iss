@@ -2,10 +2,10 @@
 AppId=B9F6E402-0CAE-4045-BDE6-14BD6C39C4EA
 AppVersion=1.0.0+1
 AppName=Odd Verse
-AppPublisher=OddBoyXdxd69
-AppPublisherURL=https://github.com/OddBoyXdxd69/Odd-Verse
-AppSupportURL=https://github.com/OddBoyXdxd69/Odd-Verse
-AppUpdatesURL=https://github.com/OddBoyXdxd69/Odd-Verse
+AppPublisher=OddBoyXD
+AppPublisherURL=https://github.com/OddBoyXD/Odd-Verse
+AppSupportURL=https://github.com/OddBoyXD/Odd-Verse
+AppUpdatesURL=https://github.com/OddBoyXD/Odd-Verse
 DefaultDirName={autopf}\OddVerse
 DisableProgramGroupPage=yes
 OutputDir=.

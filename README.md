@@ -9,9 +9,9 @@
   <em>Powered by Flutter, ExoPlayer & YouTube Music Engine</em>
 </p>
 
-[![Release](https://img.shields.io/github/v/release/OddBoyXdxd69/Odd-Verse?color=7C4DFF&label=Latest%20Release&logo=github&style=for-the-badge)](https://github.com/OddBoyXdxd69/Odd-Verse/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/OddBoyXdxd69/Odd-Verse/total?color=00E676&label=Downloads&logo=android&style=for-the-badge)](https://github.com/OddBoyXdxd69/Odd-Verse/releases)
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Linux%20%7C%20Windows-blue?style=for-the-badge&logo=android)](https://github.com/OddBoyXdxd69/Odd-Verse)
+[![Release](https://img.shields.io/github/v/release/OddBoyXD/Odd-Verse?color=7C4DFF&label=Latest%20Release&logo=github&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/OddBoyXD/Odd-Verse/total?color=00E676&label=Downloads&logo=android&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases)
+[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Linux%20%7C%20Windows-blue?style=for-the-badge&logo=android)](https://github.com/OddBoyXD/Odd-Verse)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-FFD600?style=for-the-badge&logo=gnu)](LICENSE)
 
 <br/>
@@ -68,14 +68,14 @@
 
 ## 📱 Download APKs
 
-Get the latest official release directly from [GitHub Releases](https://github.com/OddBoyXdxd69/Odd-Verse/releases/latest):
+Get the latest official release directly from [GitHub Releases](https://github.com/OddBoyXD/Odd-Verse/releases/latest):
 
 | Architecture | Device Compatibility | Download Link |
 | :--- | :--- | :--- |
-| **`arm64-v8a`** | Modern 64-bit Android Phones & Tablets *(Recommended)* | [Download ARM64 APK](https://github.com/OddBoyXdxd69/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-arm64-v8a.apk) |
-| **`armeabi-v7a`** | Legacy 32-bit Android Devices | [Download ARMv7 APK](https://github.com/OddBoyXdxd69/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-armeabi-v7a.apk) |
-| **`x86_64`** | 64-bit Emulators & ChromeOS | [Download x86_64 APK](https://github.com/OddBoyXdxd69/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-x86_64.apk) |
-| **`universal`** | All Android Architectures (All-in-One Fat APK) | [Download Universal APK](https://github.com/OddBoyXdxd69/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-universal.apk) |
+| **`arm64-v8a`** | Modern 64-bit Android Phones & Tablets *(Recommended)* | [Download ARM64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-arm64-v8a.apk) |
+| **`armeabi-v7a`** | Legacy 32-bit Android Devices | [Download ARMv7 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-armeabi-v7a.apk) |
+| **`x86_64`** | 64-bit Emulators & ChromeOS | [Download x86_64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-x86_64.apk) |
+| **`universal`** | All Android Architectures (All-in-One Fat APK) | [Download Universal APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-universal.apk) |
 
 ---
 
@@ -89,7 +89,7 @@ Get the latest official release directly from [GitHub Releases](https://github.c
 ### Build Instructions
 ```bash
 # 1. Clone the repository
-git clone https://github.com/OddBoyXdxd69/Odd-Verse.git
+git clone https://github.com/OddBoyXD/Odd-Verse.git
 cd Odd-Verse
 
 # 2. Fetch Flutter packages
@@ -144,7 +144,7 @@ Contributions, bug reports, and feature requests are welcome!
 
 ## 👤 Author & Maintainer
 
-- **OddBoyXD** — [@OddBoyXdxd69](https://github.com/OddBoyXdxd69)
+- **OddBoyXD** — [@OddBoyXD](https://github.com/OddBoyXD)
 
 ---
 

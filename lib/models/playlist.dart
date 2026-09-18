@@ -37,7 +37,7 @@ class Playlist {
   final String? songCount;
   final bool isCloudPlaylist;
   static const thumbPlaceholderUrl =
-      "https://raw.githubusercontent.com/OddBoyXdxd69/Odd-Verse/refs/heads/main/playlist_placeholder.png";
+      "https://raw.githubusercontent.com/OddBoyXD/Odd-Verse/refs/heads/main/playlist_placeholder.png";
 
   factory Playlist.fromJson(Map<dynamic, dynamic> json) => Playlist(
       title: json["title"],

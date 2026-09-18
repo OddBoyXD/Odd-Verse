@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Sync Download Links from Latest GitHub Release
-  const repo = 'OddBoyXdxd69/Odd-Verse';
+  const repo = 'OddBoyXD/Odd-Verse';
   fetch(`https://api.github.com/repos/${repo}/releases/latest`)
     .then(res => res.json())
     .then(data => {
