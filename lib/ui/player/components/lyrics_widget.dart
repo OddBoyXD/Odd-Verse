@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:harmonymusic/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:harmonymusic/utils/indic_transliteration.dart';
@@ -261,10 +262,24 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
 
       return NotificationListener<ScrollNotification>(
         onNotification: (notification) {
-          if (notification is ScrollStartNotification &&
-              notification.dragDetails != null) {
+          if (notification is ScrollStartNotification) {
             _userIsScrolling = true;
             _resumeTimer?.cancel();
+          } else if (notification is UserScrollNotification) {
+            if (notification.direction != ScrollDirection.idle) {
+              _userIsScrolling = true;
+              _resumeTimer?.cancel();
+            } else {
+              _resumeTimer?.cancel();
+              _resumeTimer = Timer(const Duration(seconds: 3), () {
+                if (mounted) {
+                  setState(() {
+                    _userIsScrolling = false;
+                  });
+                  _scrollToActive(_lastActiveIndex);
+                }
+              });
+            }
           } else if (notification is ScrollEndNotification) {
             _resumeTimer?.cancel();
             _resumeTimer = Timer(const Duration(seconds: 3), () {
