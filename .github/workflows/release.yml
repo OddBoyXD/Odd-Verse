@@ -1,0 +1,86 @@
+name: Build and Release Odd Verse
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Multi-Variant Release APKs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Setup Keystore
+        run: |
+          mkdir -p android/app
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/app/master_release.keystore 2>/dev/null || true
+          if [ ! -s android/app/master_release.keystore ]; then
+            echo "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" | base64 -d > android/app/master_release.keystore
+          fi
+          ls -la android/app/master_release.keystore
+
+      - name: Build Split-ABI APKs
+        run: flutter build apk --release --split-per-abi
+
+      - name: Build Universal APK
+        run: flutter build apk --release
+
+      - name: Prepare & Organize Release APKs
+        run: |
+          mkdir -p release_artifacts
+          VERSION_TAG=${GITHUB_REF_NAME:-v1.0.0}
+          
+          # Copy Split APKs
+          if [ -f "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk" ]; then
+            cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-arm64-v8a.apk"
+          fi
+          if [ -f "build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk" ]; then
+            cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-armeabi-v7a.apk"
+          fi
+          if [ -f "build/app/outputs/flutter-apk/app-x86_64-release.apk" ]; then
+            cp build/app/outputs/flutter-apk/app-x86_64-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-x86_64.apk"
+          fi
+          if [ -f "build/app/outputs/flutter-apk/app-x86-release.apk" ]; then
+            cp build/app/outputs/flutter-apk/app-x86-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-x86.apk"
+          fi
+          
+          # Copy Universal APK
+          if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+            cp build/app/outputs/flutter-apk/app-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-universal.apk"
+          fi
+          
+          ls -lh release_artifacts/
+
+      - name: Create GitHub Release & Upload APKs
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Odd Verse Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          files: release_artifacts/*
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
