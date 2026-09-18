@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:harmonymusic/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:harmonymusic/utils/indic_transliteration.dart';
@@ -190,7 +189,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
   final ScrollController _scrollController = ScrollController();
   final List<GlobalKey> _itemKeys = [];
   int _lastActiveIndex = -1;
-  bool _userIsScrolling = false;
+  bool _userInteracting = false;
   Timer? _resumeTimer;
 
   @override
@@ -222,16 +221,28 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
   }
 
   void _scrollToActive(int index) {
-    if (_userIsScrolling || index < 0 || index >= _itemKeys.length) return;
+    if (_userInteracting || index < 0 || index >= _itemKeys.length) return;
     final context = _itemKeys[index].currentContext;
     if (context != null) {
       Scrollable.ensureVisible(
         context,
-        duration: const Duration(milliseconds: 350),
+        duration: const Duration(milliseconds: 400),
         curve: Curves.easeOutCubic,
         alignment: 0.5,
       );
     }
+  }
+
+  void _startResumeTimer() {
+    _resumeTimer?.cancel();
+    _resumeTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) {
+        setState(() {
+          _userInteracting = false;
+        });
+        _scrollToActive(_lastActiveIndex);
+      }
+    });
   }
 
   int _findActiveIndex(Duration currentPosition) {
@@ -260,85 +271,85 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
         });
       }
 
-      return NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          if (notification is ScrollStartNotification) {
-            _userIsScrolling = true;
-            _resumeTimer?.cancel();
-          } else if (notification is UserScrollNotification) {
-            if (notification.direction != ScrollDirection.idle) {
-              _userIsScrolling = true;
-              _resumeTimer?.cancel();
-            } else {
-              _resumeTimer?.cancel();
-              _resumeTimer = Timer(const Duration(seconds: 3), () {
-                if (mounted) {
-                  setState(() {
-                    _userIsScrolling = false;
-                  });
-                  _scrollToActive(_lastActiveIndex);
-                }
-              });
-            }
-          } else if (notification is ScrollEndNotification) {
-            _resumeTimer?.cancel();
-            _resumeTimer = Timer(const Duration(seconds: 3), () {
-              if (mounted) {
-                setState(() {
-                  _userIsScrolling = false;
-                });
-                _scrollToActive(_lastActiveIndex);
-              }
-            });
-          }
-          return false;
+      return Listener(
+        onPointerDown: (_) {
+          _userInteracting = true;
+          _resumeTimer?.cancel();
         },
-        child: ListView.builder(
-          controller: _scrollController,
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 80),
-          itemCount: widget.lyrics.length,
-          itemBuilder: (context, index) {
-            final line = widget.lyrics[index];
-            final isActive = index == activeIndex;
+        onPointerUp: (_) {
+          _startResumeTimer();
+        },
+        onPointerCancel: (_) {
+          _startResumeTimer();
+        },
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            if (notification is ScrollStartNotification &&
+                notification.dragDetails != null) {
+              _userInteracting = true;
+              _resumeTimer?.cancel();
+            } else if (notification is ScrollEndNotification) {
+              _startResumeTimer();
+            }
+            return false;
+          },
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 120),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(widget.lyrics.length, (index) {
+                final line = widget.lyrics[index];
+                final isActive = index == activeIndex;
 
-            return Center(
-              key: _itemKeys[index],
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6.0),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  splashColor: Colors.white24,
-                  highlightColor: Colors.white12,
-                  onTap: () {
-                    // YouTube Music style: tap ANY line to seek directly to that segment!
-                    widget.playerController.seek(line.time);
-                    _userIsScrolling = false;
-                    _scrollToActive(index);
-                  },
+                return Center(
+                  key: _itemKeys[index],
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
-                      vertical: 6.0,
-                    ),
-                    child: Text(
-                      line.text,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: isActive
-                            ? const Color(0xFFFFD54F) // Active YouTube Music Gold
-                            : Colors.white.withOpacity(0.50),
-                        fontSize: isActive ? 19 : 15.5,
-                        fontWeight:
-                            isActive ? FontWeight.bold : FontWeight.w500,
-                        height: 1.5,
+                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      splashColor: const Color(0x33FFD54F),
+                      highlightColor: const Color(0x1AFFD54F),
+                      onTap: () {
+                        widget.playerController.seek(line.time);
+                        _userInteracting = false;
+                        _resumeTimer?.cancel();
+                        _scrollToActive(index);
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeInOut,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 8.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? const Color(0x26FFD54F)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          line.text,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: isActive
+                                ? const Color(0xFFFFD54F)
+                                : Colors.white.withOpacity(0.50),
+                            fontSize: isActive ? 19.5 : 15.5,
+                            fontWeight:
+                                isActive ? FontWeight.w800 : FontWeight.w500,
+                            height: 1.5,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            );
-          },
+                );
+              }),
+            ),
+          ),
         ),
       );
     });
