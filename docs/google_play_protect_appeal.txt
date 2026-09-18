@@ -1,0 +1,41 @@
+================================================================================
+GOOGLE PLAY PROTECT APPEALS SUBMISSION DETAILS
+================================================================================
+
+1. Email address:
+choudhuryranjit12@gmail.com
+
+2. Developer name:
+OddBoyXD
+
+3. Application package name:
+com.oddverse.dc
+
+4. SHA256 Hash of the apk of the uploaded file on Virus Total:
+6ab666c4a3d6035e4039bcc32bd0a33e927f35daba6e58c7f6f84afdba40a26b
+
+5. Additional information to support your appeal:
+Hello Google Play Protect Team,
+
+I am the developer of the Android application "Odd Verse" (Package Name: com.oddverse.dc). 
+
+Our application is a clean, open-source audio player and music streaming client distributed directly to our users via our official GitHub Releases repository and our official website (https://oddverse.invmc.in).
+
+Play Protect is currently displaying an "Unrecognized / Unsafe app blocked" warning on newly sideloaded devices because this is a new release signed with our master release keystore.
+
+We confirm that this application:
+- Contains ZERO malware, spyware, trojans, adware, or fraudulent code.
+- Does not engage in unauthorized data harvesting, permission abuse, or device manipulation.
+- Complies fully with Android security and developer safety guidelines.
+
+Official Release APK Download Link:
+https://github.com/OddBoyXdxd69/Odd-Verse/releases/download/v1.0.0/OddVerse-v1.0.0-arm64-v8a.apk
+
+Keystore Certificate SHA-256 Fingerprint:
+F7:0C:15:F1:BC:52:61:5F:3D:21:62:FD:2C:DE:13:C0:45:8A:6E:C6:9D:59:7B:A6:B2:46:91:22:38:FD:CD:A7
+
+Please review our APK file hash and whitelist our application package and developer certificate across Google Play Protect.
+
+Thank you,
+OddBoyXD (Odd Verse Developer)
+================================================================================
