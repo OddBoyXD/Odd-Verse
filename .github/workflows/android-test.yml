@@ -53,6 +53,9 @@ jobs:
       - name: 🔍 Static Code Analysis Check
         run: flutter analyze
 
+      - name: 📦 Run Unit & .ovb Backup Tests
+        run: flutter test test/
+
       - name: ⚙️ Enable KVM Hardware Virtualization
         run: |
           echo 'Checking KVM availability on GitHub runner...'
