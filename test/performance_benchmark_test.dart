@@ -51,6 +51,7 @@ void main() {
       expect(playbackState, equals('buffering'));
       playbackState = 'playing';
       expect(playbackState, equals('playing'));
+      expect(volume, equals(1.0));
 
       // 3. Seek to 1:30 (90 seconds)
       currentPosition = 90.0;
@@ -82,10 +83,13 @@ void main() {
       expect(isShuffled, isTrue);
       expect(shuffledQueue.length, equals(queue.length));
 
-      // 9. Repeat One Mode
+      // 9. Repeat Mode Evaluation
       repeatMode = 'one';
-      final nextTrackOnEnd = repeatMode == 'one' ? currentIndex : (currentIndex + 1);
-      expect(nextTrackOnEnd, equals(currentIndex));
+      int getNextIndex(String mode, int idx) {
+        if (mode == 'one') return idx;
+        return idx + 1;
+      }
+      expect(getNextIndex(repeatMode, currentIndex), equals(currentIndex));
 
       playbackStopwatch.stop();
       final playbackLatency = playbackStopwatch.elapsedMicroseconds / 1000.0;
@@ -189,17 +193,12 @@ void main() {
       expect(snappedLine, equals(32));
 
       // Simulate User Manual Scroll -> Freeze Auto-Snap for 3.0s cooldown
-      bool userIsScrolling = true;
-      int viewportLine = 15; // User scrolled up to line 15
+      int resolveDisplayedLine(bool scrolling, int userLine, int snapLine) {
+        return scrolling ? userLine : snapLine;
+      }
       
-      // During manual scroll, viewport remains at line 15
-      int displayedLine = userIsScrolling ? viewportLine : snappedLine;
-      expect(displayedLine, equals(15));
-
-      // After 3-second timer expires, snap back to playhead
-      userIsScrolling = false;
-      displayedLine = userIsScrolling ? viewportLine : snappedLine;
-      expect(displayedLine, equals(32));
+      expect(resolveDisplayedLine(true, 15, snappedLine), equals(15));
+      expect(resolveDisplayedLine(false, 15, snappedLine), equals(32));
 
       stopwatch.stop();
       final lyricsLatency = stopwatch.elapsedMicroseconds / 1000.0;
