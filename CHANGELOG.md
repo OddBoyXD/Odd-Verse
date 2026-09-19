@@ -1,6 +1,12 @@
 # 🚀 Odd Verse Changelog
 
-## [v1.0.1] - Next Update (In Progress)
+## [v1.0.1] - Official Release
+
+### 🎤 Real-Time Synced Lyrics & Auto-Snap Engine
+- **Smart Viewport Centering**: Real-time RenderBox calculation ensures the active lyric line remains smoothly centered within the player view without jumping or jitter.
+- **3-Second Inactivity Snap-Back**: Manual scrolling or dragging pauses auto-scrolling; after 3 seconds of inactivity, the engine smoothly snaps back to the synced lyric line.
+- **Interactive Tap-to-Seek**: Tap any lyric line to instantly seek audio playback directly to that timestamp.
+- **Transliteration & Romanization**: Full romanization support for Indic scripts (Hindi, Punjabi, Bengali, etc.).
 
 ### 🎵 Artist Hub Sorting Engine
 - **Multiple Sort Modes**: Sort artist songs, videos, and albums by:
@@ -16,13 +22,15 @@
 - **Embedded Tag & Artwork Extraction**: Displays embedded ID3/MP4 metadata, titles, artists, and embedded album cover artwork with on-demand zero-RAM caching.
 - **Exclude Folders in Settings**: Easily exclude noisy directories (e.g. WhatsApp audio, recordings, ringtones) with real-time library filtering.
 - **Standard Native Player Controls**: Full queue management, shuffle, repeat, background playback, notification controls, and equalizer support for all local files.
+- **Complete `.ovb` Backup & Restore**: Backup playlists, settings, and local library metadata to single encrypted `.ovb` files.
 
 ### 🎨 Apple Music-Inspired Minimal Aesthetics
 - **Clean Sleek Cards**: Modernized search genre cards and home headers with borderless clean aesthetics.
 - **Enhanced Contrast & Spacing**: Polished typography and fluid tab switches across Artist pages.
 
-### 🛠️ Stability & Upgradability
+### 🛠️ Stability, Upgradability & GitHub Migration
 - **Direct Seamless App Upgrade**: Configured versionCode `2002` allowing direct in-place update over previous release builds without uninstalling.
+- **Account & Repository Rebranding**: Migrated all author links, update checks, and repository endpoints to **`OddBoyXD/Odd-Verse`**.
 
 ## [v1.0.0] - Initial Release
 
