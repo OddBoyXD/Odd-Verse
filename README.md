@@ -45,37 +45,43 @@
 - **Stale-While-Revalidate Database Caching**: Home feeds, artist hubs, and playlists load in `~2ms` directly from local Hive storage with background silent sync.
 - **Predictive Upcoming Song Pre-buffering**: Automatically pre-fetches audio stream URLs for upcoming queue items for seamless next-track transitions.
 
-### 🎤 Synchronized Lyrics & Transliteration
-- **Karaoke & Plain Synced Lyrics**: Real-time synchronized lyrics fetched directly from multiple lyric providers.
-- **Indic Script Romanization**: Automatic Romanization / Hinglish transliteration for Hindi, Punjabi, Gurmukhi, Tamil, Telugu, and Malayalam lyrics.
-- **Live Translation**: Translate lyrics into your local language with a single tap.
+### 📁 Local & Offline Music Engine
+- **Internal Storage & SD Card Scanner**: Automatically discovers audio files (`.mp3`, `.m4a`, `.flac`, `.wav`, `.aac`, `.ogg`, `.opus`) across internal storage and external MicroSD cards.
+- **Dedicated "Local Songs" Tab**: Seamlessly integrated into library tabs with instant play, queue management, shuffle, repeat, and equalizer.
+- **Embedded Tag & Artwork Extraction**: Displays embedded ID3/MP4 metadata and album artwork with zero-RAM caching.
+- **Folder Exclusion Filter**: Exclude noisy folders (e.g. WhatsApp audio, recordings, ringtones) in Settings.
+- **Full `.ovb` Backup & Restore**: Backup playlists, settings, and library metadata to encrypted `.ovb` archives.
+
+### 🎵 Artist Hub Sorting Engine
+- **Multiple Sort Modes**: Sort artist songs, videos, and albums by **Newest First**, **Most Popular / Views**, **Oldest First**, and **Alphabetical (A–Z / Z–A)** with zero-latency in-memory reordering.
+
+### 🎤 Synchronized Lyrics & Auto-Snap
+- **Smart Viewport Centering**: Dynamic `RenderBox` viewport calculation centers the active lyric line smoothly.
+- **3-Second Inactivity Snap-Back**: Manual scrolling pauses auto-scroll; resumes and snaps back after 3 seconds of inactivity.
+- **Interactive Tap-to-Seek**: Tap any lyric line to instantly jump audio playback to that timestamp.
+- **Indic Script Romanization**: Automatic Romanization / Hinglish transliteration for Hindi, Punjabi, Gurmukhi, Tamil, Telugu, and Bengali lyrics.
 
 ### 🛡️ SponsorBlock & Privacy
 - **Integrated SponsorBlock**: Automatically and silently skips non-music intros, promotional intervals, sponsor segments, and outros.
 - **100% Privacy-Focused**: No ads, no analytics, no tracking, and no required account logins.
 
 ### 📤 Sharing & Offline Cache
-- **Pure M4A Audio Sharing**: Stream and package pure audio directly to WhatsApp, Telegram, and social apps with an active progress indicator.
+- **Pure M4A Audio Sharing**: Stream and export pure audio files with intact ID3 metadata and album art directly to device storage or messaging apps.
 - **Granular Cache Management**: 1-tap cache purge and configurable offline cache storage limits.
-- **Offline Playback**: Seamlessly listen to cached songs when traveling or disconnected from the internet.
-
-### 🎨 Apple Music-Inspired Aesthetics
-- **Material You / Dynamic Theming**: Adaptive color palette extracted in real-time from the currently playing album artwork.
-- **Minimalist Clean UI**: Borderless sleek cards, refined typography, and smooth gesture transitions.
-- **Full Customization**: Customizable bottom navigation, mini-player styles, dark/light themes, and UI scaling.
 
 ---
 
-## 📱 Download APKs
+## 📱 Download APKs (v1.0.1)
 
 Get the latest official release directly from [GitHub Releases](https://github.com/OddBoyXD/Odd-Verse/releases/latest):
 
 | Architecture | Device Compatibility | Download Link |
 | :--- | :--- | :--- |
-| **`arm64-v8a`** | Modern 64-bit Android Phones & Tablets *(Recommended)* | [Download ARM64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-arm64-v8a.apk) |
-| **`armeabi-v7a`** | Legacy 32-bit Android Devices | [Download ARMv7 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-armeabi-v7a.apk) |
-| **`x86_64`** | 64-bit Emulators & ChromeOS | [Download x86_64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-x86_64.apk) |
-| **`universal`** | All Android Architectures (All-in-One Fat APK) | [Download Universal APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-universal.apk) |
+| **`arm64-v8a`** | Modern 64-bit Android Phones & Tablets *(Recommended for 99% of phones)* | [Download ARM64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-arm64-v8a.apk) |
+| **`universal`** | All Android Architectures (All-in-One Fat APK) | [Download Universal APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-universal.apk) |
+| **`armeabi-v7a`** | Legacy 32-bit Android Devices | [Download ARMv7 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-armeabi-v7a.apk) |
+| **`x86_64`** | 64-bit Emulators & ChromeOS | [Download x86_64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-x86_64.apk) |
+| **`x86`** | 32-bit Intel Architecture | [Download x86 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-x86.apk) |
 
 ---
 
