@@ -1,4 +1,0 @@
-- In-App Update Engine: Active update notifications directly from GitHub releases.
-- Auto-Check Toggle: Configurable update check toggle under Settings > Miscellaneous.
-- Manual Update Button: Real-time update verification button with instant feedback.
-- Resilient Semver Parser: Enhanced semantic version comparator for all architectures.
