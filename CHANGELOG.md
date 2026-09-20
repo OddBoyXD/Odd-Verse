@@ -1,5 +1,13 @@
 # 🚀 Odd Verse Changelog
 
+## [v1.0.2] - In Development
+
+### 🔄 In-App Update & Notification Engine
+- **Active Update System**: Enabled `updateCheckFlag = true` allowing the app to automatically check for newer Odd Verse releases directly from GitHub.
+- **Auto-Check Toggle in Settings**: Added a new toggle under `Settings` -> `Miscellaneous` to enable or disable automatic update checks on app launch.
+- **Manual "Check for Updates" Button**: Added a dedicated manual check button under `Settings` -> `Miscellaneous` with instant real-time feedback (displays a notification if up-to-date or opens the download modal if a new release is available).
+- **Resilient Version Comparator**: Upgraded semantic version parser with robust major/minor/patch comparison and prefix normalization.
+
 ## [v1.0.1] - Official Release
 
 ### 🎤 Real-Time Synced Lyrics & Auto-Snap Engine

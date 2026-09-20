@@ -261,6 +261,10 @@ class HomeScreenController extends GetxController {
   }
 
   void _checkNewVersion() {
+    final isAutoUpdateCheckEnabled =
+        Hive.box("AppPrefs").get("isAutoUpdateCheckEnabled") ?? true;
+    if (!isAutoUpdateCheckEnabled) return;
+
     showVersionDialog.value =
         Hive.box("AppPrefs").get("newVersionVisibility") ?? true;
     if (showVersionDialog.isTrue) {

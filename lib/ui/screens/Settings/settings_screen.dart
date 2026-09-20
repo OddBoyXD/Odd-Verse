@@ -1156,6 +1156,47 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     ListTile(
                       contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      title: const Text("Auto-Check for Updates"),
+                      subtitle: Text(
+                        "Automatically check for new versions on app startup",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      trailing: Obx(
+                        () => CustSwitch(
+                          value: settingsController
+                              .isAutoUpdateCheckEnabled.value,
+                          onChanged: (val) {
+                            settingsController.toggleAutoUpdateCheck(val);
+                          },
+                        ),
+                      ),
+                    ),
+                    ListTile(
+                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      leading: const Icon(Icons.system_update),
+                      title: const Text("Check for Updates Now"),
+                      subtitle: Text(
+                        "Manually verify if a newer Odd Verse version is available",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      trailing: Obx(
+                        () => settingsController
+                                .isManualCheckingForUpdates.value
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      onTap: () {
+                        settingsController.manualCheckForUpdates(context);
+                      },
+                    ),
+                    const Divider(),
+                    ListTile(
+                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
                       title: Text("resetToDefault".tr),
                       subtitle: Text(
                         "resetToDefaultDes".tr,

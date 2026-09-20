@@ -175,19 +175,28 @@ Future<bool> newVersionCheck(String currentVersion) async {
     final tags = (await Dio()
             .get("https://api.github.com/repos/OddBoyXD/Odd-Verse/tags"))
         .data;
+    if (tags == null || (tags as List).isEmpty) return false;
     final availableVersion = tags[0]['name'] as String;
-    List currentVersion_ = currentVersion.substring(1).split(".");
-    List availableVersion_ = availableVersion.substring(1).split(".");
-    if (int.parse(availableVersion_[0]) > int.parse(currentVersion_[0])) {
+
+    final curClean = currentVersion.replaceAll(RegExp(r'^[vV]'), '');
+    final availClean = availableVersion.replaceAll(RegExp(r'^[vV]'), '');
+
+    List currentVersion_ = curClean.split(".");
+    List availableVersion_ = availClean.split(".");
+
+    int cMajor = int.tryParse(currentVersion_[0]) ?? 0;
+    int cMinor = currentVersion_.length > 1 ? (int.tryParse(currentVersion_[1]) ?? 0) : 0;
+    int cPatch = currentVersion_.length > 2 ? (int.tryParse(currentVersion_[2]) ?? 0) : 0;
+
+    int aMajor = int.tryParse(availableVersion_[0]) ?? 0;
+    int aMinor = availableVersion_.length > 1 ? (int.tryParse(availableVersion_[1]) ?? 0) : 0;
+    int aPatch = availableVersion_.length > 2 ? (int.tryParse(availableVersion_[2]) ?? 0) : 0;
+
+    if (aMajor > cMajor) {
       return true;
-    } else if (int.parse(availableVersion_[1]) >
-            int.parse(currentVersion_[1]) &&
-        int.parse(availableVersion_[0]) == int.parse(currentVersion_[0])) {
+    } else if (aMajor == cMajor && aMinor > cMinor) {
       return true;
-    } else if (int.parse(availableVersion_[2]) >
-            int.parse(currentVersion_[2]) &&
-        int.parse(availableVersion_[0]) == int.parse(currentVersion_[0]) &&
-        int.parse(availableVersion_[1]) == int.parse(currentVersion_[1])) {
+    } else if (aMajor == cMajor && aMinor == cMinor && aPatch > cPatch) {
       return true;
     }
     return false;

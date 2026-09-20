@@ -12,6 +12,7 @@ import '../../../utils/update_check_flag_file.dart';
 import '/services/piped_service.dart';
 import '../Library/library_controller.dart';
 import '../../widgets/snackbar.dart';
+import '../../widgets/new_version_dialog.dart';
 import '../../../utils/helper.dart';
 import '/services/music_service.dart';
 import '/ui/player/player_controller.dart';
@@ -34,6 +35,8 @@ class SettingsScreenController extends GetxController {
   final autoOpenPlayer = false.obs;
   final discoverContentType = "QP".obs;
   final isNewVersionAvailable = false.obs;
+  final isAutoUpdateCheckEnabled = true.obs;
+  final isManualCheckingForUpdates = false.obs;
   final isLinkedWithPiped = false.obs;
   final stopPlyabackOnSwipeAway = false.obs;
   final currentAppLanguageCode = "en".obs;
@@ -55,7 +58,7 @@ class SettingsScreenController extends GetxController {
   final enableAutoInfiniteRadio = true.obs;
   final romanizeLyricsEnabled = true.obs;
   final enableSponsorBlock = true.obs;
-  final currentVersion = "V1.0.1";
+  final currentVersion = "V1.0.2";
 
   @override
   void onInit() {
@@ -71,8 +74,10 @@ class SettingsScreenController extends GetxController {
   String get supportDirPath => _supportDir;
 
   _checkNewVersion() {
-    newVersionCheck(currentVersion)
-        .then((value) => isNewVersionAvailable.value = value);
+    if (isAutoUpdateCheckEnabled.isTrue) {
+      newVersionCheck(currentVersion)
+          .then((value) => isNewVersionAvailable.value = value);
+    }
   }
 
   Future<String> _createInAppSongDownDir() async {
@@ -144,8 +149,56 @@ class SettingsScreenController extends GetxController {
     enableAutoInfiniteRadio.value = setBox.get("enableAutoInfiniteRadio") ?? true;
     romanizeLyricsEnabled.value = setBox.get("romanizeLyricsEnabled") ?? true;
     enableSponsorBlock.value = setBox.get("enableSponsorBlock") ?? true;
+    isAutoUpdateCheckEnabled.value =
+        setBox.get("isAutoUpdateCheckEnabled") ?? true;
     calculateCacheSize();
     checkAndCleanCacheIfNeeded();
+  }
+
+  void toggleAutoUpdateCheck(bool val) {
+    setBox.put("isAutoUpdateCheckEnabled", val);
+    isAutoUpdateCheckEnabled.value = val;
+  }
+
+  Future<void> manualCheckForUpdates(BuildContext context) async {
+    if (isManualCheckingForUpdates.isTrue) return;
+    isManualCheckingForUpdates.value = true;
+    try {
+      final isAvailable = await newVersionCheck(currentVersion);
+      isNewVersionAvailable.value = isAvailable;
+      if (isAvailable) {
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => const NewVersionDialog(),
+          );
+        }
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            snackbar(
+              context,
+              "You are already on the latest version ($currentVersion)!",
+              size: SanckBarSize.BIG,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          snackbar(
+            context,
+            "Unable to check for updates. Please check your connection.",
+            size: SanckBarSize.BIG,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } finally {
+      isManualCheckingForUpdates.value = false;
+    }
   }
 
   void toggleSponsorBlock(bool val) {
