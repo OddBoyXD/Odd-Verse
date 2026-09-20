@@ -37,4 +37,3 @@
 - `OddVerse-v1.0.1-universal.apk` (All architectures combined)
 - `OddVerse-v1.0.1-armeabi-v7a.apk` (32-bit ARM - Legacy devices)
 - `OddVerse-v1.0.1-x86_64.apk` (64-bit Intel/AMD & PC Emulators)
-- `OddVerse-v1.0.1-x86.apk` (32-bit Intel)

@@ -81,7 +81,6 @@ Get the latest official release directly from [GitHub Releases](https://github.c
 | **`universal`** | All Android Architectures (All-in-One Fat APK) | [Download Universal APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-universal.apk) |
 | **`armeabi-v7a`** | Legacy 32-bit Android Devices | [Download ARMv7 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-armeabi-v7a.apk) |
 | **`x86_64`** | 64-bit Emulators & ChromeOS | [Download x86_64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-x86_64.apk) |
-| **`x86`** | 32-bit Intel Architecture | [Download x86 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-x86.apk) |
 
 ---
 
