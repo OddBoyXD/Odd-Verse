@@ -71,7 +71,15 @@ jobs:
           
           ls -lh release_artifacts/
 
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: oddverse-apk-builds
+          path: release_artifacts/*
+          retention-days: 14
+
       - name: Create GitHub Release & Upload APKs
+        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           name: Odd Verse Release ${{ github.ref_name }}
