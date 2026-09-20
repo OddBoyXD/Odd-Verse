@@ -1,5 +1,6 @@
 /**
  * Odd Verse — Interactive Features & Responsiveness Controller
+ * Fast, Lightweight, and Error-Free
  * Author: OddBoyXD
  */
 
@@ -105,13 +106,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const updatePlayState = (playing) => {
     isPlaying = playing;
     if (isPlaying) {
-      playIcon.style.display = 'none';
-      pauseIcon.style.display = 'block';
+      if (playIcon) playIcon.style.display = 'none';
+      if (pauseIcon) pauseIcon.style.display = 'block';
       if (audioVisualizer) audioVisualizer.classList.remove('paused');
       startProgressTimer();
     } else {
-      playIcon.style.display = 'block';
-      pauseIcon.style.display = 'none';
+      if (playIcon) playIcon.style.display = 'block';
+      if (pauseIcon) pauseIcon.style.display = 'none';
       if (audioVisualizer) audioVisualizer.classList.add('paused');
       clearInterval(progressTimer);
     }
@@ -177,9 +178,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadTrack = (idx) => {
     currentTrackIdx = (idx + tracks.length) % tracks.length;
     const track = tracks[currentTrackIdx];
-    const titleEl = document.querySelector('.player-title');
-    const artistEl = document.querySelector('.player-artist');
-    const badgeEl = document.querySelector('.badge-chip');
+    const titleEl = document.getElementById('trackTitle');
+    const artistEl = document.getElementById('trackArtist');
+    const badgeEl = document.getElementById('trackBadge');
 
     if (titleEl) titleEl.textContent = track.title;
     if (artistEl) artistEl.textContent = track.artist;
@@ -210,100 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ==========================================================================
-     3. Showcase Tab & Thumbnail Switcher
-     ========================================================================== */
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  const thumbItems = document.querySelectorAll('.thumb-item');
-  const showcaseImg = document.getElementById('showcaseImg');
-  const captionTag = document.getElementById('captionTag');
-  const captionTitle = document.getElementById('captionTitle');
-  const captionText = document.getElementById('captionText');
-  const captionFeatures = document.getElementById('captionFeatures');
-
-  const showcaseScreens = [
-    {
-      img: 'assets/screenshots/1.jpg',
-      tag: 'SCREEN 01 • NOW PLAYING',
-      title: 'Lossless Audio & Dynamic Material You',
-      text: 'Enjoy high-fidelity streaming with automatic color harmonization extracted directly from the active album cover. Full hardware equalizer and soundstage controls right at your fingertips.',
-      features: ['Lossless FLAC', 'Material 3 Palette', '10-Band EQ']
-    },
-    {
-      img: 'assets/screenshots/2.jpg',
-      tag: 'SCREEN 02 • SYNCED LYRICS',
-      title: 'Real-Time Indic Transliteration',
-      text: 'Sing along in any language. Lyrics in Hindi, Punjabi, and regional scripts automatically romanize phonetically in sync with 3-second auto-snap viewport centering.',
-      features: ['Devanagari to Roman', 'Gurmukhi Support', '3s Auto-Snap']
-    },
-    {
-      img: 'assets/screenshots/3.jpg',
-      tag: 'SCREEN 03 • STORAGE TOOLS',
-      title: 'Deep Cache Purge & Offline Engine',
-      text: 'Granular controls give you transparent insights into audio files, cover art, and search caches. Purge unwanted data in one tap or export lossless M4A tracks.',
-      features: ['1-Tap Cache Flush', 'M4A Export', 'Zero Leftover Files']
-    },
-    {
-      img: 'assets/screenshots/4.jpg',
-      tag: 'SCREEN 04 • DISCOVERY & HOME',
-      title: 'Lightning Fast Search & Clean Library',
-      text: 'Sub-2 millisecond search queries powered by Hive encrypted binary databases. No sponsored algorithmic push feeds—just your pure music library.',
-      features: ['Sub-2ms Queries', 'Hive Encrypted DB', 'Zero Algorithmic Ads']
-    }
-  ];
-
-  const switchScreen = (index) => {
-    const data = showcaseScreens[index];
-    if (!data) return;
-
-    // Update active tab buttons
-    tabBtns.forEach((btn, i) => {
-      const isActive = i === index;
-      btn.classList.toggle('active', isActive);
-      btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-    });
-
-    // Update thumbnail strip
-    thumbItems.forEach((thumb, i) => {
-      thumb.classList.toggle('active', i === index);
-    });
-
-    // Smooth image transition
-    if (showcaseImg) {
-      showcaseImg.style.opacity = '0';
-      setTimeout(() => {
-        showcaseImg.src = data.img;
-        showcaseImg.style.opacity = '1';
-      }, 150);
-    }
-
-    // Update captions
-    if (captionTag) captionTag.textContent = data.tag;
-    if (captionTitle) captionTitle.textContent = data.title;
-    if (captionText) captionText.textContent = data.text;
-
-    if (captionFeatures) {
-      captionFeatures.innerHTML = data.features
-        .map(f => `<span class="feature-tag">${f}</span>`)
-        .join('');
-    }
-  };
-
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = parseInt(btn.getAttribute('data-target'), 10);
-      switchScreen(target);
-    });
-  });
-
-  thumbItems.forEach(thumb => {
-    thumb.addEventListener('click', () => {
-      const idx = parseInt(thumb.getAttribute('data-index'), 10);
-      switchScreen(idx);
-    });
-  });
-
-  /* ==========================================================================
-     4. FAQ Smooth Accordion Handler
+     3. FAQ Smooth Accordion Handler
      ========================================================================== */
   const faqItems = document.querySelectorAll('.faq-item');
   faqItems.forEach(item => {
@@ -319,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   /* ==========================================================================
-     5. GitHub Release Sync & Download Links
+     4. GitHub Release Sync & Download Links
      ========================================================================== */
   const repo = 'OddBoyXD/Odd-Verse';
   fetch(`https://api.github.com/repos/${repo}/releases/latest`)

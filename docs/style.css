@@ -1,12 +1,13 @@
 /* ==========================================================================
    Odd Verse — Precision Dark Obsidian & Neon Violet Design System
+   Ultra-Fast, Lag-Free, Sleek & Fully Responsive
    ========================================================================== */
 
 :root {
   --bg-main: #07080c;
   --bg-surface: #0d0f17;
   --bg-card: #121522;
-  --bg-card-hover: #181c2c;
+  --bg-card-hover: #171b2b;
   --bg-glass: rgba(18, 21, 34, 0.7);
 
   --border: rgba(255, 255, 255, 0.08);
@@ -63,7 +64,7 @@ body {
   position: relative;
 }
 
-/* Background Atmospheric Overlays */
+/* Atmospheric Overlays */
 .top-glow {
   position: absolute;
   top: 0;
@@ -148,8 +149,8 @@ code {
 }
 
 .brand-img {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 9px;
   object-fit: cover;
   box-shadow: 0 0 12px rgba(168, 85, 247, 0.3);
@@ -204,7 +205,7 @@ code {
   gap: 10px;
 }
 
-/* Common Buttons */
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -328,7 +329,7 @@ code {
   transform: translateY(-3.5px) rotate(-45deg);
 }
 
-/* Mobile Slide Dropdown */
+/* Mobile Dropdown */
 .mobile-nav {
   background: rgba(10, 12, 19, 0.98);
   backdrop-filter: blur(24px);
@@ -598,15 +599,15 @@ code {
 .player-body {
   padding: 24px;
   display: grid;
-  grid-template-columns: 180px 1fr;
+  grid-template-columns: 160px 1fr;
   gap: 28px;
   align-items: center;
 }
 
 .player-artwork {
   position: relative;
-  width: 180px;
-  height: 180px;
+  width: 160px;
+  height: 160px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
@@ -633,16 +634,25 @@ code {
 
 .player-title-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
 }
 
 .player-title {
-  font-size: 1.25rem;
+  display: block;
+  font-size: 1.22rem;
   font-weight: 800;
   color: #ffffff;
   letter-spacing: -0.3px;
+  line-height: 1.3;
+}
+
+.player-artist {
+  display: block;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
 .badge-chip {
@@ -652,14 +662,9 @@ code {
   color: var(--accent-green);
   background: rgba(16, 185, 129, 0.12);
   border: 1px solid rgba(16, 185, 129, 0.3);
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: var(--radius-pill);
   white-space: nowrap;
-}
-
-.player-artist {
-  font-size: 0.88rem;
-  color: var(--text-muted);
 }
 
 /* Lyrics Display Container */
@@ -724,6 +729,7 @@ code {
   font-size: 0.8rem;
   color: var(--accent-light);
   margin-top: 2px;
+  transition: opacity 0.2s ease;
 }
 
 /* Progress Bar */
@@ -912,7 +918,7 @@ code {
 }
 
 /* ==========================================================================
-   Telemetry & Key Metrics Section
+   Hardware Telemetry & Metrics Section
    ========================================================================== */
 
 .metrics-section {
@@ -1088,214 +1094,6 @@ code {
 }
 
 /* ==========================================================================
-   Showcase Gallery
-   ========================================================================== */
-
-.showcase-tabs {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 36px;
-}
-
-.tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  font-size: 0.88rem;
-  font-weight: 600;
-  padding: 10px 18px;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.tab-btn:hover {
-  background: var(--bg-card-hover);
-  color: #ffffff;
-  border-color: var(--border-hover);
-}
-
-.tab-btn.active {
-  background: rgba(168, 85, 247, 0.15);
-  border-color: var(--accent);
-  color: #ffffff;
-  box-shadow: 0 0 16px rgba(168, 85, 247, 0.25);
-}
-
-.tab-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-dim);
-  transition: background var(--transition-fast);
-}
-
-.tab-btn.active .tab-dot {
-  background: var(--accent-light);
-  box-shadow: 0 0 6px var(--accent-light);
-}
-
-.showcase-viewer {
-  display: grid;
-  grid-template-columns: 320px 1fr;
-  gap: 48px;
-  align-items: center;
-  max-width: 920px;
-  margin: 0 auto 40px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 36px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-}
-
-.device-frame {
-  position: relative;
-  background: #000000;
-  border: 2px solid rgba(255, 255, 255, 0.15);
-  border-radius: 28px;
-  padding: 8px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8);
-  max-width: 290px;
-  margin: 0 auto;
-}
-
-.device-notch {
-  width: 70px;
-  height: 14px;
-  background: #000000;
-  border-radius: 0 0 10px 10px;
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-}
-
-.device-screen {
-  border-radius: 22px;
-  overflow: hidden;
-  position: relative;
-  background: #07080c;
-}
-
-.showcase-image {
-  width: 100%;
-  height: auto;
-  max-height: 480px;
-  object-fit: contain;
-  display: block;
-  transition: opacity 0.25s ease;
-}
-
-.device-glow {
-  position: absolute;
-  inset: -20px;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.2), transparent 70%);
-  z-index: -1;
-  pointer-events: none;
-}
-
-.showcase-caption {
-  text-align: left;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.caption-tag {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-light);
-  letter-spacing: 1.5px;
-}
-
-.caption-title {
-  font-size: 1.8rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: -0.6px;
-  line-height: 1.2;
-}
-
-.caption-text {
-  font-size: 1rem;
-  color: var(--text-muted);
-  line-height: 1.65;
-}
-
-.caption-features {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.feature-tag {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border);
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-}
-
-.thumbnail-strip {
-  display: flex;
-  justify-content: center;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.thumb-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.thumb-item img {
-  width: 24px;
-  height: 38px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-.thumb-item span {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.thumb-item:hover {
-  border-color: var(--border-hover);
-  background: var(--bg-card-hover);
-}
-
-.thumb-item.active {
-  border-color: var(--accent);
-  background: rgba(168, 85, 247, 0.12);
-}
-
-.thumb-item.active span {
-  color: #ffffff;
-}
-
-/* ==========================================================================
    Bento Features Grid
    ========================================================================== */
 
@@ -1396,52 +1194,78 @@ code {
 }
 
 /* ==========================================================================
-   Architecture Table Matrix
+   Architecture & Technical Specs Grid (Zero Horizontal Overflow)
    ========================================================================== */
 
 .specs-section {
   border-top: 1px solid var(--border);
 }
 
-.specs-table-wrapper {
+.arch-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.arch-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow-x: auto;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
-.specs-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  min-width: 600px;
+.arch-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
 }
 
-.specs-table th {
-  background: rgba(0, 0, 0, 0.3);
-  padding: 16px 22px;
+.arch-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: rgba(168, 85, 247, 0.1);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  color: var(--accent-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.arch-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.arch-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
+}
+
+.arch-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+.arch-badge {
+  align-self: flex-start;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
   color: var(--accent-light);
-  letter-spacing: 1px;
-  border-bottom: 1px solid var(--border);
-}
-
-.specs-table td {
-  padding: 16px 22px;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-.specs-table tr:last-child td {
-  border-bottom: none;
-}
-
-.specs-table td strong {
-  color: #ffffff;
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.28);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
 }
 
 /* ==========================================================================
@@ -1858,22 +1682,14 @@ code {
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .showcase-viewer {
-    grid-template-columns: 1fr;
-    text-align: center;
-  }
-  .showcase-caption {
-    text-align: center;
-    align-items: center;
-  }
-  .caption-features {
-    justify-content: center;
-  }
   .bento-grid {
     grid-template-columns: repeat(2, 1fr);
   }
   .bento-wide {
     grid-column: span 2;
+  }
+  .arch-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
   .guide-steps {
     grid-template-columns: 1fr;
@@ -1911,6 +1727,9 @@ code {
     gap: 6px;
   }
   .download-cards {
+    grid-template-columns: 1fr;
+  }
+  .arch-cards-grid {
     grid-template-columns: 1fr;
   }
   .footer-content {
@@ -1957,9 +1776,5 @@ code {
   }
   .section-title {
     font-size: 1.85rem;
-  }
-  .tab-btn {
-    padding: 8px 14px;
-    font-size: 0.8rem;
   }
 }
