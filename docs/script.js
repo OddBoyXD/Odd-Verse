@@ -91,6 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     })
     .catch(() => {
-      // Fallback is already hardcoded to reliable direct v1.0.0 URLs in HTML
+      // Fallback is already hardcoded to reliable direct v1.0.1 URLs in HTML
     });
 });
