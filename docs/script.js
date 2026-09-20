@@ -1,112 +1,43 @@
-/* Odd Verse landing — progressive enhancement. No frameworks. */
-(function () {
-  "use strict";
+document.addEventListener('DOMContentLoaded', () => {
+  // Mobile Nav Dropdown Toggle
+  const menuToggle = document.getElementById('menuToggle');
+  const mobileNav = document.getElementById('mobileNav');
+  const mobileItems = document.querySelectorAll('.mobile-item');
 
-  var REPO = "OddBoyXD/Odd-Verse";
-  var API = "https://api.github.com/repos/" + REPO + "/releases/latest";
-  var FALLBACK = {
-    tag: "v1.0.0",
-    date: "September 2026",
-    online: {
-      name: "OddVerse-v1.0.0-arm64-v8a.apk",
-      url: "https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-arm64-v8a.apk",
-      size: 17987623
-    },
-    offline: {
-      name: "OddVerse-v1.0.0-universal.apk",
-      url: "https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-universal.apk",
-      size: 38500000
-    }
-  };
-
-  function setText(id, value) {
-    var el = document.getElementById(id);
-    if (el && value) el.textContent = value;
-  }
-
-  function applyRelease(rel) {
-    var tag = "v1.0.0";
-    setText("announce-version", tag);
-    setText("hero-version", tag);
-    setText("inline-version", tag);
-    if (rel.date) setText("release-date", "Released " + rel.date);
-
-    var on = document.getElementById("online-btn");
-    var off = document.getElementById("offline-btn");
-    if (on) on.href = FALLBACK.online.url;
-    if (off) off.href = FALLBACK.offline.url;
-
-    var hero = document.getElementById("hero-download");
-    if (hero) hero.href = FALLBACK.online.url;
-    var cta = document.getElementById("cta-download");
-    if (cta) cta.href = FALLBACK.online.url;
-  }
-
-  // Tabs
-  function setupTabs() {
-    var tablist = document.querySelector('[role="tablist"]');
-    if (!tablist) return;
-    var tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
-    var panels = tabs.map(function (t) {
-      return document.getElementById(t.getAttribute("aria-controls"));
+  if (menuToggle && mobileNav) {
+    menuToggle.addEventListener('click', () => {
+      mobileNav.classList.toggle('active');
     });
 
-    function activate(tab, focus) {
-      tabs.forEach(function (t, i) {
-        var active = t === tab;
-        t.classList.toggle("is-active", active);
-        t.setAttribute("aria-selected", active ? "true" : "false");
-        t.setAttribute("tabindex", active ? "0" : "-1");
-        if (panels[i]) {
-          panels[i].classList.toggle("is-active", active);
-          panels[i].hidden = !active;
-        }
+    mobileItems.forEach(item => {
+      item.addEventListener('click', () => {
+        mobileNav.classList.remove('active');
       });
-      if (focus) tab.focus();
-    }
-
-    tablist.addEventListener("click", function (e) {
-      var tab = e.target.closest('[role="tab"]');
-      if (tab) activate(tab, false);
-    });
-
-    tablist.addEventListener("keydown", function (e) {
-      var idx = tabs.indexOf(document.activeElement);
-      if (idx === -1) return;
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        activate(tabs[(idx + 1) % tabs.length], true);
-      } else if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        activate(tabs[(idx - 1 + tabs.length) % tabs.length], true);
-      }
     });
   }
 
-  // Mobile navigation menu
-  function setupMenu() {
-    var btn = document.getElementById("menu-btn");
-    var menu = document.getElementById("mobile-menu");
-    if (!btn || !menu) return;
-
-    btn.addEventListener("click", function () {
-      var open = btn.getAttribute("aria-expanded") === "true";
-      btn.setAttribute("aria-expanded", String(!open));
-      menu.hidden = open;
-    });
-
-    menu.addEventListener("click", function (e) {
-      if (e.target.tagName === "A") {
-        btn.setAttribute("aria-expanded", "false");
-        menu.hidden = true;
+  // Sync Download Links from Latest GitHub Release
+  const repo = 'OddBoyXD/Odd-Verse';
+  fetch(`https://api.github.com/repos/${repo}/releases/latest`)
+    .then(res => res.json())
+    .then(data => {
+      if (data && data.assets && data.assets.length > 0) {
+        data.assets.forEach(asset => {
+          if (asset.name.includes('arm64-v8a')) {
+            const el = document.querySelector('a[href*="arm64-v8a"]');
+            if (el) el.href = asset.browser_download_url;
+          } else if (asset.name.includes('armeabi-v7a')) {
+            const el = document.querySelector('a[href*="armeabi-v7a"]');
+            if (el) el.href = asset.browser_download_url;
+          } else if (asset.name.includes('x86_64')) {
+            const el = document.querySelector('a[href*="x86_64"]');
+            if (el) el.href = asset.browser_download_url;
+          } else if (asset.name.includes('universal')) {
+            const el = document.querySelector('a[href*="universal"]');
+            if (el) el.href = asset.browser_download_url;
+          }
+        });
       }
-    });
-  }
-
-  // Init
-  document.addEventListener("DOMContentLoaded", function () {
-    applyRelease(FALLBACK);
-    setupTabs();
-    setupMenu();
-  });
-})();
+    })
+    .catch(() => {});
+});
