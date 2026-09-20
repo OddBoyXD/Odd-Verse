@@ -63,9 +63,6 @@ jobs:
           if [ -f "build/app/outputs/flutter-apk/app-x86_64-release.apk" ]; then
             cp build/app/outputs/flutter-apk/app-x86_64-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-x86_64.apk"
           fi
-          if [ -f "build/app/outputs/flutter-apk/app-x86-release.apk" ]; then
-            cp build/app/outputs/flutter-apk/app-x86-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-x86.apk"
-          fi
           
           # Copy Universal APK
           if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
