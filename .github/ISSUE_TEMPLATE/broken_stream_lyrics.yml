@@ -1,0 +1,40 @@
+name: "🎵 Broken Audio Stream or Lyrics Report"
+description: "Report a specific song that fails to play, buffers incorrectly, or has broken lyrics"
+title: "[Stream/Lyrics Issue]: "
+labels: ["playback", "lyrics"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form to report tracks that cannot stream, songs with desynchronized lyrics, or search errors.
+  - type: input
+    id: song-title
+    attributes:
+      label: Song Title & Artist
+      description: What is the exact title of the track and artist?
+      placeholder: "e.g. Starboy - The Weeknd"
+    validations:
+      required: true
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Category
+      options:
+        - "Audio fails to stream / 403 playback error"
+        - "Lyrics are missing or desynchronized"
+        - "Transliteration / Romanization error"
+        - "Wrong album art / metadata"
+        - "SponsorBlock skipped incorrectly"
+        - "Other"
+    validations:
+      required: true
+  - type: input
+    id: song-url
+    attributes:
+      label: YouTube / YouTube Music URL (if known)
+      placeholder: "https://music.youtube.com/watch?v=..."
+  - type: textarea
+    id: details
+    attributes:
+      label: Additional Details
+      description: Provide any extra info on what happened when you tried to play this song.

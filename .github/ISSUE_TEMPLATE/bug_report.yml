@@ -1,0 +1,57 @@
+name: "🐛 Bug Report"
+description: "File a bug report to help improve Odd Verse"
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue! Please provide as much detail as possible to help us reproduce and fix it.
+  - type: input
+    id: app-version
+    attributes:
+      label: Odd Verse Version
+      description: What version of Odd Verse are you running? (e.g. v1.0.1, v1.0.2)
+      placeholder: "e.g. v1.0.1"
+    validations:
+      required: true
+  - type: input
+    id: device-info
+    attributes:
+      label: Device & OS
+      description: What device and Android version are you using? (e.g. Samsung Galaxy S23, Android 14)
+      placeholder: "e.g. Pixel 8, Android 14"
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Description of the Bug
+      description: A clear and concise description of what the bug is.
+      placeholder: "When I tap on..."
+    validations:
+      required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior.
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+    validations:
+      required: true
+  - type: textarea
+    id: logs-screenshots
+    attributes:
+      label: Screenshots or Error Logs
+      description: Paste any error messages or drag & drop screenshots here if applicable.

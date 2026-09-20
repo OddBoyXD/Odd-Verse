@@ -1,22 +1,13 @@
-Features:
+Odd Verse is a modern, high-performance, and completely ad-free music streaming app engineered for pure speed, audio fidelity, and privacy.
 
-- Ability to play song from Ytube/Ytube Music.
-- Song cache while playing
-- Radio feature support
-- Background music
-- Playlist creation & bookmark support
-- Artist & Album bookmark support
-- Import song,Playlist,Album,Artist via sharing from Ytube/Ytube Music.
-- Streaming quality control
-- Song downloading support
-- Language support
-- Skip silence
-- Dynamic Theme
-- Flexibility to switch between Bottom & Side Nav bar
-- Equalizer support
-- Synced & Plain Lyrics support
-- Sleep Timer
-- Android Auto support
-- No Advertisment
-- No Login required
-- Piped playlist integration
+⚡ Key Features & Highlights:
+• Instant Playback Start (150ms): Custom low-latency ExoPlayer audio engine for zero-wait music playback.
+• 5 MB Network Burst Buffering: High-speed caching pipeline engineered for stutter-free playback through elevators and subway tunnels.
+• Stale-While-Revalidate Home Feed: Caches your homepage and playlists in local AES-encrypted Hive storage for instant 2ms loading.
+• Real-Time Synced Lyrics & Transliteration: Karaoke-style synchronized lyrics with automatic phonetic Romanization for Hindi, Punjabi, and Gurmukhi.
+• Local & Offline Music Engine: Automatic scanner for internal storage and MicroSD audio files (.mp3, .m4a, .flac, .wav, .aac, .ogg, .opus) with ID3 tag and artwork extraction.
+• Artist Hub Sorting: Instant client-side sorting by Newest, Most Popular / Views, Oldest, and Alphabetical.
+• Integrated SponsorBlock: Automatically skips non-music intros, sponsors, and outro banter silently.
+• Lossless M4A Audio Export: Package and share clean audio files with embedded tags and album artwork.
+• Full .ovb Backup & Restore: Encrypted single-file backups of your settings, playlists, and favorites.
+• 100% Zero Ads & Telemetry: No video ads, no banner popups, no trackers, and no account logins required.

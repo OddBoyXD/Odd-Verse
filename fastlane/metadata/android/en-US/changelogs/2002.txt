@@ -1,0 +1,5 @@
+- Local Music Engine: Internal storage and SD card audio scanner with ID3 tag and artwork extraction.
+- Synced Lyrics Engine: Dynamic RenderBox viewport centering with 3s inactivity snap-back and Indic transliteration.
+- Artist Hub Sorting: Zero-latency in-memory sorting by Newest, Most Popular, Oldest, and A-Z.
+- Backup & Restore: Full .ovb single-file encryption for playlists and library data.
+- Upgradability: Direct in-place upgrades over previous releases.

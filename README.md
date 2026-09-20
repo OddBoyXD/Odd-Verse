@@ -137,6 +137,16 @@ Simply download and install the new APK over the existing one. All your local Hi
 
 ---
 
+## ⭐ Star History
+
+<div align="center">
+
+[![Star History Chart](https://api.star-history.com/svg?repos=OddBoyXD/Odd-Verse&type=Date&theme=dark)](https://star-history.com/#OddBoyXD/Odd-Verse&Date)
+
+</div>
+
+---
+
 ## 🤝 Contributing
 
 Contributions, bug reports, and feature requests are welcome!
