@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:audio_service/audio_service.dart' show MediaItem;
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -36,6 +38,61 @@ abstract class PlaylistAlbumScreenControllerBase extends GetxController {
 
   /// Observable boolean indicating whether the album/playlist is downloaded.
   final RxBool isDownloaded = false.obs;
+
+  /// Calculates the total duration of all songs in [songList].
+  Duration get totalDuration {
+    return songList.fold(
+        Duration.zero, (prev, song) => prev + (song.duration ?? Duration.zero));
+  }
+
+  /// Formats the total duration as a readable string (e.g. "1 hr 45 min", "48 min").
+  String get formattedTotalDuration {
+    final duration = totalDuration;
+    if (duration == Duration.zero) return "";
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes.remainder(60);
+    final seconds = duration.inSeconds.remainder(60);
+    if (hours > 0) {
+      return minutes > 0 ? "$hours hr $minutes min" : "$hours hr";
+    } else if (minutes > 0) {
+      return seconds > 0 ? "$minutes min $seconds sec" : "$minutes min";
+    } else {
+      return "$seconds sec";
+    }
+  }
+
+  /// Calculates the total downloaded / storage size in bytes of songs in this list.
+  int get totalDownloadedSizeBytes {
+    int totalBytes = 0;
+    if (Hive.isBoxOpen("SongDownloads")) {
+      final box = Hive.box("SongDownloads");
+      for (final song in songList) {
+        if (box.containsKey(song.id)) {
+          final data = box.get(song.id);
+          if (data is Map && data.containsKey('path')) {
+            try {
+              final file = File(data['path']);
+              if (file.existsSync()) {
+                totalBytes += file.lengthSync();
+              }
+            } catch (_) {}
+          }
+        }
+      }
+    }
+    return totalBytes;
+  }
+
+  /// Formatted downloaded storage size (e.g. "145.2 MB").
+  String get formattedDownloadedSize {
+    final bytes = totalDownloadedSizeBytes;
+    if (bytes <= 0) return "";
+    if (bytes >= 1024 * 1024 * 1024) {
+      return "${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB";
+    } else {
+      return "${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB";
+    }
+  }
 
   /// Checks if the album/playlist is added to the library.
   ///

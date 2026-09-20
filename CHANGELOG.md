@@ -2,6 +2,17 @@
 
 ## [v1.0.2] - In Development
 
+### 🎚️ Playback Speed & Pitch Control Engine
+- **Full Precision Speed Control (0.5x – 2.0x)**: Seamlessly adjust playback speed from half-speed (0.5x) up to double speed (2.0x) with 0.05x precision increments or 1-tap quick preset chips (`0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`, `1.75x`, `2.0x`).
+- **Dynamic Pitch Modulation (0.7x – 1.3x)**: Independently alter audio key pitch for Nightcore, Deep, or custom vocal modulation in real-time.
+- **Dedicated Speed & Pitch Sheet**: Accessible via a 1-tap badge directly from the standard player header and inside the Song Info options menu.
+- **Preference Persistence**: User's preferred playback speed and pitch are stored in local preferences and remembered across sessions.
+
+### 📈 Playlist & Album Total Duration & Storage Statistics Header
+- **Dynamic Total Playtime Calculation**: Automatically calculates and displays the aggregate playtime (e.g. `2 hr 15 min`, `48 min`) at the top of playlists and albums.
+- **Offline Storage Statistics**: Shows total downloaded file size (e.g. `142.5 MB downloaded`) with live offline badges for instant storage tracking.
+- **Integrated Sort Header Stats**: Compact runtime and track count metadata seamlessly integrated across `PlaylistScreen` and `AlbumScreen`.
+
 ### 🔄 In-App Update & Notification Engine
 - **Active Update System**: Enabled `updateCheckFlag = true` allowing the app to automatically check for newer Odd Verse releases directly from GitHub.
 - **Auto-Check Toggle in Settings**: Added a new toggle under `Settings` -> `Miscellaneous` to enable or disable automatic update checks on app launch.

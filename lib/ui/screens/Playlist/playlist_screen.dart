@@ -610,6 +610,45 @@ class PlaylistScreen extends StatelessWidget {
                                             ),
                                           ),
                                         ),
+                                        Obx(() {
+                                          final durationStr = playlistController
+                                              .formattedTotalDuration;
+                                          final downloadedStr = playlistController
+                                              .formattedDownloadedSize;
+                                          final count =
+                                              playlistController.songList.length;
+                                          if (count == 0) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return Padding(
+                                            padding:
+                                                const EdgeInsets.only(top: 6.0),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.access_time_rounded,
+                                                  size: 14,
+                                                  color: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.color
+                                                      ?.withOpacity(0.7),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  "$count ${"songs".tr}${durationStr.isNotEmpty ? ' • $durationStr' : ''}${downloadedStr.isNotEmpty ? ' • $downloadedStr' : ''}",
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
                                       ],
                                     ),
                                   ),

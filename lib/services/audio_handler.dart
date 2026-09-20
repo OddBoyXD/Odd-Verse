@@ -368,6 +368,19 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   Future<void> seek(Duration position) => _player.seek(position);
 
   @override
+  Future<void> setSpeed(double speed) async {
+    await _player.setSpeed(speed);
+    playbackState.add(playbackState.value.copyWith(speed: speed));
+  }
+
+  Future<void> setPitch(double pitch) async {
+    await _player.setPitch(pitch);
+  }
+
+  double get speed => _player.speed;
+  double get pitch => _player.pitch;
+
+  @override
   Future<void> skipToQueueItem(int index) async {
     if (index < 0 || index >= queue.value.length) return;
     await customAction("playByIndex", {'index': index});

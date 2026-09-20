@@ -21,6 +21,7 @@ import '../screens/Home/home_screen_controller.dart';
 import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
 import '/services/music_service.dart';
+import '../../services/audio_handler.dart';
 
 class PlayerController extends GetxController
     with GetSingleTickerProviderStateMixin {
@@ -52,6 +53,8 @@ class PlayerController extends GetxController
   final isSleepTimerActive = false.obs;
   final isSleepEndOfSongActive = false.obs;
   final volume = 100.obs;
+  final playbackSpeed = 1.0.obs;
+  final playbackPitch = 1.0.obs;
 
   final progressBarStatus = ProgressBarState(
           buffered: Duration.zero, current: Duration.zero, total: Duration.zero)
@@ -117,6 +120,19 @@ class PlayerController extends GetxController
     isShuffleModeEnabled.value = appPrefs.get("isShuffleModeEnabled") ?? false;
     isQueueLoopModeEnabled.value =
         appPrefs.get("queueLoopModeEnabled") ?? false;
+
+    final savedSpeed = appPrefs.get("playbackSpeed");
+    if (savedSpeed != null && savedSpeed is num) {
+      playbackSpeed.value = savedSpeed.toDouble();
+      _audioHandler.setSpeed(playbackSpeed.value);
+    }
+    final savedPitch = appPrefs.get("playbackPitch");
+    if (savedPitch != null && savedPitch is num) {
+      playbackPitch.value = savedPitch.toDouble();
+      if (_audioHandler is MyAudioHandler) {
+        (_audioHandler as MyAudioHandler).setPitch(playbackPitch.value);
+      }
+    }
 
     if (GetPlatform.isDesktop) {
       setVolume(appPrefs.get("volume") ?? 100);
@@ -558,6 +574,25 @@ class PlayerController extends GetxController
       }
     }
     _audioHandler.addQueueItems(listToEnqueue);
+  }
+
+  void setPlaybackSpeed(double speed) {
+    playbackSpeed.value = speed;
+    _audioHandler.setSpeed(speed);
+    Hive.box("AppPrefs").put("playbackSpeed", speed);
+  }
+
+  void setPlaybackPitch(double pitch) {
+    playbackPitch.value = pitch;
+    if (_audioHandler is MyAudioHandler) {
+      (_audioHandler as MyAudioHandler).setPitch(pitch);
+    }
+    Hive.box("AppPrefs").put("playbackPitch", pitch);
+  }
+
+  void resetSpeedAndPitch() {
+    setPlaybackSpeed(1.0);
+    setPlaybackPitch(1.0);
   }
 
   void _playViaAndroidAuto(String songId, String libraryId) {

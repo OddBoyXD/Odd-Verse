@@ -22,6 +22,7 @@ import 'song_download_btn.dart';
 import 'image_widget.dart';
 import 'song_info_dialog.dart';
 import 'share_song_bottom_sheet.dart';
+import 'playback_speed_pitch_bottom_sheet.dart';
 
 class SongInfoBottomSheet extends StatelessWidget {
   const SongInfoBottomSheet(this.song,
@@ -292,6 +293,50 @@ class SongInfoBottomSheet extends StatelessWidget {
                         playerController.homeScaffoldkey.currentState!.context,
                     barrierColor: Colors.transparent.withAlpha(100),
                     builder: (context) => const SleepTimerBottomSheet(),
+                  );
+                },
+              ),
+            if (calledFromPlayer)
+              ListTile(
+                contentPadding: const EdgeInsets.only(left: 15, right: 15),
+                visualDensity: const VisualDensity(vertical: -1),
+                leading: const Icon(Icons.speed_rounded),
+                title: const Text("Playback Speed & Pitch"),
+                trailing: Obx(
+                  () => Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .secondary
+                          .withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "${playerController.playbackSpeed.value.toStringAsFixed(2)}x",
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.secondary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  showModalBottomSheet(
+                    constraints: const BoxConstraints(maxWidth: 500),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius:
+                          BorderRadius.vertical(top: Radius.circular(20.0)),
+                    ),
+                    isScrollControlled: true,
+                    context:
+                        playerController.homeScaffoldkey.currentState!.context,
+                    barrierColor: Colors.transparent.withAlpha(100),
+                    builder: (context) =>
+                        const PlaybackSpeedPitchBottomSheet(),
                   );
                 },
               ),

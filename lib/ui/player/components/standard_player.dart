@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../widgets/songinfo_bottom_sheet.dart';
+import '../../widgets/playback_speed_pitch_bottom_sheet.dart';
 import '../player_controller.dart';
 import 'albumart_lyrics.dart';
 import 'backgroud_image.dart';
@@ -205,6 +206,64 @@ class StandardPlayer extends StatelessWidget {
                       ),
                     ),
                   ),
+                ),
+
+                /// Playback Speed & Pitch button
+                IconButton(
+                  tooltip: "Playback Speed & Pitch",
+                  icon: Obx(() {
+                    final speed = playerController.playbackSpeed.value;
+                    final isModified = speed != 1.0 ||
+                        playerController.playbackPitch.value != 1.0;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: isModified
+                            ? Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withOpacity(0.3)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isModified
+                              ? Theme.of(context).colorScheme.secondary
+                              : Theme.of(context)
+                                  .textTheme
+                                  .titleMedium!
+                                  .color!
+                                  .withOpacity(0.4),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        "${speed.toStringAsFixed(1)}x",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isModified
+                              ? Theme.of(context).colorScheme.secondary
+                              : Theme.of(context).textTheme.titleMedium!.color,
+                        ),
+                      ),
+                    );
+                  }),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      constraints: const BoxConstraints(maxWidth: 500),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(20.0)),
+                      ),
+                      isScrollControlled: true,
+                      context: playerController
+                          .homeScaffoldkey.currentState!.context,
+                      barrierColor: Colors.transparent.withAlpha(100),
+                      builder: (context) =>
+                          const PlaybackSpeedPitchBottomSheet(),
+                    );
+                  },
                 ),
 
                 /// More button for current song context
