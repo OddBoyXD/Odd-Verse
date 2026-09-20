@@ -10,7 +10,8 @@
 </p>
 
 [![Release](https://img.shields.io/github/v/release/OddBoyXD/Odd-Verse?color=7C4DFF&label=Latest%20Release&logo=github&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases/latest)
-[![Downloads](https://img.shields.io/github/downloads/OddBoyXD/Odd-Verse/total?color=00E676&label=Downloads&logo=android&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases)
+[![Total Downloads](https://img.shields.io/github/downloads/OddBoyXD/Odd-Verse/total?color=00E676&label=Total%20Downloads&logo=android&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases)
+[![Latest Downloads](https://img.shields.io/github/downloads/OddBoyXD/Odd-Verse/latest/total?color=00E676&label=v1.0.1%20Downloads&logo=android&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases/latest)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Linux%20%7C%20Windows-blue?style=for-the-badge&logo=android)](https://github.com/OddBoyXD/Odd-Verse)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-FFD600?style=for-the-badge&logo=gnu)](LICENSE)
 
