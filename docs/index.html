@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Odd Verse — The ultimate music streaming experience, in your pocket</title>
   <meta name="description" content="Odd Verse is the blazing-fast, ad-free, and open-source cross-platform music streaming app for Android. Engineered with custom ExoPlayer low-latency buffering, real-time synced lyrics, and offline storage." />
-  <meta name="theme-color" content="#FAF8F3" />
+  <meta name="theme-color" content="#090b11" />
   <link rel="icon" type="image/png" href="assets/favicon.png" />
   <link rel="apple-touch-icon" href="assets/logo.png" />
 
@@ -17,44 +17,48 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,420;0,9..144,560;1,9..144,340;1,9..144,420&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,340;0,9..144,420;0,9..144,560;1,9..144,340;1,9..144,420&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
+  <!-- Background Cyber Glows -->
+  <div class="bg-glow-1" aria-hidden="true"></div>
+  <div class="bg-glow-2" aria-hidden="true"></div>
+
   <a class="skip" href="#main">Skip to content</a>
 
-  <!-- Announcement -->
+  <!-- Announcement Bar -->
   <div class="announce">
     <p>
       <span class="announce-dot" aria-hidden="true"></span>
       <span id="announce-version">v1.0.0</span>
       <span class="announce-sep" aria-hidden="true">—</span>
-      <span>now available for Android</span>
+      <span>Official Release now available for Android</span>
       <a href="#download">Get the APK</a>
     </p>
   </div>
 
-  <!-- Navigation -->
+  <!-- Navigation Header -->
   <header class="nav" id="nav">
     <div class="wrap nav-inner">
       <a class="brand" href="#top" aria-label="Odd Verse home">
-        <img src="assets/logo.png" alt="" width="30" height="30" class="brand-mark" style="border-radius: 6px;" />
+        <img src="assets/logo.png" alt="" width="30" height="30" class="brand-mark" />
         <span class="brand-word">Odd&nbsp;Verse</span>
       </a>
       <nav class="nav-links" aria-label="Primary">
         <a href="#engine">Engine</a>
         <a href="#features">Features</a>
         <a href="#privacy">Privacy</a>
-        <a href="#guide">Guide</a>
+        <a href="#download">Download</a>
         <a href="#specs">Specs</a>
       </nav>
       <div class="nav-cta">
         <a class="gh-link" href="https://github.com/OddBoyXD/Odd-Verse" target="_blank" rel="noopener" aria-label="View source on GitHub">
           <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         </a>
-        <a class="sponsor-link" href="https://discord.gg/mF2t4QAEyH" target="_blank" rel="noopener" aria-label="Join Discord">
+        <a class="sponsor-link" href="https://discord.gg/mF2t4QAEyH" target="_blank" rel="noopener" aria-label="Join Discord Server">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994.021-.041.001-.09-.041-.106a13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.929 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.894.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.028zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
         </a>
         <a class="btn btn-dark btn-sm" href="#download">Download</a>
@@ -67,10 +71,10 @@
       <a href="#engine">Engine</a>
       <a href="#features">Features</a>
       <a href="#privacy">Privacy</a>
-      <a href="#guide">Guide</a>
+      <a href="#download">Download</a>
       <a href="#specs">Specs</a>
-      <a href="https://discord.gg/mF2t4QAEyH" target="_blank" rel="noopener">Discord Community</a>
-      <a href="#download" class="btn btn-dark">Download for Android</a>
+      <a href="https://discord.gg/mF2t4QAEyH" target="_blank" rel="noopener">Discord Server</a>
+      <a href="#download" class="btn btn-dark">Download APK</a>
     </div>
   </header>
 
@@ -79,35 +83,34 @@
     <!-- ============ HERO ============ -->
     <section class="hero" id="top">
       <div class="wrap hero-inner">
-        <p class="eyebrow reveal"><span class="eyebrow-rule" aria-hidden="true"></span>For Android &middot; ExoPlayer inside &middot; GPLv3 licensed</p>
-        <h1 class="reveal">The ultimate music streaming experience, <em>in&nbsp;your&nbsp;pocket.</em></h1>
-        <p class="lede reveal">Engineered with <strong>0–0.5s instant start</strong>, <strong>real-time synchronized lyrics</strong> with 3-second auto-snap, and a <strong>100% offline local library scanner</strong>. No ads. No tracking. No subscriptions.</p>
-        <div class="hero-ctas reveal">
+        <p class="eyebrow"><span class="eyebrow-rule" aria-hidden="true"></span>For Android &middot; ExoPlayer inside &middot; GPLv3 licensed</p>
+        <h1>The ultimate music streaming experience, <em>in&nbsp;your&nbsp;pocket.</em></h1>
+        <p class="lede">Engineered with <strong>0–0.5s instant start</strong>, <strong>real-time synchronized lyrics</strong> with 3-second auto-snap, and a <strong>100% offline local library scanner</strong>. No ads. No tracking. No subscriptions.</p>
+        <div class="hero-ctas">
           <a class="btn btn-dark btn-lg" id="hero-download" href="https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-arm64-v8a.apk">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8m0 0 3-3M8 10 5 7M2.5 12.5h11"/></svg>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8m0 0 3-3M8 10 5 7M2.5 12.5h11"/></svg>
             Download for Android
           </a>
-          <a class="btn btn-ghost btn-lg" href="#guide">
-            <svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M5 3.5v9l7-4.5z"/></svg>
-            Watch preview
-            <span class="btn-note">YouTube</span>
+          <a class="btn btn-ghost btn-lg" href="#features">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/></svg>
+            Explore Features
           </a>
         </div>
-        <p class="hero-sponsor reveal">
+        <p class="hero-sponsor">
           <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 14.5S1.5 10.8 1.5 6.6c0-2.2 1.7-3.7 3.7-3.7 1.2 0 2.3.7 2.8 1.7.5-1 1.6-1.7 2.8-1.7 2 0 3.7 1.5 3.7 3.7 0 4.2-6.5 7.9-6.5 7.9z"/></svg>
           Free and open source — <a href="https://github.com/OddBoyXD/Odd-Verse" target="_blank" rel="noopener">star on GitHub</a>
         </p>
-        <dl class="hero-meta reveal">
-          <div><dt>Latest</dt><dd id="hero-version">v1.0.0</dd></div>
-          <div><dt>Editions</dt><dd>ARM64 &middot; ARMv7 &middot; Universal</dd></div>
-          <div><dt>Requires</dt><dd>Android 5.0+ &middot; No root</dd></div>
-          <div><dt>Playback</dt><dd id="hero-downloads">0–0.5s instant</dd></div>
+        <dl class="hero-meta">
+          <div><dt>Version</dt><dd id="hero-version">v1.0.0</dd></div>
+          <div><dt>Architectures</dt><dd>ARM64 &middot; ARMv7 &middot; Universal</dd></div>
+          <div><dt>Requirements</dt><dd>Android 5.0+ &middot; No root</dd></div>
+          <div><dt>Latency</dt><dd id="hero-downloads">0–0.5s instant</dd></div>
         </dl>
 
         <!-- Device gallery -->
-        <div class="phones reveal" role="list" aria-label="App screenshots">
+        <div class="phones" role="list" aria-label="App screenshots">
           <figure class="phone" role="listitem">
-            <div class="phone-frame"><img src="assets/screenshots/1.jpg" alt="Home feed with infinite recommendations and instant playback" width="360" height="780" loading="eager" fetchpriority="high" /></div>
+            <div class="phone-frame"><img src="assets/screenshots/1.jpg" alt="Home feed with infinite recommendations and instant playback" width="360" height="780" loading="eager" /></div>
             <figcaption><span class="fig-num">01</span>Home Feed — instant recommendations, trending hits and custom mixes.</figcaption>
           </figure>
           <figure class="phone phone-main" role="listitem">
@@ -136,19 +139,19 @@
     <!-- ============ 01 AUDIO ENGINE ============ -->
     <section class="section" id="engine">
       <div class="wrap">
-        <p class="sec-label reveal"><span>01</span><i aria-hidden="true"></i>High-Performance Audio Pipeline</p>
+        <p class="sec-label"><span>01</span><i aria-hidden="true"></i>High-Performance Audio Pipeline</p>
         <div class="sec-head">
-          <h2 class="reveal">Instant playback.<br />Pure sound.</h2>
-          <p class="reveal">Custom ExoPlayer AndroidLoadControl buffer pipelines engineered for 5G and Wi-Fi networks to eliminate buffering stutter and deliver instant start.</p>
+          <h2>Instant playback.<br />Pure sound.</h2>
+          <p>Custom ExoPlayer AndroidLoadControl buffer pipelines engineered for 5G and Wi-Fi networks to eliminate buffering stutter and deliver instant start.</p>
         </div>
 
-        <div class="tabs reveal" role="tablist" aria-label="Audio features">
+        <div class="tabs" role="tablist" aria-label="Audio features">
           <button role="tab" aria-selected="true" aria-controls="panel-exoplayer" id="tab-exoplayer" class="tab is-active">ExoPlayer Core</button>
           <button role="tab" aria-selected="false" aria-controls="panel-lyrics" id="tab-lyrics" class="tab" tabindex="-1">Synced Lyrics Engine</button>
           <button role="tab" aria-selected="false" aria-controls="panel-sponsorblock" id="tab-sponsorblock" class="tab" tabindex="-1">SponsorBlock</button>
         </div>
 
-        <div class="agent-panels reveal">
+        <div class="agent-panels">
           <article class="agent-panel is-active" id="panel-exoplayer" role="tabpanel" aria-labelledby="tab-exoplayer" tabindex="0">
             <div class="agent-copy">
               <p class="agent-kicker">Core &middot; Low-latency buffering</p>
@@ -216,21 +219,21 @@
     <section class="section section-tint" id="features">
       <div class="wrap system-grid">
         <div class="system-sticky">
-          <p class="sec-label reveal"><span>02</span><i aria-hidden="true"></i>Complete Audio Suite</p>
-          <h2 class="reveal">Not just a player.<br />A music sanctuary.</h2>
-          <p class="reveal">From local offline storage scanning to encrypted database backups, Odd Verse provides everything needed for pure, uninterrupted music enjoyment.</p>
-          <div class="codecard codecard-sm reveal">
+          <p class="sec-label"><span>02</span><i aria-hidden="true"></i>Complete Audio Suite</p>
+          <h2>Not just a player.<br />A music sanctuary.</h2>
+          <p>From local offline storage scanning to encrypted database backups, Odd Verse provides everything needed for pure, uninterrupted music enjoyment.</p>
+          <div class="codecard codecard-sm">
             <div class="codecard-bar"><span></span><span></span><span></span><em>hive — .ovb backup</em></div>
 <pre><code>$ oddverse backup --export
 <span class="ok">✓ 14/14 Hive boxes exported to oddverse.ovb</span></code></pre>
           </div>
         </div>
         <div class="system-cards">
-          <div class="sys-card reveal"><h3>0–0.5s Instant Playback</h3><p>ExoPlayer low-latency buffering starts audio in under 150ms. No loading wheels or buffering stutter.</p></div>
-          <div class="sys-card reveal"><h3>Real-Time Synced Lyrics</h3><p>Dynamic viewport centering, tap-to-seek, and intelligent 3-second auto-snap cooldown for comfortable reading.</p></div>
-          <div class="sys-card reveal"><h3>Offline Local Storage Scanner</h3><p>Discovers audio files across phone storage and MicroSD cards. Indexes 5,000+ songs in under 20ms.</p></div>
-          <div class="sys-card reveal"><h3>Indic Script Romanization</h3><p>Automatic Hinglish and Romanized lyrics transliteration for Hindi, Punjabi, Gurmukhi, Tamil, Telugu, and Bengali songs.</p></div>
-          <div class="sys-card reveal"><h3>14-Box .ovb Backup Engine</h3><p>Export and restore playlists, favorites, equalizer presets, cache, and history with single-tap cryptographic integrity.</p></div>
+          <div class="sys-card"><h3>0–0.5s Instant Playback</h3><p>ExoPlayer low-latency buffering starts audio in under 150ms. No loading wheels or buffering stutter.</p></div>
+          <div class="sys-card"><h3>Real-Time Synced Lyrics</h3><p>Dynamic viewport centering, tap-to-seek, and intelligent 3-second auto-snap cooldown for comfortable reading.</p></div>
+          <div class="sys-card"><h3>Offline Local Storage Scanner</h3><p>Discovers audio files across phone storage and MicroSD cards. Indexes 5,000+ songs in under 20ms.</p></div>
+          <div class="sys-card"><h3>Indic Script Romanization</h3><p>Automatic Hinglish and Romanized lyrics transliteration for Hindi, Punjabi, Gurmukhi, Tamil, Telugu, and Bengali songs.</p></div>
+          <div class="sys-card"><h3>14-Box .ovb Backup Engine</h3><p>Export and restore playlists, favorites, equalizer presets, cache, and history with single-tap cryptographic integrity.</p></div>
         </div>
       </div>
     </section>
@@ -238,31 +241,31 @@
     <!-- ============ 03 PRIVACY ============ -->
     <section class="section section-night" id="privacy">
       <div class="wrap">
-        <p class="sec-label sec-label-light reveal"><span>03</span><i aria-hidden="true"></i>Privacy & Freedom</p>
+        <p class="sec-label sec-label-light"><span>03</span><i aria-hidden="true"></i>Privacy & Freedom</p>
         <div class="sec-head">
-          <h2 class="reveal">Zero ads.<br />Zero trackers.</h2>
-          <p class="reveal">Odd Verse is 100% free and open source. There are no tracking scripts, no third-party analytics, no telemetry, and no account logins required.</p>
+          <h2>Zero ads.<br />Zero trackers.</h2>
+          <p>Odd Verse is 100% free and open source. There are no tracking scripts, no third-party analytics, no telemetry, and no account logins required.</p>
         </div>
         <div class="sec-grid">
-          <div class="night-card reveal"><p class="night-num">0 Ads</p><h3>Clean Listening</h3><p>No video ads, banner ads, or audio interstitials. Pure music from start to finish.</p></div>
-          <div class="night-card reveal"><p class="night-num">0 Telemetry</p><h3>Direct to Stream</h3><p>No tracking servers or analytics SDKs between your smartphone and the audio stream.</p></div>
-          <div class="night-card reveal"><p class="night-num">100% Offline</p><h3>Local Storage</h3><p>Your playlists, listening history, and cached songs stay strictly on your device.</p></div>
-          <div class="night-card reveal"><p class="night-num">GPLv3</p><h3>Open Source</h3><p>Fully verifiable code. Review, fork, or build directly from source on GitHub.</p></div>
+          <div class="night-card"><p class="night-num">0 Ads</p><h3>Clean Listening</h3><p>No video ads, banner ads, or audio interstitials. Pure music from start to finish.</p></div>
+          <div class="night-card"><p class="night-num">0 Telemetry</p><h3>Direct to Stream</h3><p>No tracking servers or analytics SDKs between your smartphone and the audio stream.</p></div>
+          <div class="night-card"><p class="night-num">100% Offline</p><h3>Local Storage</h3><p>Your playlists, listening history, and cached songs stay strictly on your device.</p></div>
+          <div class="night-card"><p class="night-num">GPLv3</p><h3>Open Source</h3><p>Fully verifiable code. Review, fork, or build directly from source on GitHub.</p></div>
         </div>
-        <p class="night-note reveal">A note on freedom: Odd Verse is an independent open-source client designed to give listeners full control over their audio playback experience.</p>
+        <p class="night-note">A note on freedom: Odd Verse is an independent open-source client designed to give listeners full control over their audio playback experience.</p>
       </div>
     </section>
 
     <!-- ============ 04 DOWNLOAD ============ -->
     <section class="section" id="download">
       <div class="wrap">
-        <p class="sec-label reveal"><span>04</span><i aria-hidden="true"></i>Download</p>
+        <p class="sec-label"><span>04</span><i aria-hidden="true"></i>Download</p>
         <div class="sec-head">
-          <h2 class="reveal">Choose your edition.</h2>
-          <p class="reveal">Direct signed APKs with seamless update capability. <span id="release-date">Released September 2026</span>.</p>
+          <h2>Choose your edition.</h2>
+          <p>Direct signed APKs with seamless update capability. <span id="release-date">Released September 2026</span>.</p>
         </div>
         <div class="editions">
-          <article class="edition reveal">
+          <article class="edition">
             <p class="edition-tag">Recommended</p>
             <h3>ARM64-v8a Edition</h3>
             <p class="edition-size"><strong id="online-size">64-bit ARM</strong><span>Optimized for modern phones</span></p>
@@ -270,7 +273,7 @@
             <a class="btn btn-dark btn-lg btn-block" id="online-btn" href="https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.0-arm64-v8a.apk" download>Download ARM64 APK</a>
             <p class="edition-meta" id="online-meta">OddVerse-v1.0.0-arm64-v8a.apk</p>
           </article>
-          <article class="edition reveal">
+          <article class="edition">
             <p class="edition-tag edition-tag-quiet">Universal</p>
             <h3>Universal All-in-One</h3>
             <p class="edition-size"><strong id="offline-size">All Devices</strong><span>Works on any Android phone</span></p>
@@ -279,53 +282,20 @@
             <p class="edition-meta" id="offline-meta">OddVerse-v1.0.0-universal.apk</p>
           </article>
         </div>
-        <p class="dl-foot reveal">Signed direct APK &middot; ARM64 &middot; Android 5.0+ &middot; No root &middot; <a href="https://github.com/OddBoyXD/Odd-Verse/releases/latest" target="_blank" rel="noopener">All releases on GitHub</a></p>
+        <p class="dl-foot">Signed direct APK &middot; ARM64 &middot; Android 5.0+ &middot; No root &middot; <a href="https://github.com/OddBoyXD/Odd-Verse/releases/latest" target="_blank" rel="noopener">All releases on GitHub</a></p>
       </div>
     </section>
 
-    <!-- ============ 05 GUIDE ============ -->
-    <section class="section section-tint" id="guide">
-      <div class="wrap">
-        <p class="sec-label reveal"><span>05</span><i aria-hidden="true"></i>Walkthrough</p>
-        <div class="sec-head">
-          <h2 class="reveal">See it run on a real device.</h2>
-          <p class="reveal">Instant streaming, synchronized lyrics, and local library indexing — in action on Android.</p>
-        </div>
-
-        <div class="video reveal">
-          <a class="video-facade" href="https://youtube.com/@oddboy_verse?si=vJayihJ3sEBvuF_s" target="_blank" rel="noopener" aria-label="Play walkthrough video on YouTube">
-            <img src="assets/banner.jpg" alt="Odd Verse preview walkthrough on YouTube" loading="lazy" />
-            <span class="video-play" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M5 3.5v9l7-4.5z"/></svg></span>
-          </a>
-        </div>
-
-        <ol class="steps">
-          <li class="reveal">
-            <img src="assets/screenshots/1.jpg" alt="Home discovery and playback setup" loading="lazy" />
-            <p><strong>1 · Discover & Stream.</strong> Tap any track to begin instant 0–0.5s playback.</p>
-          </li>
-          <li class="reveal">
-            <img src="assets/screenshots/2.jpg" alt="Material You dynamic theming" loading="lazy" />
-            <p><strong>2 · Dynamic Theming.</strong> Adaptive colors extract seamlessly from album art.</p>
-          </li>
-          <li class="reveal">
-            <img src="assets/screenshots/3.jpg" alt="Synced lyrics with 3s snap" loading="lazy" />
-            <p><strong>3 · Real-Time Lyrics.</strong> Sing along with auto-snap and Indic romanization.</p>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- ============ 06 SPECS ============ -->
+    <!-- ============ 05 SPECS ============ -->
     <section class="section" id="specs">
       <div class="wrap specs-grid">
         <div>
-          <p class="sec-label reveal"><span>06</span><i aria-hidden="true"></i>Requirements</p>
-          <h2 class="reveal">What it needs.</h2>
-          <p class="reveal">One table, no surprises. Set battery usage to Unrestricted in Android settings for uninterrupted background music playback.</p>
-          <a class="btn btn-ghost reveal" href="https://github.com/OddBoyXD/Odd-Verse" target="_blank" rel="noopener">Build from source</a>
+          <p class="sec-label"><span>05</span><i aria-hidden="true"></i>Requirements</p>
+          <h2>What it needs.</h2>
+          <p>One table, no surprises. Set battery usage to Unrestricted in Android settings for uninterrupted background music playback.</p>
+          <a class="btn btn-ghost" href="https://github.com/OddBoyXD/Odd-Verse" target="_blank" rel="noopener">Build from source</a>
         </div>
-        <table class="spec-table reveal">
+        <table class="spec-table">
           <tbody>
             <tr><th scope="row">OS</th><td>Android 5.0 (API 21) minimum &middot; Android 14+ recommended</td></tr>
             <tr><th scope="row">CPU</th><td>ARM64-v8a, ARMeabi-v7a, x86_64 supported</td></tr>
@@ -339,7 +309,7 @@
 
     <!-- ============ FINAL CTA ============ -->
     <section class="section cta">
-      <div class="wrap cta-inner reveal">
+      <div class="wrap cta-inner">
         <img src="assets/logo.png" alt="" width="52" height="52" class="cta-mark" style="border-radius: 12px;" />
         <h2>Start listening on<br />your phone today.</h2>
         <p>Free. Open source. Yours.</p>
