@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Odd Verse — High Performance Music Streaming</title>
-  <meta name="description" content="Next-generation open-source music player with 150ms instant start, 5MB burst buffering, synced Indic transliteration, lossless audio, and zero ads.">
+  <meta name="description" content="Next-generation open-source Android music player with 150ms instant start, 5MB burst buffering, synced Indic transliteration, lossless audio, and zero ads.">
   <meta name="theme-color" content="#07080c">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
@@ -17,7 +17,7 @@
   <meta property="og:image" content="assets/logo.png">
   <meta property="og:url" content="https://oddverse.invmc.in">
 
-  <!-- Inter & JetBrains Mono Fonts -->
+  <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Ambient Top Glow & Micro Grid Background -->
+  <!-- Atmospheric Ambient Glow & Micro Grid Background -->
   <div class="top-glow" aria-hidden="true"></div>
   <div class="bg-grid-overlay" aria-hidden="true"></div>
 
@@ -43,8 +43,8 @@
 
       <nav class="nav-links" aria-label="Primary Navigation">
         <a href="#features" class="nav-link">Features</a>
-        <a href="#benchmarks" class="nav-link">Telemetry</a>
-        <a href="#architecture" class="nav-link">Architecture</a>
+        <a href="#why-oddverse" class="nav-link">Why Odd Verse</a>
+        <a href="#telemetry" class="nav-link">Performance</a>
         <a href="#downloads" class="nav-link">Download</a>
         <a href="#faq" class="nav-link">FAQ</a>
       </nav>
@@ -76,12 +76,12 @@
           <span>Key Features</span>
           <span class="mobile-arrow">→</span>
         </a>
-        <a href="#benchmarks" class="mobile-item">
-          <span>Hardware Telemetry</span>
+        <a href="#why-oddverse" class="mobile-item">
+          <span>Why Odd Verse</span>
           <span class="mobile-arrow">→</span>
         </a>
-        <a href="#architecture" class="mobile-item">
-          <span>Audio Engine Specs</span>
+        <a href="#telemetry" class="mobile-item">
+          <span>Performance & Telemetry</span>
           <span class="mobile-arrow">→</span>
         </a>
         <a href="#downloads" class="mobile-item">
@@ -100,7 +100,7 @@
             <span>GitHub Repository</span>
           </a>
           <a href="#downloads" class="btn btn-primary btn-block">
-            <span>Download App (Free)</span>
+            <span>Download APK (Free)</span>
           </a>
         </div>
       </div>
@@ -108,7 +108,7 @@
   </header>
 
   <main>
-    <!-- Hero Section -->
+    <!-- Clean, High-Impact Hero Section -->
     <section class="hero" id="hero">
       <div class="container hero-inner">
         <!-- Status Pill -->
@@ -119,12 +119,12 @@
 
         <!-- Hero Headline -->
         <h1 class="hero-heading">
-          High-performance music,<br>
-          <span class="gradient-text">engineered for speed.</span>
+          High-performance music streaming,<br>
+          <span class="gradient-text">built for pure speed.</span>
         </h1>
 
         <p class="hero-description">
-          An ultra-fast, open-source Android music player. Engineered with 
+          Odd Verse is an ultra-fast, open-source Android music player engineered with 
           <strong>150ms instant start</strong>, <strong>5 MB burst buffering</strong>, real-time synchronized 
           Indic transliteration, lossless audio playback, and complete freedom from advertisements.
         </p>
@@ -145,208 +145,160 @@
           </a>
         </div>
 
-        <!-- Highlight Badges -->
-        <div class="badges-row">
-          <div class="badge-item">
-            <span class="badge-dot green"></span>
-            <span>150ms Instant Start</span>
-          </div>
-          <div class="badge-item">
-            <span class="badge-dot blue"></span>
-            <span>Lossless Audio Engine</span>
-          </div>
-          <div class="badge-item">
-            <span class="badge-dot purple"></span>
-            <span>Zero Ads & Trackers</span>
-          </div>
-          <div class="badge-item">
-            <span class="badge-dot orange"></span>
-            <span>Android 7.0+ Ready</span>
-          </div>
+        <div class="hero-subtext">
+          <span>Android 7.0 to 15 Ready</span>
+          <span class="dot-sep">•</span>
+          <span>~18 MB Fast Install</span>
+          <span class="dot-sep">•</span>
+          <span>Cryptographically Signed</span>
         </div>
 
-        <!-- Interactive Futuristic Soundstage Player Terminal -->
-        <div class="player-mockup-wrapper">
-          <div class="player-mockup" id="playerMockup">
-            <div class="player-top-bar">
-              <div class="player-dots">
-                <span class="mac-dot red"></span>
-                <span class="mac-dot yellow"></span>
-                <span class="mac-dot green"></span>
-              </div>
-              <div class="player-badge">
-                <span class="pulse-ring"></span>
-                <span>LIVE SOUNDSTAGE SIMULATOR</span>
-              </div>
-              <div class="player-quality-tag">LOSSLESS FLAC • 24-BIT / 48kHz</div>
+        <!-- 4 Key Highlights Grid -->
+        <div class="highlights-grid">
+          <div class="highlight-item">
+            <div class="hl-icon purple">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
             </div>
+            <div class="hl-text">
+              <strong>150ms Instant Start</strong>
+              <p>Pre-warmed socket buffers eliminate playback start delay.</p>
+            </div>
+          </div>
 
-            <div class="player-body">
-              <div class="player-artwork">
-                <img src="assets/logo.png" alt="Odd Verse Artwork" class="player-art-img" width="160" height="160">
-                <div class="artwork-glow"></div>
-              </div>
+          <div class="highlight-item">
+            <div class="hl-icon cyan">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="8" rx="2" ry="2"/>
+                <rect x="2" y="14" width="20" height="8" rx="2" ry="2"/>
+                <line x1="6" y1="6" x2="6.01" y2="6"/>
+                <line x1="6" y1="18" x2="6.01" y2="18"/>
+              </svg>
+            </div>
+            <div class="hl-text">
+              <strong>5.0 MB Burst Buffer</strong>
+              <p>Zero audio stutters in elevators, subways, and low signal.</p>
+            </div>
+          </div>
 
-              <div class="player-info-section">
-                <div class="player-title-row">
-                  <div>
-                    <span class="player-title" id="trackTitle">Chaleya (Precision Stream)</span>
-                    <span class="player-artist" id="trackArtist">Anirudh Ravichander, Arijit Singh • Odd Verse Engine</span>
-                  </div>
-                  <span class="badge-chip" id="trackBadge">150ms START</span>
-                </div>
+          <div class="highlight-item">
+            <div class="hl-icon green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="2" y1="12" x2="22" y2="12"/>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <div class="hl-text">
+              <strong>Synced Indic Lyrics</strong>
+              <p>Real-time phonetic English transliteration for Hindi & Punjabi.</p>
+            </div>
+          </div>
 
-                <!-- Lyrics Synchronizer Simulation with Transliteration Toggle -->
-                <div class="player-lyrics-box">
-                  <div class="lyrics-header">
-                    <span class="lyrics-label">
-                      <svg class="icon-inline" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
-                      </svg>
-                      REAL-TIME SYNCED LYRICS
-                    </span>
-                    <button class="translit-btn" id="translitBtn" title="Toggle English Romanization" aria-label="Toggle Transliteration">
-                      <span id="translitLabel">Indic Translit: ON</span>
-                    </button>
-                  </div>
-                  <div class="lyrics-line" id="currentLyric">
-                    "Ishq mein dil bana hai, ishq mein dil fana hai"
-                  </div>
-                  <div class="lyrics-sub" id="subLyric">
-                    (इश्क़ में दिल बना है, इश्क़ में दिल फ़ना है)
-                  </div>
-                </div>
-
-                <!-- Track Progress Bar -->
-                <div class="player-progress-container">
-                  <div class="progress-bar-bg" id="progressBarBg" title="Click to seek">
-                    <div class="progress-bar-fill" id="progressBarFill" style="width: 42%;"></div>
-                  </div>
-                  <div class="progress-time-row">
-                    <span class="time-elapsed" id="timeElapsed">01:24</span>
-                    <span class="time-total">03:20</span>
-                  </div>
-                </div>
-
-                <!-- Player Controls & Equalizer Spectrum -->
-                <div class="player-controls-row">
-                  <div class="audio-visualizer" id="audioVisualizer" aria-label="Frequency Spectrum">
-                    <span class="v-bar"></span>
-                    <span class="v-bar"></span>
-                    <span class="v-bar"></span>
-                    <span class="v-bar"></span>
-                    <span class="v-bar"></span>
-                    <span class="v-bar"></span>
-                    <span class="v-bar"></span>
-                  </div>
-
-                  <div class="player-buttons">
-                    <button class="player-btn" id="prevTrackBtn" aria-label="Previous Track" title="Previous Track">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-                    </button>
-                    <button class="player-btn btn-play-pause" id="playPauseBtn" aria-label="Play or Pause" title="Play / Pause">
-                      <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor" style="display:none;"><path d="M8 5v14l11-7z"/></svg>
-                      <svg id="pauseIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                    </button>
-                    <button class="player-btn" id="nextTrackBtn" aria-label="Next Track" title="Next Track">
-                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-                    </button>
-                  </div>
-
-                  <div class="player-buffer-stats">
-                    <span class="buffer-dot"></span>
-                    <span>5.0 MB BUFFER READY</span>
-                  </div>
-                </div>
-              </div>
+          <div class="highlight-item">
+            <div class="hl-icon orange">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <div class="hl-text">
+              <strong>100% Zero Ads</strong>
+              <p>No video ads, banner popups, telemetry, or trackers.</p>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Key Metrics & Benchmarks Section -->
-    <section class="section metrics-section" id="benchmarks">
+    <!-- Why Odd Verse Comparison Section (User-Friendly) -->
+    <section class="section comparison-section" id="why-oddverse">
       <div class="container">
         <div class="section-head text-center">
-          <div class="eyebrow">HARDWARE TELEMETRY</div>
-          <h2 class="section-title">Engineered to outperform</h2>
-          <p class="section-subtitle">Real-world metrics that redefine streaming responsiveness and data efficiency.</p>
+          <div class="eyebrow">WHY CHOOSE ODD VERSE</div>
+          <h2 class="section-title">Designed for listeners, not advertisers</h2>
+          <p class="section-subtitle">See how Odd Verse stacks up against conventional commercial streaming apps.</p>
         </div>
 
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-val">150<span class="unit">ms</span></div>
-            <div class="metric-title">Instant Playback Start</div>
-            <p class="metric-desc">Pre-warmed socket handshakes eliminate the 2-3 second startup lag common across standard music players.</p>
-            <div class="metric-footer">
-              <span class="stat-pill success">92% faster initiation</span>
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-val">5.0<span class="unit">MB</span></div>
-            <div class="metric-title">Burst Network Buffer</div>
-            <p class="metric-desc">Saturates data connections upon track select, maintaining playback through elevator shafts and subway tunnels.</p>
-            <div class="metric-footer">
-              <span class="stat-pill accent">Zero stutter buffer</span>
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-val">2<span class="unit">ms</span></div>
-            <div class="metric-title">Local Hive Database</div>
-            <p class="metric-desc">Playlists, search indexing, and cached metadata query in 2 milliseconds from AES-encrypted binary storage.</p>
-            <div class="metric-footer">
-              <span class="stat-pill info">Instant response</span>
-            </div>
-          </div>
-
-          <div class="metric-card">
-            <div class="metric-val">0<span class="unit">%</span></div>
-            <div class="metric-title">Zero Ads & Telemetry</div>
-            <p class="metric-desc">Zero banner ads, zero audio interruptions, zero tracking SDKs, and zero background analytics beaconing.</p>
-            <div class="metric-footer">
-              <span class="stat-pill pure">100% Privacy</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Latency Comparison Panel -->
-        <div class="comparison-panel">
-          <div class="comparison-title-row">
-            <h3>Startup Playback Latency Comparison</h3>
-            <span class="comparison-note">Lower latency is better (ms)</span>
-          </div>
-          <div class="comparison-bars">
-            <div class="comparison-row">
-              <span class="comp-label">Standard Streaming Clients</span>
-              <div class="comp-bar-wrapper">
-                <div class="comp-bar-fill standard" style="width: 100%;">1850 ms</div>
-              </div>
-            </div>
-            <div class="comparison-row">
-              <span class="comp-label">Odd Verse Audio Engine</span>
-              <div class="comp-bar-wrapper">
-                <div class="comp-bar-fill oddverse" style="width: 14%;">150 ms</div>
-              </div>
-            </div>
+        <div class="compare-card">
+          <div class="compare-table-wrapper">
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th class="col-feature">Feature</th>
+                  <th class="col-oddverse">
+                    <span class="brand-tag">Odd Verse</span>
+                  </th>
+                  <th class="col-other">Standard Music Apps</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="feature-title">Advertisements & Telemetry</td>
+                  <td class="oddverse-val">
+                    <span class="check-icon">✓</span>
+                    <span>100% Zero Ads & Trackers</span>
+                  </td>
+                  <td class="other-val">Frequent 30s Audio & Banner Ads</td>
+                </tr>
+                <tr>
+                  <td class="feature-title">Playback Initiation Speed</td>
+                  <td class="oddverse-val">
+                    <span class="check-icon">✓</span>
+                    <span>150ms Instant Start</span>
+                  </td>
+                  <td class="other-val">1,800ms – 3,000ms Startup Lag</td>
+                </tr>
+                <tr>
+                  <td class="feature-title">Buffering Architecture</td>
+                  <td class="oddverse-val">
+                    <span class="check-icon">✓</span>
+                    <span>5.0 MB Burst Buffer</span>
+                  </td>
+                  <td class="other-val">Tiny 512KB Chunks (Stutters in Tunnels)</td>
+                </tr>
+                <tr>
+                  <td class="feature-title">Indic Script Lyrics</td>
+                  <td class="oddverse-val">
+                    <span class="check-icon">✓</span>
+                    <span>Synced Phonetic Transliteration</span>
+                  </td>
+                  <td class="other-val">Untransliterated or Behind Paywall</td>
+                </tr>
+                <tr>
+                  <td class="feature-title">Direct Audio Export</td>
+                  <td class="oddverse-val">
+                    <span class="check-icon">✓</span>
+                    <span>Lossless M4A with ID3 Tags</span>
+                  </td>
+                  <td class="other-val">Locked & Encrypted Inside App</td>
+                </tr>
+                <tr>
+                  <td class="feature-title">Pricing & Subscriptions</td>
+                  <td class="oddverse-val">
+                    <span class="check-icon">✓</span>
+                    <span>100% Free & Open Source</span>
+                  </td>
+                  <td class="other-val">$10.99 / Month Ongoing Fee</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Bento Features Section -->
+    <!-- Key Features Bento Grid -->
     <section class="section features-section" id="features">
       <div class="container">
         <div class="section-head text-center">
           <div class="eyebrow">FEATURES</div>
           <h2 class="section-title">Built without compromises</h2>
-          <p class="section-subtitle">Every system in Odd Verse was written from the ground up for speed, privacy, and clarity.</p>
+          <p class="section-subtitle">Every system in Odd Verse was written from the ground up for speed, privacy, and simplicity.</p>
         </div>
 
         <div class="bento-grid">
-          <!-- Card 1: Turbo Engine (Large) -->
+          <!-- Card 1: Turbo Engine (Wide) -->
           <div class="bento-card bento-wide">
             <div class="bento-icon-wrapper purple">
               <svg class="bento-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -459,7 +411,78 @@
       </div>
     </section>
 
-    <!-- Architecture & Technical Specs Grid -->
+    <!-- Telemetry & Performance Metrics Section -->
+    <section class="section metrics-section" id="telemetry">
+      <div class="container">
+        <div class="section-head text-center">
+          <div class="eyebrow">HARDWARE TELEMETRY</div>
+          <h2 class="section-title">Engineered to outperform</h2>
+          <p class="section-subtitle">Real-world metrics that redefine streaming responsiveness and data efficiency.</p>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-val">150<span class="unit">ms</span></div>
+            <div class="metric-title">Instant Playback Start</div>
+            <p class="metric-desc">Pre-warmed socket handshakes eliminate the 2-3 second startup delay found in other streaming clients.</p>
+            <div class="metric-footer">
+              <span class="stat-pill success">92% faster start</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-val">5.0<span class="unit">MB</span></div>
+            <div class="metric-title">Burst Network Buffer</div>
+            <p class="metric-desc">Saturates data connections upon track select, maintaining playback through elevator shafts and subway tunnels.</p>
+            <div class="metric-footer">
+              <span class="stat-pill accent">Zero stutter buffer</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-val">2<span class="unit">ms</span></div>
+            <div class="metric-title">Local Hive Database</div>
+            <p class="metric-desc">Playlists, search indexing, and cached metadata query in 2 milliseconds from AES-encrypted binary storage.</p>
+            <div class="metric-footer">
+              <span class="stat-pill info">Instant response</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-val">0<span class="unit">%</span></div>
+            <div class="metric-title">Zero Ads & Telemetry</div>
+            <p class="metric-desc">Zero banner ads, zero audio interruptions, zero tracking SDKs, and zero background analytics beaconing.</p>
+            <div class="metric-footer">
+              <span class="stat-pill pure">100% Privacy</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latency Comparison Meter -->
+        <div class="comparison-panel">
+          <div class="comparison-title-row">
+            <h3>Playback Startup Latency Benchmark</h3>
+            <span class="comparison-note">Lower latency is better (ms)</span>
+          </div>
+          <div class="comparison-bars">
+            <div class="comparison-row">
+              <span class="comp-label">Standard Streaming Clients</span>
+              <div class="comp-bar-wrapper">
+                <div class="comp-bar-fill standard" style="width: 100%;">1850 ms</div>
+              </div>
+            </div>
+            <div class="comparison-row">
+              <span class="comp-label">Odd Verse Engine</span>
+              <div class="comp-bar-wrapper">
+                <div class="comp-bar-fill oddverse" style="width: 14%;">150 ms</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technical Architecture Grid -->
     <section class="section specs-section" id="architecture">
       <div class="container">
         <div class="section-head text-center">
@@ -555,6 +578,7 @@
           <p class="section-subtitle">Cryptographically signed with Master Keystore. Compatible with Android 7.0 and up.</p>
         </div>
 
+        <!-- Download Cards Grid -->
         <div class="download-cards">
           <!-- 64-bit ARM (Featured Recommended) -->
           <div class="download-card featured">
@@ -647,7 +671,7 @@
           </div>
         </div>
 
-        <!-- 3-Step Install Guide Card -->
+        <!-- 3-Step Simple Install Guide Card -->
         <div class="install-guide-card">
           <div class="guide-header">
             <span class="guide-tag">QUICK INSTALL GUIDE</span>
@@ -658,7 +682,7 @@
               <div class="step-num">1</div>
               <div class="step-content">
                 <strong>Download the APK</strong>
-                <p>Select the <strong>64-bit ARM</strong> file above (or Universal if unsure) directly on your Android phone.</p>
+                <p>Select the <strong>64-bit ARM</strong> file above (or Universal if unsure) directly on your phone.</p>
               </div>
             </div>
             <div class="guide-step">
