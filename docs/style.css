@@ -262,14 +262,24 @@ code {
 /* Mobile Menu Button */
 .menu-btn {
   display: none;
-  background: transparent;
+  background: var(--card);
   border: 1px solid var(--line);
-  padding: 8px 10px;
-  border-radius: 8px;
+  padding: 10px;
+  border-radius: 10px;
   color: var(--ink);
   cursor: pointer;
   flex-direction: column;
   gap: 5px;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  transition: all 0.2s ease;
+}
+
+.menu-btn:hover {
+  background: var(--card-hover);
+  border-color: rgba(168, 85, 247, 0.3);
 }
 
 .menu-btn span {
@@ -278,21 +288,70 @@ code {
   height: 2px;
   background: var(--ink);
   border-radius: 2px;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.menu-btn[aria-expanded="true"] span:first-child {
+  transform: translateY(3.5px) rotate(45deg);
+}
+
+.menu-btn[aria-expanded="true"] span:last-child {
+  transform: translateY(-3.5px) rotate(-45deg);
 }
 
 .mobile-menu {
-  background: var(--night);
+  display: none;
+  background: rgba(11, 14, 23, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--line);
-  padding: 20px 24px;
-  display: flex;
+  padding: 24px;
   flex-direction: column;
   gap: 16px;
+  position: absolute;
+  top: 68px;
+  left: 0;
+  right: 0;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  z-index: 85;
+}
+
+.mobile-menu[hidden] {
+  display: none !important;
+}
+
+.mobile-menu:not([hidden]) {
+  display: flex !important;
+  animation: menuSlideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes menuSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .mobile-menu a {
   font-size: 1.05rem;
+  font-weight: 500;
   color: var(--ink);
-  padding: 6px 0;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line-soft);
+  text-decoration: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-menu a:last-child {
+  border-bottom: none;
+  margin-top: 6px;
 }
 
 /* ---------- Buttons ---------- */
