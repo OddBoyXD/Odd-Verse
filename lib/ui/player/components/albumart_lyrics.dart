@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 
 import '/ui/player/components/lyrics_widget.dart';
 import '/ui/player/player_controller.dart';
-import '/utils/helper.dart';
 import '../../widgets/image_widget.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
@@ -148,18 +147,22 @@ class AlbumArtNLyrics extends StatelessWidget {
                               color: Colors.white,
                             ),
                             const SizedBox(width: 4),
-                            Obx(
-                              () => Text(
-                                printDuration(Duration(
-                                    seconds: playerController
-                                        .timerDurationLeft.value)),
+                            Obx(() {
+                              final leftSec =
+                                  playerController.timerDurationLeft.value;
+                              final min =
+                                  (leftSec ~/ 60).toString().padLeft(2, '0');
+                              final sec =
+                                  (leftSec % 60).toString().padLeft(2, '0');
+                              return Text(
+                                "$min:$sec",
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
-                              ),
-                            ),
+                              );
+                            }),
                           ],
                         ),
                       ),
