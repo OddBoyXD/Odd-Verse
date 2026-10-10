@@ -201,9 +201,20 @@ class Player extends StatelessWidget {
 
           /// show player ui based on selected player ui in settings
           /// Gesture player is only applicable for mobile
-          body: settingsScreenController.playerUi.value == 0
-              ? const StandardPlayer()
-              : const GesturePlayer(),
+          body: Obx(() {
+            final fullPlayerOpacity =
+                (1.0 - playerController.playerPaneOpacity.value)
+                    .clamp(0.0, 1.0);
+            if (fullPlayerOpacity <= 0.01) {
+              return const SizedBox.shrink();
+            }
+            return Opacity(
+              opacity: fullPlayerOpacity,
+              child: settingsScreenController.playerUi.value == 0
+                  ? const StandardPlayer()
+                  : const GesturePlayer(),
+            );
+          }),
         ),
       ),
     );

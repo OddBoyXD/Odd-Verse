@@ -40,24 +40,49 @@ class SongInfoBottomSheet extends StatelessWidget {
     final songInfoController =
         Get.put(SongInfoController(song, calledFromPlayer));
     final playerController = Get.find<PlayerController>();
+    final theme = Theme.of(context);
     return Padding(
-      padding: EdgeInsets.only(bottom: Get.mediaQuery.padding.bottom),
+      padding: EdgeInsets.only(
+        top: 10,
+        bottom: Get.mediaQuery.padding.bottom + 12,
+      ),
       child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Modern Drag Handle
+            Center(
+              child: Container(
+                width: 38,
+                height: 4.5,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(2.5),
+                ),
+              ),
+            ),
             ListTile(
               contentPadding:
-                  const EdgeInsets.only(left: 15, top: 7, right: 10, bottom: 0),
-              leading: ImageWidget(
-                song: song,
-                size: 50,
+                  const EdgeInsets.only(left: 15, top: 2, right: 10, bottom: 0),
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: ImageWidget(
+                  song: song,
+                  size: 50,
+                ),
               ),
               title: Text(
                 song.title,
                 maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              subtitle: Text(song.artist!),
+              subtitle: Text(
+                song.artist ?? "",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               trailing: SizedBox(
                 width: 110,
                 child: Row(

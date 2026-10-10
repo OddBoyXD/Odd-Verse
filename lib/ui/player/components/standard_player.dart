@@ -33,15 +33,22 @@ class StandardPlayer extends StatelessWidget {
         size.height - (70 + Get.mediaQuery.padding.bottom + 330);
     playerArtImageSize = playerArtImageSize > spaceAvailableForArtImage
         ? spaceAvailableForArtImage
-        : playerArtImageSize;
-    return Stack(
-      children: [
-        /// Stack first child
-        /// Album art image in background covering the whole screen
-        BackgroudImage(
-          key: Key("${playerController.currentSong.value?.id}_background"),
-          cacheHeight: 200,
-        ),
+    return Obx(() {
+      final fullPlayerOpacity =
+          (1.0 - playerController.playerPaneOpacity.value).clamp(0.0, 1.0);
+      if (fullPlayerOpacity <= 0.01) {
+        return const SizedBox.shrink();
+      }
+      return Opacity(
+        opacity: fullPlayerOpacity,
+        child: Stack(
+          children: [
+            /// Stack first child
+            /// Album art image in background covering the whole screen
+            BackgroudImage(
+              key: Key("${playerController.currentSong.value?.id}_background"),
+              cacheHeight: 200,
+            ),
 
         /// Stack child
         /// Blur effect on background
@@ -294,6 +301,8 @@ class StandardPlayer extends StatelessWidget {
             ),
           )
       ],
-    );
-  }
+    ),
+  );
+});
+}
 }

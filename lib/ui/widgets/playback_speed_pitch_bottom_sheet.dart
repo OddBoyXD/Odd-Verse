@@ -21,8 +21,8 @@ class PlaybackSpeedPitchBottomSheet extends StatelessWidget {
       },
       {
         "name": "Slowed + Reverb",
-        "speed": 0.85,
-        "pitch": 0.90,
+        "speed": 0.80,
+        "pitch": 0.80,
         "icon": Icons.water_drop_rounded,
       },
       {
@@ -51,7 +51,7 @@ class PlaybackSpeedPitchBottomSheet extends StatelessWidget {
       },
     ];
 
-    final speedPresets = [0.75, 0.85, 0.9, 1.0, 1.1, 1.25, 1.5, 2.0];
+    final speedPresets = [0.75, 0.80, 0.85, 0.9, 1.0, 1.1, 1.25, 1.5, 2.0];
     final pitchPresets = [0.75, 0.8, 0.85, 0.9, 1.0, 1.1, 1.15, 1.2, 1.25];
 
     return Container(

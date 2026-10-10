@@ -95,28 +95,20 @@ class PlayerControlWidget extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               // Favorite Heart Button with Glow
-              Material(
-                color: Colors.transparent,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: playerController.toggleFavourite,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Obx(
-                      () => Icon(
-                        playerController.isCurrentSongFav.isFalse
-                            ? Icons.favorite_border_rounded
-                            : Icons.favorite_rounded,
-                        color: playerController.isCurrentSongFav.isTrue
-                            ? Colors.redAccent
-                            : theme.textTheme.titleMedium?.color,
-                        size: 28,
-                      ),
+              Obx(() => IconButton(
+                    tooltip: "Favorite",
+                    splashRadius: 24,
+                    icon: Icon(
+                      playerController.isCurrentSongFav.isFalse
+                          ? Icons.favorite_border_rounded
+                          : Icons.favorite_rounded,
+                      color: playerController.isCurrentSongFav.isTrue
+                          ? Colors.redAccent
+                          : theme.textTheme.titleMedium?.color,
+                      size: 28,
                     ),
-                  ),
-                ),
-              ),
+                    onPressed: playerController.toggleFavourite,
+                  )),
             ],
           ),
         ),
@@ -169,29 +161,31 @@ class PlayerControlWidget extends StatelessWidget {
               // Shuffle Button with Active Glow Ring
               Obx(() {
                 final isShuffle = playerController.isShuffleModeEnabled.value;
-                return Material(
-                  color: Colors.transparent,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: playerController.toggleShuffleMode,
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Icon(
-                        Ionicons.shuffle,
-                        size: 24,
-                        color: isShuffle
-                            ? theme.colorScheme.secondary
-                            : theme.textTheme.titleLarge?.color
-                                ?.withOpacity(0.35),
-                      ),
-                    ),
+                return IconButton(
+                  tooltip: "Shuffle",
+                  splashRadius: 24,
+                  onPressed: playerController.toggleShuffleMode,
+                  icon: Icon(
+                    Icons.shuffle_rounded,
+                    size: 24,
+                    color: isShuffle
+                        ? theme.colorScheme.secondary
+                        : theme.textTheme.titleLarge?.color?.withOpacity(0.35),
                   ),
                 );
               }),
 
               // Previous Track Button
-              _previousButton(playerController, context),
+              IconButton(
+                tooltip: "Previous",
+                splashRadius: 24,
+                onPressed: playerController.prev,
+                icon: Icon(
+                  Icons.skip_previous_rounded,
+                  color: theme.textTheme.titleMedium?.color,
+                  size: 34,
+                ),
+              ),
 
               // Hero Elevated Circular Play/Pause Button
               Container(
@@ -216,28 +210,39 @@ class PlayerControlWidget extends StatelessWidget {
               ),
 
               // Next Track Button
-              _nextButton(playerController, context),
+              Obx(() {
+                final isLastSong = playerController.currentQueue.isEmpty ||
+                    (!(playerController.isShuffleModeEnabled.isTrue ||
+                            playerController.isQueueLoopModeEnabled.isTrue) &&
+                        (playerController.currentQueue.last.id ==
+                            playerController.currentSong.value?.id));
+                return IconButton(
+                  tooltip: "Next",
+                  splashRadius: 24,
+                  onPressed: isLastSong ? null : playerController.next,
+                  icon: Icon(
+                    Icons.skip_next_rounded,
+                    color: isLastSong
+                        ? theme.textTheme.titleLarge?.color?.withOpacity(0.25)
+                        : theme.textTheme.titleMedium?.color,
+                    size: 34,
+                  ),
+                );
+              }),
 
               // Loop / Repeat Button with Active Glow Ring
               Obx(() {
                 final isLoop = playerController.isLoopModeEnabled.value;
-                return Material(
-                  color: Colors.transparent,
-                  shape: const CircleBorder(),
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: playerController.toggleLoopMode,
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Icon(
-                        Icons.all_inclusive_rounded,
-                        size: 24,
-                        color: isLoop
-                            ? theme.colorScheme.secondary
-                            : theme.textTheme.titleLarge?.color
-                                ?.withOpacity(0.35),
-                      ),
-                    ),
+                return IconButton(
+                  tooltip: "Repeat",
+                  splashRadius: 24,
+                  onPressed: playerController.toggleLoopMode,
+                  icon: Icon(
+                    isLoop ? Icons.repeat_one_rounded : Icons.repeat_rounded,
+                    size: 24,
+                    color: isLoop
+                        ? theme.colorScheme.secondary
+                        : theme.textTheme.titleLarge?.color?.withOpacity(0.35),
                   ),
                 );
               }),
@@ -296,7 +301,7 @@ class PlayerControlWidget extends StatelessWidget {
 
                       String label = "Speed & Pitch";
                       if (isModified) {
-                        if ((speed - 0.85).abs() < 0.03 && (pitch - 0.90).abs() < 0.03) {
+                        if ((speed - 0.80).abs() < 0.03 && (pitch - 0.80).abs() < 0.03) {
                           label = "Slowed + Reverb";
                         } else if ((speed - 1.25).abs() < 0.03 && (pitch - 1.20).abs() < 0.03) {
                           label = "Nightcore";
@@ -327,6 +332,8 @@ class PlayerControlWidget extends StatelessWidget {
 
             // Sleep Timer Action
             IconButton(
+              tooltip: "Sleep Timer",
+              splashRadius: 20,
               icon: const Icon(Icons.timer_outlined, size: 22),
               color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
               onPressed: () {
@@ -345,6 +352,8 @@ class PlayerControlWidget extends StatelessWidget {
 
             // Song Info Action
             IconButton(
+              tooltip: "Song Info",
+              splashRadius: 20,
               icon: const Icon(Icons.info_outline_rounded, size: 22),
               color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
               onPressed: () {
@@ -370,54 +379,4 @@ class PlayerControlWidget extends StatelessWidget {
       ],
     );
   }
-
-  Widget _previousButton(
-      PlayerController playerController, BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: playerController.prev,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Icon(
-            Icons.skip_previous_rounded,
-            color: theme.textTheme.titleMedium?.color,
-            size: 34,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-Widget _nextButton(PlayerController playerController, BuildContext context) {
-  final theme = Theme.of(context);
-  return Obx(() {
-    final isLastSong = playerController.currentQueue.isEmpty ||
-        (!(playerController.isShuffleModeEnabled.isTrue ||
-                playerController.isQueueLoopModeEnabled.isTrue) &&
-            (playerController.currentQueue.last.id ==
-                playerController.currentSong.value?.id));
-    return Material(
-      color: Colors.transparent,
-      shape: const CircleBorder(),
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: isLastSong ? null : playerController.next,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Icon(
-            Icons.skip_next_rounded,
-            color: isLastSong
-                ? theme.textTheme.titleLarge?.color?.withOpacity(0.25)
-                : theme.textTheme.titleMedium?.color,
-            size: 34,
-          ),
-        ),
-      ),
-    );
-  });
 }
