@@ -178,16 +178,19 @@ class StandardPlayer extends StatelessWidget {
         if (!(context.isLandscape && GetPlatform.isMobile))
           Padding(
             padding: EdgeInsets.only(
-                top: Get.mediaQuery.padding.top + 20, left: 10, right: 10),
+                top: Get.mediaQuery.padding.top + 10, left: 10, right: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 /// Minimize button
                 IconButton(
+                  tooltip: "Minimize",
+                  splashRadius: 22,
                   icon: const Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 28,
+                    Icons.keyboard_arrow_down_rounded,
+                    color: Colors.white,
+                    size: 30,
                   ),
                   onPressed: playerController.playerPanelController.close,
                 ),
@@ -195,64 +198,70 @@ class StandardPlayer extends StatelessWidget {
                 /// Playing from [Album name]
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(top: 8.0, left: 5, right: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Obx(
                       () => Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(playerController.playinfrom.value.typeString,
-                              style: const TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.bold)),
-                          Obx(
-                            () => Text(
-                              "\"${playerController.playinfrom.value.nameString}\"",
-                              overflow: TextOverflow.ellipsis,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                          Text(
+                            playerController.playinfrom.value.typeString.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.8,
+                              color: Colors.white.withOpacity(0.65),
                             ),
-                          )
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "\"${playerController.playinfrom.value.nameString}\"",
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.white,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
 
-                /// Playback Speed & Pitch button
+                /// Playback Speed & Pitch micro-badge button
                 IconButton(
                   tooltip: "Playback Speed & Pitch",
+                  splashRadius: 20,
                   icon: Obx(() {
                     final speed = playerController.playbackSpeed.value;
                     final isModified = speed != 1.0 ||
                         playerController.playbackPitch.value != 1.0;
                     return Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                          horizontal: 6, vertical: 2.5),
                       decoration: BoxDecoration(
                         color: isModified
                             ? Theme.of(context)
                                 .colorScheme
                                 .secondary
-                                .withOpacity(0.3)
-                            : Colors.transparent,
+                                .withOpacity(0.35)
+                            : Colors.white.withOpacity(0.10),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isModified
                               ? Theme.of(context).colorScheme.secondary
-                              : Theme.of(context)
-                                  .textTheme
-                                  .titleMedium!
-                                  .color!
-                                  .withOpacity(0.4),
-                          width: 1,
+                              : Colors.white.withOpacity(0.20),
+                          width: 0.8,
                         ),
                       ),
                       child: Text(
                         "${speed.toStringAsFixed(1)}x",
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: isModified
                               ? Theme.of(context).colorScheme.secondary
-                              : Theme.of(context).textTheme.titleMedium!.color,
+                              : Colors.white.withOpacity(0.9),
                         ),
                       ),
                     );
@@ -262,7 +271,7 @@ class StandardPlayer extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 500),
                       shape: const RoundedRectangleBorder(
                         borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(20.0)),
+                            BorderRadius.vertical(top: Radius.circular(24.0)),
                       ),
                       isScrollControlled: true,
                       context: playerController
@@ -276,9 +285,12 @@ class StandardPlayer extends StatelessWidget {
 
                 /// More button for current song context
                 IconButton(
+                  tooltip: "More options",
+                  splashRadius: 22,
                   icon: const Icon(
-                    Icons.more_vert,
-                    size: 25,
+                    Icons.more_vert_rounded,
+                    color: Colors.white,
+                    size: 24,
                   ),
                   onPressed: () {
                     showModalBottomSheet(

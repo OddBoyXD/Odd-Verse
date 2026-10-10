@@ -23,6 +23,8 @@ import 'music_service.dart';
 
 class Downloader extends GetxService {
   final _dio = Dio();
+  CancelToken? _currentCancelToken;
+  String? _currentDownloadingFilePath;
   MediaItem? currentSong;
   RxMap<String, List<MediaItem>> playlistQueue =
       <String, List<MediaItem>>{}.obs;
@@ -196,8 +198,12 @@ class Downloader extends GetxService {
     printINFO("Downloading filePath: $filePath");
     final totalBytes = requiredAudioStream.size;
 
+    _currentDownloadingFilePath = filePath;
+    _currentCancelToken = CancelToken();
+
     _dio.download(
         requiredAudioStream.url,
+        cancelToken: _currentCancelToken,
         options: Options(headers: {"Range": 'bytes=0-$totalBytes'}),
         filePath, onReceiveProgress: (count, total) {
       if (total <= 0) return;
@@ -274,21 +280,75 @@ class Downloader extends GetxService {
         } catch (e) {
           printERROR("$e");
         }
+        _currentDownloadingFilePath = null;
+        _currentCancelToken = null;
         complete.complete();
       },
     ).onError(
       (error, stackTrace) {
-        ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
-            Get.context!, "downloadError3".tr,
-            size: SanckBarSize.BIG,
-            duration: const Duration(seconds: 2),
-            top: !GetPlatform.isDesktop));
-        printINFO(
-            "Downloading failed due to network/stream error! Please try again");
+        if (CancelToken.isCancel(error as DioException)) {
+          printINFO("Download cancelled by user for: ${song.title}");
+        } else {
+          ScaffoldMessenger.of(Get.context!).showSnackBar(snackbar(
+              Get.context!, "downloadError3".tr,
+              size: SanckBarSize.BIG,
+              duration: const Duration(seconds: 2),
+              top: !GetPlatform.isDesktop));
+          printINFO(
+              "Downloading failed due to network/stream error! Please try again");
+        }
+        _currentDownloadingFilePath = null;
+        _currentCancelToken = null;
         complete.complete();
       },
     );
 
     return complete.future;
+  }
+
+  Future<void> cancelSongDownload(MediaItem song, {bool deleteFile = true}) async {
+    if (currentSong?.id == song.id) {
+      try {
+        _currentCancelToken?.cancel("Cancelled by user");
+      } catch (_) {}
+      if (deleteFile && _currentDownloadingFilePath != null) {
+        try {
+          final f = File(_currentDownloadingFilePath!);
+          if (await f.exists()) {
+            await f.delete();
+          }
+        } catch (e) {
+          printERROR("Error deleting partial download file: $e");
+        }
+      }
+      songDownloadingProgress.value = 0;
+      currentSong = null;
+    }
+    songQueue.removeWhere((item) => item.id == song.id);
+
+    if (deleteFile && Hive.box("SongDownloads").containsKey(song.id)) {
+      try {
+        final songData = Hive.box("SongDownloads").get(song.id);
+        final path = songData?['url'] ?? songData?['streamInfo']?[1]?['url'];
+        if (path != null) {
+          final f = File(path);
+          if (await f.exists()) {
+            await f.delete();
+          }
+        }
+        await Hive.box("SongDownloads").delete(song.id);
+        if (Get.isRegistered<LibrarySongsController>()) {
+          Get.find<LibrarySongsController>()
+              .librarySongsList
+              .removeWhere((item) => item.id == song.id);
+        }
+      } catch (e) {
+        printERROR("Error removing downloaded file: $e");
+      }
+    }
+
+    if (songQueue.isEmpty) {
+      isJobRunning.value = false;
+    }
   }
 }

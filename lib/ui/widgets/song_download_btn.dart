@@ -18,6 +18,16 @@ class SongDownloadButton extends StatelessWidget {
   final MediaItem? song_;
   final void Function(bool)? isDownloadingDoneCallback;
 
+  String _getEstimatedDownloadSize(MediaItem? song) {
+    if (song == null) return "";
+    final format =
+        Hive.box("AppPrefs").get("downloadingFormat", defaultValue: "m4a");
+    final bitrateKbps = format == "opus" ? 160 : 256;
+    final durationSec = song.duration?.inSeconds ?? 210;
+    final sizeMB = (durationSec * bitrateKbps) / (8 * 1024);
+    return "~${sizeMB.toStringAsFixed(1)} MB";
+  }
+
   @override
   Widget build(BuildContext context) {
     final downloader = Get.find<Downloader>();
@@ -33,57 +43,127 @@ class SongDownloadButton extends StatelessWidget {
         isDownloadingDoneCallback!(isDownloadingDone);
       }
 
-      return (isDownloadingDone ||
-              Hive.box("SongDownloads").containsKey(song!.id))
-          ? Icon(
-              Icons.download_done,
-              color: Theme.of(context).textTheme.titleMedium!.color,
-            )
-          : downloader.songQueue.contains(song) &&
-                  downloader.isJobRunning.isTrue &&
-                  downloader.currentSong == song
-              ? Obx(() => Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Align(
-                        alignment: Alignment.center,
-                        child: Text(
-                          "${downloader.songDownloadingProgress.value}%",
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium!
-                              .copyWith(
-                                  fontSize: 10, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      LoadingIndicator(
-                        dimension: 30,
-                        strokeWidth: 4,
-                        value: (downloader.songDownloadingProgress.value) / 100,
-                      )
-                    ],
-                  ))
-              : downloader.songQueue.contains(song)
-                  ? const LoadingIndicator()
-                  : IconButton(
-                      icon: Icon(
-                        Icons.download,
-                        color: Theme.of(context).textTheme.titleMedium!.color,
-                      ),
-                      onPressed: () {
-                        (Hive.openBox("SongsCache").then((box) {
-                          if (box.containsKey(song.id)) {
-                            if (!context.mounted) return;
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(snackbar(
-                                context, "songAlreadyOfflineAlert".tr,
-                                size: SanckBarSize.BIG));
-                          } else {
-                            downloader.download(song);
-                          }
-                        }));
-                      },
-                    );
+      final isDownloaded = isDownloadingDone ||
+          Hive.box("SongDownloads").containsKey(song!.id);
+      final isCurrentlyDownloading = downloader.songQueue.contains(song) &&
+          downloader.isJobRunning.isTrue &&
+          downloader.currentSong == song;
+      final isQueued = downloader.songQueue.contains(song);
+
+      Widget buttonWidget;
+      if (isDownloaded) {
+        buttonWidget = IconButton(
+          tooltip: "Downloaded (Tap to delete)",
+          icon: Icon(
+            Icons.download_done_rounded,
+            color: Theme.of(context).colorScheme.secondary,
+            size: 24,
+          ),
+          onPressed: () {
+            downloader.cancelSongDownload(song, deleteFile: true);
+            ScaffoldMessenger.of(context).showSnackBar(snackbar(
+              context,
+              "Removed download for ${song.title}",
+              size: SanckBarSize.MEDIUM,
+            ));
+          },
+        );
+      } else if (isCurrentlyDownloading) {
+        buttonWidget = InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            downloader.cancelSongDownload(song, deleteFile: true);
+            ScaffoldMessenger.of(context).showSnackBar(snackbar(
+              context,
+              "Cancelled download for ${song.title}",
+              size: SanckBarSize.MEDIUM,
+            ));
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                LoadingIndicator(
+                  dimension: 30,
+                  strokeWidth: 3,
+                  value: (downloader.songDownloadingProgress.value) / 100,
+                ),
+                const Icon(
+                  Icons.close_rounded,
+                  size: 16,
+                  color: Colors.redAccent,
+                ),
+              ],
+            ),
+          ),
+        );
+      } else if (isQueued) {
+        buttonWidget = InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () {
+            downloader.cancelSongDownload(song, deleteFile: true);
+            ScaffoldMessenger.of(context).showSnackBar(snackbar(
+              context,
+              "Removed from download queue",
+              size: SanckBarSize.MEDIUM,
+            ));
+          },
+          child: const Padding(
+            padding: EdgeInsets.all(4.0),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                LoadingIndicator(dimension: 26, strokeWidth: 2.5),
+                Icon(Icons.close_rounded, size: 14, color: Colors.redAccent),
+              ],
+            ),
+          ),
+        );
+      } else {
+        buttonWidget = IconButton(
+          tooltip: "Download",
+          icon: Icon(
+            Icons.download_rounded,
+            color: Theme.of(context).textTheme.titleMedium!.color,
+            size: 24,
+          ),
+          onPressed: () {
+            Hive.openBox("SongsCache").then((box) {
+              if (box.containsKey(song.id)) {
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(snackbar(
+                    context, "songAlreadyOfflineAlert".tr,
+                    size: SanckBarSize.BIG));
+              } else {
+                downloader.download(song);
+              }
+            });
+          },
+        );
+      }
+
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          buttonWidget,
+          Text(
+            _getEstimatedDownloadSize(song),
+            style: TextStyle(
+              fontSize: 9.5,
+              color: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.color
+                  ?.withOpacity(0.7),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      );
     });
   }
 }

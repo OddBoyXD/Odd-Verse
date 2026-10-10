@@ -158,15 +158,12 @@ class _MiniPlayerState extends State<MiniPlayer>
               onVerticalDragUpdate: _onVerticalDragUpdate,
               onVerticalDragEnd: _onVerticalDragEnd,
               onVerticalDragCancel: _onVerticalDragCancel,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(
-                  8.0,
-                  2.0,
-                  8.0,
-                  bottomNavEnabled ? 4.0 : (6.0 + Get.mediaQuery.padding.bottom),
-                ),
+              child: Container(
+                height: minHeight,
+                alignment: Alignment.topCenter,
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Container(
-                  height: minHeight - 6.0,
+                  height: 64.0,
                   width: size.width,
                   decoration: BoxDecoration(
                     color: isDark

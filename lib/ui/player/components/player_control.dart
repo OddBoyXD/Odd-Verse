@@ -170,7 +170,7 @@ class PlayerControlWidget extends StatelessWidget {
                     size: 24,
                     color: isShuffle
                         ? theme.colorScheme.secondary
-                        : theme.textTheme.titleLarge?.color?.withOpacity(0.35),
+                        : Colors.white.withOpacity(0.70),
                   ),
                 );
               }),
@@ -180,9 +180,9 @@ class PlayerControlWidget extends StatelessWidget {
                 tooltip: "Previous",
                 splashRadius: 24,
                 onPressed: playerController.prev,
-                icon: Icon(
+                icon: const Icon(
                   Icons.skip_previous_rounded,
-                  color: theme.textTheme.titleMedium?.color,
+                  color: Colors.white,
                   size: 34,
                 ),
               ),
@@ -223,8 +223,8 @@ class PlayerControlWidget extends StatelessWidget {
                   icon: Icon(
                     Icons.skip_next_rounded,
                     color: isLastSong
-                        ? theme.textTheme.titleLarge?.color?.withOpacity(0.25)
-                        : theme.textTheme.titleMedium?.color,
+                        ? Colors.white.withOpacity(0.25)
+                        : Colors.white,
                     size: 34,
                   ),
                 );
@@ -242,7 +242,7 @@ class PlayerControlWidget extends StatelessWidget {
                     size: 24,
                     color: isLoop
                         ? theme.colorScheme.secondary
-                        : theme.textTheme.titleLarge?.color?.withOpacity(0.35),
+                        : Colors.white.withOpacity(0.70),
                   ),
                 );
               }),
@@ -256,7 +256,7 @@ class PlayerControlWidget extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Speed & Pitch Preset Badge Button
+            // Speed & Pitch Preset Badge Button (Steady fixed layout)
             InkWell(
               borderRadius: BorderRadius.circular(20),
               onTap: () {
@@ -276,12 +276,12 @@ class PlayerControlWidget extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? Colors.white.withOpacity(0.06)
+                      ? Colors.white.withOpacity(0.08)
                       : Colors.black.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: isDark
-                        ? Colors.white.withOpacity(0.08)
+                        ? Colors.white.withOpacity(0.12)
                         : Colors.black.withOpacity(0.06),
                   ),
                 ),
@@ -299,28 +299,41 @@ class PlayerControlWidget extends StatelessWidget {
                       final pitch = playerController.playbackPitch.value;
                       final isModified = speed != 1.0 || pitch != 1.0;
 
-                      String label = "Speed & Pitch";
-                      if (isModified) {
-                        if ((speed - 0.80).abs() < 0.03 && (pitch - 0.80).abs() < 0.03) {
-                          label = "Slowed + Reverb";
-                        } else if ((speed - 1.25).abs() < 0.03 && (pitch - 1.20).abs() < 0.03) {
-                          label = "Nightcore";
-                        } else {
-                          label = "${speed.toStringAsFixed(1)}x / ${pitch.toStringAsFixed(1)}p";
-                        }
-                      }
-
-                      return Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight:
-                              isModified ? FontWeight.bold : FontWeight.w600,
-                          color: isModified
-                              ? theme.colorScheme.secondary
-                              : theme.textTheme.bodySmall?.color
-                                  ?.withOpacity(0.8),
-                        ),
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Speed & Pitch",
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: isModified
+                                  ? FontWeight.bold
+                                  : FontWeight.w600,
+                              color: isModified
+                                  ? theme.colorScheme.secondary
+                                  : Colors.white.withOpacity(0.85),
+                            ),
+                          ),
+                          if (isModified) ...[
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.secondary,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                "${speed.toStringAsFixed(1)}x",
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       );
                     }),
                   ],
