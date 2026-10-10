@@ -93,12 +93,16 @@ class SettingsScreen extends StatelessWidget {
                   : const SizedBox.shrink(),
             ),
             Container(
-              height: 48,
+              height: 44,
               decoration: BoxDecoration(
-                color: theme.cardColor.withOpacity(0.65),
-                borderRadius: BorderRadius.circular(14),
+                color: theme.brightness == Brightness.dark
+                    ? theme.cardColor.withOpacity(0.55)
+                    : theme.cardColor.withOpacity(0.85),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.06),
+                  color: theme.brightness == Brightness.dark
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.black.withOpacity(0.05),
                   width: 1.0,
                 ),
               ),
@@ -109,12 +113,26 @@ class SettingsScreen extends StatelessWidget {
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
                 indicator: BoxDecoration(
-                  color: theme.colorScheme.secondary,
-                  borderRadius: BorderRadius.circular(12),
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.secondary,
+                      theme.colorScheme.secondary.withOpacity(0.85),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(13),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.colorScheme.secondary.withOpacity(0.35),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor:
-                    theme.textTheme.bodyMedium?.color?.withOpacity(0.65),
+                    theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                 labelStyle: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
@@ -126,24 +144,69 @@ class SettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(3),
                 tabs: [
                   Tab(
-                    icon: const Icon(Icons.palette_outlined, size: 18),
-                    text: "personalisation".tr,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.palette_outlined, size: 17),
+                          const SizedBox(width: 6),
+                          Text("personalisation".tr),
+                        ],
+                      ),
+                    ),
                   ),
                   Tab(
-                    icon: const Icon(Icons.music_note_outlined, size: 18),
-                    text: "music&Playback".tr,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.music_note_outlined, size: 17),
+                          const SizedBox(width: 6),
+                          Text("music&Playback".tr),
+                        ],
+                      ),
+                    ),
                   ),
                   Tab(
-                    icon: const Icon(Icons.download_outlined, size: 18),
-                    text: "download".tr,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.download_outlined, size: 17),
+                          const SizedBox(width: 6),
+                          Text("download".tr),
+                        ],
+                      ),
+                    ),
                   ),
                   const Tab(
-                    icon: Icon(Icons.account_circle_outlined, size: 18),
-                    text: "Account",
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.account_circle_outlined, size: 17),
+                          SizedBox(width: 6),
+                          Text("Account"),
+                        ],
+                      ),
+                    ),
                   ),
                   Tab(
-                    icon: const Icon(Icons.info_outline, size: 18),
-                    text: "${"backup".tr} & Info",
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.info_outline, size: 17),
+                          const SizedBox(width: 6),
+                          Text("${"backup".tr} & Info"),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),

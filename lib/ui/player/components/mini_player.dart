@@ -278,8 +278,34 @@ class _MiniPlayerState extends State<MiniPlayer>
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
+                                    // Previous Song Button
+                                    IconButton(
+                                      visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
+                                      icon: const Icon(
+                                        Icons.skip_previous_rounded,
+                                        size: 24,
+                                      ),
+                                      onPressed: playerController.prev,
+                                    ),
+
+                                    // Play / Pause Animated Button
+                                    const AnimatedPlayButton(
+                                      key: Key("miniPlayButton"),
+                                    ),
+
+                                    // Next Song Button
+                                    IconButton(
+                                      visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
+                                      icon: const Icon(
+                                        Icons.skip_next_rounded,
+                                        size: 24,
+                                      ),
+                                      onPressed: playerController.next,
+                                    ),
+
                                     // Favorite Button
                                     IconButton(
+                                      visualDensity: const VisualDensity(horizontal: -3, vertical: -3),
                                       onPressed:
                                           playerController.toggleFavourite,
                                       icon: Obx(
@@ -297,23 +323,6 @@ class _MiniPlayerState extends State<MiniPlayer>
                                         ),
                                       ),
                                     ),
-
-                                    // Play / Pause Animated Button
-                                    const AnimatedPlayButton(
-                                      key: Key("miniPlayButton"),
-                                    ),
-
-                                    // Next Song Button
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.skip_next_rounded,
-                                        size: 26,
-                                      ),
-                                      onPressed: playerController.next,
-                                    ),
-
-                                    // Popup Menu
-                                    _buildPopupMenu(context, playerController),
                                   ],
                                 ),
                               ],
@@ -347,88 +356,5 @@ class _MiniPlayerState extends State<MiniPlayer>
         ),
       );
     });
-  }
-
-  Widget _buildPopupMenu(
-      BuildContext context, PlayerController playerController) {
-    return PopupMenuButton<String>(
-      icon: const Icon(Icons.more_vert_rounded, size: 22),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      onSelected: (value) {
-        if (value == 'lyrics') {
-          showDialog(
-            context: context,
-            builder: (context) => const LyricsDialog(),
-          );
-        } else if (value == 'info') {
-          showDialog(
-            context: context,
-            builder: (context) => SongInfoDialog(
-              song: playerController.currentSong.value!,
-            ),
-          );
-        } else if (value == 'sleep') {
-          showModalBottomSheet(
-            context: context,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            builder: (context) => const SleepTimerBottomSheet(),
-          );
-        } else if (value == 'playlist') {
-          showModalBottomSheet(
-            context: context,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            builder: (context) => AddToPlaylist(
-              [playerController.currentSong.value!],
-            ),
-          );
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: 'lyrics',
-          child: Row(
-            children: [
-              Icon(Icons.lyrics_outlined, size: 20),
-              SizedBox(width: 10),
-              Text("Lyrics"),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'playlist',
-          child: Row(
-            children: [
-              Icon(Icons.playlist_add_rounded, size: 20),
-              SizedBox(width: 10),
-              Text("Add to Playlist"),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'sleep',
-          child: Row(
-            children: [
-              Icon(Icons.timer_outlined, size: 20),
-              SizedBox(width: 10),
-              Text("Sleep Timer"),
-            ],
-          ),
-        ),
-        const PopupMenuItem(
-          value: 'info',
-          child: Row(
-            children: [
-              Icon(Icons.info_outline_rounded, size: 20),
-              SizedBox(width: 10),
-              Text("Song Info"),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 }
