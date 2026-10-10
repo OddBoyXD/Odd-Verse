@@ -3,11 +3,13 @@
 ## [v1.0.2] - In Development
 
 ### 🎨 Modern Player UI Redesign & Floating Pill Mini Player
-- **Floating Pill Mini Player**: Encapsulated the bottom player into a sleek floating glassmorphic pill (`BorderRadius: 20px`) with rounded album art thumbnail (`14px`) and integrated progress indicator.
-- **Glitch-Free Dismissal Physics**: Overhauled vertical drag gesture with smooth spring physics, scale-down dampening (`0.94x`), and cubic opacity fading to prevent jerky minimize transitions.
-- **Ambient Glow on Album Art**: Dynamic glowing ambient shadow around the fullscreen album cover matching the song's accent colors.
-- **Modernized Playback Controls**: Re-engineered progress bar with styled timestamps, elevated circular play/pause button with glowing shadow, and quick-access action toolbar.
-- **Fine-Tuned Speed & Pitch Stepper**: Added `(-)` / `(+)` precision steppers (`0.05x` increments), instant DSP synchronization, and preset tags (Nightcore, Deep Bass, Normal).
+- **Fixed-Height Floating Pill Mini Player**: Locked the mini-player pill to a fixed `64.0 px` height across all screen routes and bottom navigation bar states, eliminating vertical stretching.
+- **Bleed-Through Glitch Elimination**: Reactive opacity guards fully conceal the full player body when collapsed, preventing ghost text and background leakage under the floating pill.
+- **1-Tap Download Cancel & Disk Deletion**: Instantly abort active downloads or remove downloaded tracks with automated partial file cleanup on storage.
+- **Estimated Download Size Indicators**: Added real-time size labels under download buttons calculated according to selected audio format quality.
+- **High-Contrast Crisp White Controls**: Replaced dim button targets with high-visibility white controls and dedicated active state rings.
+- **Compact Speed Micro-Badge & Modernized Song Info Dialog**: Sleek `1.0x` top-right header micro-chip, steady bottom toolbar layout, and glassmorphic song info dialog with one-tap ID copying.
+- **Slowed + Reverb 1-Tap Preset (`0.80x / 0.80x`)**: Calibrated default speed and pitch to `0.80x` with live badge recognition.
 
 ### 🎚️ Playback Speed & Pitch Control Engine
 - **Full Precision Speed Control (0.5x – 2.0x)**: Seamlessly adjust playback speed from half-speed (0.5x) up to double speed (2.0x) with 0.05x precision increments or 1-tap quick preset chips (`0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`, `1.75x`, `2.0x`).
