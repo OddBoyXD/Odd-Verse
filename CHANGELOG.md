@@ -1,32 +1,31 @@
 # 🚀 Odd Verse Changelog
 
-## [v1.0.2] - In Development
+## [v1.0.2] - Latest Release
 
-### 🎨 Modern Player UI Redesign & Floating Pill Mini Player
-- **Fixed-Height Floating Pill Mini Player**: Locked the mini-player pill to a fixed `64.0 px` height across all screen routes and bottom navigation bar states, eliminating vertical stretching.
-- **Bleed-Through Glitch Elimination**: Reactive opacity guards fully conceal the full player body when collapsed, preventing ghost text and background leakage under the floating pill.
-- **1-Tap Download Cancel & Disk Deletion**: Instantly abort active downloads or remove downloaded tracks with automated partial file cleanup on storage.
-- **Estimated Download Size Indicators**: Added real-time size labels under download buttons calculated according to selected audio format quality.
-- **High-Contrast Crisp White Controls**: Replaced dim button targets with high-visibility white controls and dedicated active state rings.
-- **Compact Speed Micro-Badge & Modernized Song Info Dialog**: Sleek `1.0x` top-right header micro-chip, steady bottom toolbar layout, and glassmorphic song info dialog with one-tap ID copying.
-- **Slowed + Reverb 1-Tap Preset (`0.80x / 0.80x`)**: Calibrated default speed and pitch to `0.80x` with live badge recognition.
+### 🎤 Multi-Provider Synced & Plain Lyrics Engine
+- **YouTube Captions to LRC**: Native timed-text subtitles auto-converted to synced lyrics (`.lrc`) timestamps with 100% millisecond precision.
+- **Netease Cloud Music Sync Integration**: Multi-tier international lyrics database covering global, Asian, anime, and Indic releases.
+- **Unified Dual-Mode Fallback**: Instant auto-switching between synced lyrics and clean plain text when timestamps are unavailable.
+- **0ms Local Offline Cache**: Lyrics are permanently cached in local Hive storage for zero-delay offline recall.
+
+### ⚡ Fast-Loading Audio & Stream Engine
+- **Muxed Audio Fallback**: Official YouTube music videos and standard uploads automatically extract high-quality audio streams, eliminating "Playback not available" errors.
+- **Background Stream Pre-Buffering**: Pre-fetches stream manifests for upcoming queue items to enable instant, zero-lag song transitions.
+- **Connection Socket Recycling**: Managed client lifecycle with automatic cleanup to prevent socket exhaustion and timeouts.
+
+### 🎨 Modern Player & Floating Mini Player
+- **Floating Mini Player Pill**: Symmetric bounded pill container with 20px rounded glassmorphic finish and full playback controls.
+- **Clean Standard Player Header**: Streamlined header layout; speed/pitch controls accessible in the bottom playback toolbar.
+- **Refined Settings & Navigation**: Discoverable tab navigation across all 5 settings sections with zero clipping or overflow.
 
 ### 🎚️ Playback Speed & Pitch Control Engine
-- **Full Precision Speed Control (0.5x – 2.0x)**: Seamlessly adjust playback speed from half-speed (0.5x) up to double speed (2.0x) with 0.05x precision increments or 1-tap quick preset chips (`0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`, `1.75x`, `2.0x`).
-- **Dynamic Pitch Modulation (0.7x – 1.3x)**: Independently alter audio key pitch for Nightcore, Deep, or custom vocal modulation in real-time.
-- **Dedicated Speed & Pitch Sheet**: Accessible via a 1-tap badge directly from the standard player header and inside the Song Info options menu.
-- **Preference Persistence**: User's preferred playback speed and pitch are stored in local preferences and remembered across sessions.
+- **Speed & Pitch Modulation**: Adjustable playback speed (0.5x – 2.0x) and independent key pitch tuning with 1-tap presets and session persistence.
 
-### 📈 Playlist & Album Total Duration & Storage Statistics Header
-- **Dynamic Total Playtime Calculation**: Automatically calculates and displays the aggregate playtime (e.g. `2 hr 15 min`, `48 min`) at the top of playlists and albums.
-- **Offline Storage Statistics**: Shows total downloaded file size (e.g. `142.5 MB downloaded`) with live offline badges for instant storage tracking.
-- **Integrated Sort Header Stats**: Compact runtime and track count metadata seamlessly integrated across `PlaylistScreen` and `AlbumScreen`.
+### 📈 Playlist, Album & Storage Statistics
+- **Aggregate Playtime & Disk Metrics**: Live runtime calculation and storage footprint badges on playlists and albums.
 
-### 🔄 In-App Update & Notification Engine
-- **Active Update System**: Enabled `updateCheckFlag = true` allowing the app to automatically check for newer Odd Verse releases directly from GitHub.
-- **Auto-Check Toggle in Settings**: Added a new toggle under `Settings` -> `Miscellaneous` to enable or disable automatic update checks on app launch.
-- **Manual "Check for Updates" Button**: Added a dedicated manual check button under `Settings` -> `Miscellaneous` with instant real-time feedback (displays a notification if up-to-date or opens the download modal if a new release is available).
-- **Resilient Version Comparator**: Upgraded semantic version parser with robust major/minor/patch comparison and prefix normalization.
+### 🔄 In-App Update Engine
+- **Automated & Manual Release Checks**: In-app update notifications and manual version check under settings.
 
 ## [v1.0.1] - Official Release
 
