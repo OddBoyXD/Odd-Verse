@@ -35,20 +35,21 @@ class SongDownloadButton extends StatelessWidget {
     return Obx(() {
       final song =
           calledFromPlayer ? playerController.currentSong.value : song_;
-      if (song == null && calledFromPlayer) return const SizedBox.shrink();
-      final isDownloadingDone = (downloader.songQueue.contains(song) &&
-          downloader.currentSong == song &&
+      if (song == null) return const SizedBox.shrink();
+      final currentSongItem = song;
+      final isDownloadingDone = (downloader.songQueue.contains(currentSongItem) &&
+          downloader.currentSong == currentSongItem &&
           downloader.songDownloadingProgress.value == 100);
       if (isDownloadingDoneCallback != null) {
         isDownloadingDoneCallback!(isDownloadingDone);
       }
 
       final isDownloaded = isDownloadingDone ||
-          Hive.box("SongDownloads").containsKey(song!.id);
-      final isCurrentlyDownloading = downloader.songQueue.contains(song) &&
+          Hive.box("SongDownloads").containsKey(currentSongItem.id);
+      final isCurrentlyDownloading = downloader.songQueue.contains(currentSongItem) &&
           downloader.isJobRunning.isTrue &&
-          downloader.currentSong == song;
-      final isQueued = downloader.songQueue.contains(song);
+          downloader.currentSong == currentSongItem;
+      final isQueued = downloader.songQueue.contains(currentSongItem);
 
       Widget buttonWidget;
       if (isDownloaded) {
@@ -60,10 +61,10 @@ class SongDownloadButton extends StatelessWidget {
             size: 24,
           ),
           onPressed: () {
-            downloader.cancelSongDownload(song, deleteFile: true);
+            downloader.cancelSongDownload(currentSongItem, deleteFile: true);
             ScaffoldMessenger.of(context).showSnackBar(snackbar(
               context,
-              "Removed download for ${song.title}",
+              "Removed download for ${currentSongItem.title}",
               size: SanckBarSize.MEDIUM,
             ));
           },
@@ -72,10 +73,10 @@ class SongDownloadButton extends StatelessWidget {
         buttonWidget = InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-            downloader.cancelSongDownload(song, deleteFile: true);
+            downloader.cancelSongDownload(currentSongItem, deleteFile: true);
             ScaffoldMessenger.of(context).showSnackBar(snackbar(
               context,
-              "Cancelled download for ${song.title}",
+              "Cancelled download for ${currentSongItem.title}",
               size: SanckBarSize.MEDIUM,
             ));
           },
@@ -102,7 +103,7 @@ class SongDownloadButton extends StatelessWidget {
         buttonWidget = InkWell(
           borderRadius: BorderRadius.circular(20),
           onTap: () {
-            downloader.cancelSongDownload(song, deleteFile: true);
+            downloader.cancelSongDownload(currentSongItem, deleteFile: true);
             ScaffoldMessenger.of(context).showSnackBar(snackbar(
               context,
               "Removed from download queue",
@@ -130,14 +131,14 @@ class SongDownloadButton extends StatelessWidget {
           ),
           onPressed: () {
             Hive.openBox("SongsCache").then((box) {
-              if (box.containsKey(song.id)) {
+              if (box.containsKey(currentSongItem.id)) {
                 if (!context.mounted) return;
                 Navigator.of(context).pop();
                 ScaffoldMessenger.of(context).showSnackBar(snackbar(
                     context, "songAlreadyOfflineAlert".tr,
                     size: SanckBarSize.BIG));
               } else {
-                downloader.download(song);
+                downloader.download(currentSongItem);
               }
             });
           },
