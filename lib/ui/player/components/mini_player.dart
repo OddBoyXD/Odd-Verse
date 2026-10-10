@@ -164,7 +164,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Container(
                   height: 64.0,
-                  width: size.width,
+                  width: double.infinity,
                   decoration: BoxDecoration(
                     color: isDark
                         ? theme.cardColor.withOpacity(0.94)

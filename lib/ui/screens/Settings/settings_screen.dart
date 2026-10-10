@@ -135,48 +135,48 @@ class SettingsScreen extends StatelessWidget {
                     theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
                 labelStyle: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                  fontSize: 12.5,
                 ),
                 unselectedLabelStyle: const TextStyle(
                   fontWeight: FontWeight.normal,
-                  fontSize: 13,
+                  fontSize: 12.5,
                 ),
                 padding: const EdgeInsets.all(3),
                 tabs: [
                   Tab(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.palette_outlined, size: 17),
-                          const SizedBox(width: 6),
+                          const Icon(Icons.palette_outlined, size: 16),
+                          const SizedBox(width: 5),
                           Text("personalisation".tr),
                         ],
                       ),
                     ),
                   ),
-                  Tab(
+                  const Tab(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.music_note_outlined, size: 17),
-                          const SizedBox(width: 6),
-                          Text("music&Playback".tr),
+                          Icon(Icons.music_note_outlined, size: 16),
+                          SizedBox(width: 5),
+                          Text("Audio & Player"),
                         ],
                       ),
                     ),
                   ),
                   Tab(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.download_outlined, size: 17),
-                          const SizedBox(width: 6),
+                          const Icon(Icons.download_outlined, size: 16),
+                          const SizedBox(width: 5),
                           Text("download".tr),
                         ],
                       ),
@@ -184,26 +184,26 @@ class SettingsScreen extends StatelessWidget {
                   ),
                   const Tab(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.account_circle_outlined, size: 17),
-                          SizedBox(width: 6),
+                          Icon(Icons.account_circle_outlined, size: 16),
+                          SizedBox(width: 5),
                           Text("Account"),
                         ],
                       ),
                     ),
                   ),
-                  Tab(
+                  const Tab(
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 4),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.info_outline, size: 17),
-                          const SizedBox(width: 6),
-                          Text("${"backup".tr} & Info"),
+                          Icon(Icons.info_outline, size: 16),
+                          SizedBox(width: 5),
+                          Text("About & Backup"),
                         ],
                       ),
                     ),
