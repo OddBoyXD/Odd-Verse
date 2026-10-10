@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '/ui/player/components/lyrics_widget.dart';
 import '/ui/player/player_controller.dart';
+import '/utils/helper.dart';
 import '../../widgets/image_widget.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
@@ -149,7 +150,9 @@ class AlbumArtNLyrics extends StatelessWidget {
                             const SizedBox(width: 4),
                             Obx(
                               () => Text(
-                                playerController.sleepTimerLeftDuration.value,
+                                printDuration(Duration(
+                                    seconds: playerController
+                                        .timerDurationLeft.value)),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,

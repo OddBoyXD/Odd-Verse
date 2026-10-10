@@ -45,9 +45,6 @@ class _MiniPlayerState extends State<MiniPlayer>
   }
 
   @override
-  void dispose technical() {}
-
-  @override
   void dispose() {
     _animController.dispose();
     super.dispose();
@@ -397,7 +394,7 @@ class _MiniPlayerState extends State<MiniPlayer>
               borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
             builder: (context) => AddToPlaylist(
-              song: playerController.currentSong.value!,
+              [playerController.currentSong.value!],
             ),
           );
         }
