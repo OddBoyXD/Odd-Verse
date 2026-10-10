@@ -2,6 +2,13 @@
 
 ## [v1.0.2] - In Development
 
+### 🎨 Modern Player UI Redesign & Floating Pill Mini Player
+- **Floating Pill Mini Player**: Encapsulated the bottom player into a sleek floating glassmorphic pill (`BorderRadius: 20px`) with rounded album art thumbnail (`14px`) and integrated progress indicator.
+- **Glitch-Free Dismissal Physics**: Overhauled vertical drag gesture with smooth spring physics, scale-down dampening (`0.94x`), and cubic opacity fading to prevent jerky minimize transitions.
+- **Ambient Glow on Album Art**: Dynamic glowing ambient shadow around the fullscreen album cover matching the song's accent colors.
+- **Modernized Playback Controls**: Re-engineered progress bar with styled timestamps, elevated circular play/pause button with glowing shadow, and quick-access action toolbar.
+- **Fine-Tuned Speed & Pitch Stepper**: Added `(-)` / `(+)` precision steppers (`0.05x` increments), instant DSP synchronization, and preset tags (Nightcore, Deep Bass, Normal).
+
 ### 🎚️ Playback Speed & Pitch Control Engine
 - **Full Precision Speed Control (0.5x – 2.0x)**: Seamlessly adjust playback speed from half-speed (0.5x) up to double speed (2.0x) with 0.05x precision increments or 1-tap quick preset chips (`0.5x`, `0.75x`, `1.0x`, `1.25x`, `1.5x`, `1.75x`, `2.0x`).
 - **Dynamic Pitch Modulation (0.7x – 1.3x)**: Independently alter audio key pitch for Nightcore, Deep, or custom vocal modulation in real-time.
