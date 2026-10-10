@@ -159,12 +159,12 @@ class _MiniPlayerState extends State<MiniPlayer>
               onVerticalDragEnd: _onVerticalDragEnd,
               onVerticalDragCancel: _onVerticalDragCancel,
               child: Container(
+                width: size.width,
                 height: minHeight,
                 alignment: Alignment.topCenter,
-                padding: const EdgeInsets.symmetric(horizontal: 10.0),
                 child: Container(
                   height: 64.0,
-                  width: double.infinity,
+                  width: size.width - 20.0,
                   decoration: BoxDecoration(
                     color: isDark
                         ? theme.cardColor.withOpacity(0.94)

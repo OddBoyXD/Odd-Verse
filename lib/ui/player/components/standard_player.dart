@@ -228,62 +228,6 @@ class StandardPlayer extends StatelessWidget {
                   ),
                 ),
 
-                /// Playback Speed & Pitch micro-badge button
-                IconButton(
-                  tooltip: "Playback Speed & Pitch",
-                  splashRadius: 20,
-                  icon: Obx(() {
-                    final speed = playerController.playbackSpeed.value;
-                    final isModified = speed != 1.0 ||
-                        playerController.playbackPitch.value != 1.0;
-                    return Container(
-                      width: 44,
-                      height: 26,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: isModified
-                            ? Theme.of(context)
-                                .colorScheme
-                                .secondary
-                                .withOpacity(0.35)
-                            : Colors.white.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: isModified
-                              ? Theme.of(context).colorScheme.secondary
-                              : Colors.white.withOpacity(0.22),
-                          width: 1.0,
-                        ),
-                      ),
-                      child: Text(
-                        "${speed.toStringAsFixed(1)}x",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 10.5,
-                          fontWeight: FontWeight.bold,
-                          color: isModified
-                              ? Theme.of(context).colorScheme.secondary
-                              : Colors.white,
-                        ),
-                      ),
-                    );
-                  }),
-                  onPressed: () {
-                    showModalBottomSheet(
-                      constraints: const BoxConstraints(maxWidth: 500),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius:
-                            BorderRadius.vertical(top: Radius.circular(24.0)),
-                      ),
-                      isScrollControlled: true,
-                      context: playerController
-                          .homeScaffoldkey.currentState!.context,
-                      barrierColor: Colors.transparent.withAlpha(100),
-                      builder: (context) =>
-                          const PlaybackSpeedPitchBottomSheet(),
-                    );
-                  },
-                ),
 
                 /// More button for current song context
                 IconButton(
