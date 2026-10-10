@@ -13,15 +13,30 @@ class StreamProvider {
     
     try {
       final res = await yt.videos.streamsClient.getManifest(videoId);
-      final audio = res.audioOnly;
+      Iterable<dynamic> audio = res.audioOnly;
+      
+      // If audioOnly streams are empty (e.g. music videos, live shows, user uploads),
+      // fallback to audio tracks extracted from muxed (video+audio) streams
+      if (audio.isEmpty) {
+        audio = res.muxed;
+      }
+
+      if (audio.isEmpty) {
+        return StreamProvider(
+          playable: false,
+          statusMSG: "No audio stream available",
+        );
+      }
+
       return StreamProvider(
           playable: true,
           statusMSG: "OK",
           audioFormats: audio
               .map((e) => Audio(
                   itag: e.tag,
-                  audioCodec:
-                      e.audioCodec.contains('mp') ? Codec.mp4a : Codec.opus,
+                  audioCodec: e.audioCodec.toString().toLowerCase().contains('mp')
+                      ? Codec.mp4a
+                      : Codec.opus,
                   bitrate: e.bitrate.bitsPerSecond,
                   duration: 0,
                   loudnessDb: 0.0,
@@ -60,24 +75,38 @@ class StreamProvider {
           statusMSG: "Unknown error occurred",
         );
       }
+    } finally {
+      yt.close();
     }
   }
 
-  Audio? get highestQualityAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 251 || item.itag == 140,
-          orElse: () => audioFormats!.first);
+  Audio? get highestQualityAudio {
+    if (audioFormats == null || audioFormats!.isEmpty) return null;
+    return audioFormats!.lastWhere(
+        (item) => item.itag == 251 || item.itag == 140,
+        orElse: () => audioFormats!.first);
+  }
 
-  Audio? get highestBitrateMp4aAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 140 || item.itag == 139,
-          orElse: () => audioFormats!.first);
+  Audio? get highestBitrateMp4aAudio {
+    if (audioFormats == null || audioFormats!.isEmpty) return null;
+    return audioFormats!.lastWhere(
+        (item) => item.itag == 140 || item.itag == 139,
+        orElse: () => audioFormats!.first);
+  }
 
-  Audio? get highestBitrateOpusAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 251 || item.itag == 250,
-          orElse: () => audioFormats!.first);
+  Audio? get highestBitrateOpusAudio {
+    if (audioFormats == null || audioFormats!.isEmpty) return null;
+    return audioFormats!.lastWhere(
+        (item) => item.itag == 251 || item.itag == 250,
+        orElse: () => audioFormats!.first);
+  }
 
-  Audio? get lowQualityAudio =>
-      audioFormats?.lastWhere((item) => item.itag == 249 || item.itag == 139,
-          orElse: () => audioFormats!.first);
+  Audio? get lowQualityAudio {
+    if (audioFormats == null || audioFormats!.isEmpty) return null;
+    return audioFormats!.lastWhere(
+        (item) => item.itag == 249 || item.itag == 139,
+        orElse: () => audioFormats!.first);
+  }
 
   Map<String, dynamic> get hmStreamingData {
     return {

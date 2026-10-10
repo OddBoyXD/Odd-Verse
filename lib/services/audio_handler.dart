@@ -779,10 +779,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final songsUrlCacheBox = Hive.box("SongsUrlCache");
         if (songsUrlCacheBox.containsKey(songId)) {
           final streamInfoJson = songsUrlCacheBox.get(songId);
-          if (streamInfoJson.runtimeType.toString().contains("Map") &&
-              !isExpired(
-                  url: (streamInfoJson['lowQualityAudio']?['url'] ?? ''))) {
-            continue;
+          if (streamInfoJson.runtimeType.toString().contains("Map")) {
+            final cachedUrl = (streamInfoJson['lowQualityAudio']?['url'] ??
+                streamInfoJson['highQualityAudio']?['url'] ??
+                '');
+            if (cachedUrl.isNotEmpty && !isExpired(url: cachedUrl)) {
+              continue;
+            }
           }
         }
 
@@ -976,10 +979,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
       HMStreamingData? streamInfo;
       if (songsUrlCacheBox.containsKey(songId) && !generateNewUrl) {
         final streamInfoJson = songsUrlCacheBox.get(songId);
-        if (streamInfoJson.runtimeType.toString().contains("Map") &&
-            !isExpired(url: (streamInfoJson['lowQualityAudio']['url']))) {
-          printINFO("Got cached Url ($songId)");
-          streamInfo = HMStreamingData.fromJson(streamInfoJson);
+        if (streamInfoJson.runtimeType.toString().contains("Map")) {
+          final cachedUrl = (streamInfoJson['lowQualityAudio']?['url'] ??
+              streamInfoJson['highQualityAudio']?['url'] ??
+              '');
+          if (cachedUrl.isNotEmpty && !isExpired(url: cachedUrl)) {
+            printINFO("Got cached Url ($songId)");
+            streamInfo = HMStreamingData.fromJson(streamInfoJson);
+          }
         }
       }
 

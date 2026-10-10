@@ -68,12 +68,12 @@ Map<String, dynamic>? getFixedColumnItem(Map<String, dynamic> item, int index) {
       ['musicResponsiveListItemFixedColumnRenderer'];
 }
 
-///Check if Steam Url or given epoch is expired
+///Check if Stream Url or given epoch is expired
 bool isExpired({String? url, int? epoch}) {
-  if (url != null) {
-    RegExpMatch? match = RegExp(".expire=([0-9]+)?&").firstMatch(url);
-    if (match != null) {
-      epoch = int.parse(match[1]!);
+  if (url != null && url.isNotEmpty) {
+    final match = RegExp(r"expire=([0-9]+)").firstMatch(url);
+    if (match != null && match.group(1) != null) {
+      epoch = int.tryParse(match.group(1)!);
     }
   }
 
