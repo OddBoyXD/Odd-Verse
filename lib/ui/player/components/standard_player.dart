@@ -237,31 +237,33 @@ class StandardPlayer extends StatelessWidget {
                     final isModified = speed != 1.0 ||
                         playerController.playbackPitch.value != 1.0;
                     return Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2.5),
+                      width: 44,
+                      height: 26,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
                         color: isModified
                             ? Theme.of(context)
                                 .colorScheme
                                 .secondary
                                 .withOpacity(0.35)
-                            : Colors.white.withOpacity(0.10),
+                            : Colors.white.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: isModified
                               ? Theme.of(context).colorScheme.secondary
-                              : Colors.white.withOpacity(0.20),
-                          width: 0.8,
+                              : Colors.white.withOpacity(0.22),
+                          width: 1.0,
                         ),
                       ),
                       child: Text(
                         "${speed.toStringAsFixed(1)}x",
+                        textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.bold,
                           color: isModified
                               ? Theme.of(context).colorScheme.secondary
-                              : Colors.white.withOpacity(0.9),
+                              : Colors.white,
                         ),
                       ),
                     );

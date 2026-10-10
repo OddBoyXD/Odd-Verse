@@ -199,88 +199,79 @@ class _MiniPlayerState extends State<MiniPlayer>
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 // Left: Album Art Thumbnail
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(14),
-                                      child: playerController.currentSong.value !=
-                                              null
-                                          ? ImageWidget(
-                                              size: 46,
-                                              song: playerController
-                                                  .currentSong.value!,
-                                            )
-                                          : const SizedBox(
-                                              width: 46,
-                                              height: 46,
-                                            ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    // Middle: Song Title & Artist
-                                    SizedBox(
-                                      width: size.width *
-                                          (isWideScreen
-                                              ? 0.50
-                                              : (bottomNavEnabled
-                                                  ? 0.40
-                                                  : 0.44)),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Marquee(
-                                            delay: const Duration(
-                                                milliseconds: 300),
-                                            duration:
-                                                const Duration(seconds: 10),
-                                            id: "${playerController.currentSong.value}_title",
-                                            child: Text(
-                                              playerController.currentSong
-                                                          .value !=
-                                                      null
-                                                  ? playerController
-                                                      .currentSong.value!.title
-                                                  : "No Song Playing",
-                                              style: theme.textTheme.labelMedium
-                                                  ?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 14,
-                                              ),
-                                            ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: playerController.currentSong.value !=
+                                          null
+                                      ? ImageWidget(
+                                          size: 46,
+                                          song: playerController
+                                              .currentSong.value!,
+                                        )
+                                      : const SizedBox(
+                                          width: 46,
+                                          height: 46,
+                                        ),
+                                ),
+                                const SizedBox(width: 12),
+                                // Middle: Song Title & Artist (Expanded Centered)
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Marquee(
+                                        delay: const Duration(
+                                            milliseconds: 300),
+                                        duration:
+                                            const Duration(seconds: 10),
+                                        id: "${playerController.currentSong.value}_title",
+                                        child: Text(
+                                          playerController.currentSong
+                                                      .value !=
+                                                  null
+                                              ? playerController
+                                                  .currentSong.value!.title
+                                              : "No Song Playing",
+                                          style: theme.textTheme.labelMedium
+                                              ?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
                                           ),
-                                          const SizedBox(height: 2),
-                                          Marquee(
-                                            delay: const Duration(
-                                                milliseconds: 300),
-                                            duration:
-                                                const Duration(seconds: 10),
-                                            id: "${playerController.currentSong.value}_subtitle",
-                                            child: Text(
-                                              playerController.currentSong
-                                                          .value !=
-                                                      null
-                                                  ? playerController
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Marquee(
+                                        delay: const Duration(
+                                            milliseconds: 300),
+                                        duration:
+                                            const Duration(seconds: 10),
+                                        id: "${playerController.currentSong.value}_subtitle",
+                                        child: Text(
+                                          playerController.currentSong
+                                                      .value !=
+                                                  null
+                                              ? (playerController
                                                       .currentSong
                                                       .value!
-                                                      .artist!
-                                                  : "Odd-Verse",
-                                              style: theme.textTheme.labelSmall
-                                                  ?.copyWith(
-                                                color: theme
-                                                    .textTheme.labelSmall?.color
-                                                    ?.withOpacity(0.75),
-                                                fontSize: 12,
-                                              ),
-                                            ),
+                                                      .artist ??
+                                                  "Odd-Verse")
+                                              : "Odd-Verse",
+                                          style: theme.textTheme.labelSmall
+                                              ?.copyWith(
+                                            color: theme
+                                                .textTheme.labelSmall?.color
+                                                ?.withOpacity(0.75),
+                                            fontSize: 12,
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
+                                const SizedBox(width: 6),
 
                                 // Right: Control Buttons
                                 Row(

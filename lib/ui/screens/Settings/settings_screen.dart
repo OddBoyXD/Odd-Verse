@@ -36,63 +36,128 @@ class SettingsScreen extends StatelessWidget {
     final settingsController = Get.find<SettingsScreenController>();
     final topPadding = context.isLandscape ? 50.0 : 90.0;
     final isDesktop = GetPlatform.isDesktop;
-    return Padding(
-      padding: isBottomNavActive
-          ? EdgeInsets.only(left: 20, top: topPadding, right: 15)
-          : EdgeInsets.only(top: topPadding, left: 5, right: 5),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              "settings".tr,
-              style: Theme.of(context).textTheme.titleLarge,
+    final theme = Theme.of(context);
+    return DefaultTabController(
+      length: 5,
+      child: Padding(
+        padding: isBottomNavActive
+            ? EdgeInsets.only(left: 16, top: topPadding, right: 16)
+            : EdgeInsets.only(top: topPadding, left: 12, right: 12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "settings".tr,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
-          Expanded(
-              child: ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.only(bottom: 200, top: 20),
-            children: [
-              Obx(
-                () => settingsController.isNewVersionAvailable.value
-                    ? Padding(
-                        padding: const EdgeInsets.only(
-                            top: 8.0, right: 10, bottom: 8.0),
-                        child: Material(
-                          type: MaterialType.transparency,
-                          child: ListTile(
-                            onTap: () {
-                              launchUrl(
-                                Uri.parse(
-                                  'https://github.com/OddBoyXD/Odd-Verse/releases/latest',
-                                ),
-                                mode: LaunchMode.externalApplication,
-                              );
-                            },
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                            tileColor: Theme.of(context).colorScheme.secondary,
-                            contentPadding:
-                                const EdgeInsets.only(left: 8, right: 10),
-                            leading:
-                                const CircleAvatar(child: Icon(Icons.download)),
-                            title: Text("newVersionAvailable".tr),
-                            visualDensity: const VisualDensity(horizontal: -2),
-                            subtitle: Text(
-                              "goToDownloadPage".tr,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium!
-                                  .copyWith(
-                                      color: Colors.white70, fontSize: 13),
-                            ),
+            const SizedBox(height: 10),
+            Obx(
+              () => settingsController.isNewVersionAvailable.value
+                  ? Padding(
+                      padding: const EdgeInsets.only(bottom: 10.0),
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
+                          onTap: () {
+                            launchUrl(
+                              Uri.parse(
+                                'https://github.com/OddBoyXD/Odd-Verse/releases/latest',
+                              ),
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          tileColor: theme.colorScheme.secondary,
+                          contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+                          leading:
+                              const CircleAvatar(child: Icon(Icons.download, color: Colors.white)),
+                          title: Text("newVersionAvailable".tr,
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                          visualDensity: const VisualDensity(horizontal: -2),
+                          subtitle: Text(
+                            "goToDownloadPage".tr,
+                            style: theme.textTheme.bodyMedium!.copyWith(
+                                color: Colors.white70, fontSize: 12.5),
                           ),
                         ),
-                      )
-                    : const SizedBox.shrink(),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+            Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: theme.cardColor.withOpacity(0.65),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.06),
+                  width: 1.0,
+                ),
               ),
+              child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                physics: const BouncingScrollPhysics(),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                indicator: BoxDecoration(
+                  color: theme.colorScheme.secondary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                labelColor: Colors.white,
+                unselectedLabelColor:
+                    theme.textTheme.bodyMedium?.color?.withOpacity(0.65),
+                labelStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.normal,
+                  fontSize: 13,
+                ),
+                padding: const EdgeInsets.all(3),
+                tabs: [
+                  Tab(
+                    icon: const Icon(Icons.palette_outlined, size: 18),
+                    text: "personalisation".tr,
+                  ),
+                  Tab(
+                    icon: const Icon(Icons.music_note_outlined, size: 18),
+                    text: "music&Playback".tr,
+                  ),
+                  Tab(
+                    icon: const Icon(Icons.download_outlined, size: 18),
+                    text: "download".tr,
+                  ),
+                  const Tab(
+                    icon: Icon(Icons.account_circle_outlined, size: 18),
+                    text: "Account",
+                  ),
+                  Tab(
+                    icon: const Icon(Icons.info_outline, size: 18),
+                    text: "${"backup".tr} & Info",
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Expanded(
+              child: TabBarView(
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  // Tab 1: Personalisation & Content
+                  ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 200, top: 8),
+                    children: [
               CustomExpansionTile(
                 title: "personalisation".tr,
                 icon: Icons.palette,
@@ -211,228 +276,6 @@ class SettingsScreen extends StatelessWidget {
                                 settingsController.slidableActionEnabled.isTrue,
                             onChanged: settingsController.toggleSlidableAction),
                       )),
-                ],
-              ),
-              CustomExpansionTile(
-                title: "YouTube Music Account",
-                icon: Icons.account_circle,
-                children: [
-                  Obx(() {
-                    final ytmAuth = Get.find<YtmAuthService>();
-                    if (ytmAuth.isLoggedIn.value) {
-                      return Column(
-                        children: [
-                          ListTile(
-                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                            leading: CircleAvatar(
-                              radius: 20,
-                              backgroundImage: ytmAuth.userAvatar.value.isNotEmpty
-                                  ? NetworkImage(ytmAuth.userAvatar.value)
-                                  : null,
-                              child: ytmAuth.userAvatar.value.isEmpty
-                                  ? const Icon(Icons.person)
-                                  : null,
-                            ),
-                            title: Text(
-                              ytmAuth.userName.value.isNotEmpty
-                                  ? ytmAuth.userName.value
-                                  : "YouTube Music User",
-                              style: const TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            subtitle: Text(
-                              ytmAuth.userEmail.value.isNotEmpty
-                                  ? ytmAuth.userEmail.value
-                                  : "Connected • Library & History syncing",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            trailing: TextButton(
-                              onPressed: () async {
-                                await ytmAuth.logout();
-                                if (Get.isRegistered<HomeScreenController>()) {
-                                  Get.find<HomeScreenController>().loadContentFromNetwork(silent: true);
-                                }
-                                ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                  snackbar(
-                                    Get.context!,
-                                    "Logged out from YouTube Music",
-                                    size: SanckBarSize.MEDIUM,
-                                  ),
-                                );
-                              },
-                              child: const Text("Logout", style: TextStyle(color: Colors.redAccent)),
-                            ),
-                          ),
-                          ListTile(
-                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                            leading: const Icon(Icons.copy_rounded),
-                            title: const Text("Copy Cookies to Clipboard"),
-                            subtitle: Text(
-                              "Copy raw cookie string to system clipboard",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            trailing: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () async {
-                                final cookies = ytmAuth.cookies;
-                                if (cookies == null || cookies.isEmpty) {
-                                  ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                    snackbar(
-                                      Get.context!,
-                                      "No cookies available",
-                                      size: SanckBarSize.MEDIUM,
-                                    ),
-                                  );
-                                  return;
-                                }
-                                await Clipboard.setData(ClipboardData(text: cookies));
-                                ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                  snackbar(
-                                    Get.context!,
-                                    "Cookies copied to clipboard!",
-                                    size: SanckBarSize.MEDIUM,
-                                  ),
-                                );
-                              },
-                              child: const Text("Copy"),
-                            ),
-                          ),
-                          ListTile(
-                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                            leading: const Icon(Icons.file_download_outlined),
-                            title: const Text("Export Cookies (File)"),
-                            subtitle: Text(
-                              "Export ytm_cookies.txt to selected folder",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            trailing: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () async {
-                                final cookies = ytmAuth.cookies;
-                                if (cookies == null || cookies.isEmpty) {
-                                  ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                    snackbar(
-                                      Get.context!,
-                                      "No cookies available to export",
-                                      size: SanckBarSize.MEDIUM,
-                                    ),
-                                  );
-                                  return;
-                                }
-
-                                final hasPermission =
-                                    await PermissionService.getExtStoragePermission();
-                                if (!hasPermission) return;
-
-                                final selectedDirectory =
-                                    await FilePicker.platform.getDirectoryPath();
-                                if (selectedDirectory != null) {
-                                  try {
-                                    final exportFile =
-                                        File("$selectedDirectory/ytm_cookies.txt");
-                                    await exportFile.writeAsString(cookies);
-                                    ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                      snackbar(
-                                        Get.context!,
-                                        "Cookies exported to: ${exportFile.path}",
-                                        size: SanckBarSize.BIG,
-                                      ),
-                                    );
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                      snackbar(
-                                        Get.context!,
-                                        "Failed to export cookies: $e",
-                                        size: SanckBarSize.BIG,
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                              child: const Text("Export"),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            child: Text(
-                              "Your listening history, liked songs, and personalized mixes are synced directly with your YouTube Music account.",
-                              style: TextStyle(fontSize: 12, color: Colors.grey),
-                            ),
-                          ),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        children: [
-                          ListTile(
-                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                            leading: const CircleAvatar(
-                              radius: 20,
-                              child: Icon(Icons.account_circle),
-                            ),
-                            title: const Text("Login with Google"),
-                            subtitle: Text(
-                              "Log in via In-App Browser to sync playlists and mixes",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            trailing: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const YtmLoginScreen(),
-                                  ),
-                                );
-                              },
-                              child: const Text("Browser"),
-                            ),
-                          ),
-                          ListTile(
-                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                            leading: const Icon(Icons.vpn_key_rounded),
-                            title: const Text("Import Cookies (Direct Text)"),
-                            subtitle: Text(
-                              "Paste raw cookie string directly without browser login",
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            trailing: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.secondary,
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => const ImportCookieDialog(),
-                                );
-                              },
-                              child: const Text("Paste"),
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                  }),
                 ],
               ),
               CustomExpansionTile(
@@ -560,6 +403,13 @@ class SettingsScreen extends StatelessWidget {
                       },
                     ),
                   ]),
+                    ],
+                  ),
+                  // Tab 2: Music & Playback
+                  ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 200, top: 8),
+                    children: [
               CustomExpansionTile(
                 title: "music&Playback".tr,
                 icon: Icons.music_note,
@@ -824,6 +674,13 @@ class SettingsScreen extends StatelessWidget {
                       : const SizedBox.shrink(),
                 ],
               ),
+                    ],
+                  ),
+                  // Tab 3: Downloads & Storage
+                  ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 200, top: 8),
+                    children: [
               CustomExpansionTile(
                 title: "download".tr,
                 icon: Icons.download,
@@ -1117,6 +974,242 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ],
               ),
+                    ],
+                  ),
+                  // Tab 4: Account
+                  ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 200, top: 8),
+                    children: [
+              CustomExpansionTile(
+                title: "YouTube Music Account",
+                icon: Icons.account_circle,
+                children: [
+                  Obx(() {
+                    final ytmAuth = Get.find<YtmAuthService>();
+                    if (ytmAuth.isLoggedIn.value) {
+                      return Column(
+                        children: [
+                          ListTile(
+                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                            leading: CircleAvatar(
+                              radius: 20,
+                              backgroundImage: ytmAuth.userAvatar.value.isNotEmpty
+                                  ? NetworkImage(ytmAuth.userAvatar.value)
+                                  : null,
+                              child: ytmAuth.userAvatar.value.isEmpty
+                                  ? const Icon(Icons.person)
+                                  : null,
+                            ),
+                            title: Text(
+                              ytmAuth.userName.value.isNotEmpty
+                                  ? ytmAuth.userName.value
+                                  : "YouTube Music User",
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              ytmAuth.userEmail.value.isNotEmpty
+                                  ? ytmAuth.userEmail.value
+                                  : "Connected • Library & History syncing",
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            trailing: TextButton(
+                              onPressed: () async {
+                                await ytmAuth.logout();
+                                if (Get.isRegistered<HomeScreenController>()) {
+                                  Get.find<HomeScreenController>().loadContentFromNetwork(silent: true);
+                                }
+                                ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                  snackbar(
+                                    Get.context!,
+                                    "Logged out from YouTube Music",
+                                    size: SanckBarSize.MEDIUM,
+                                  ),
+                                );
+                              },
+                              child: const Text("Logout", style: TextStyle(color: Colors.redAccent)),
+                            ),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                            leading: const Icon(Icons.copy_rounded),
+                            title: const Text("Copy Cookies to Clipboard"),
+                            subtitle: Text(
+                              "Copy raw cookie string to system clipboard",
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            trailing: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                final cookies = ytmAuth.cookies;
+                                if (cookies == null || cookies.isEmpty) {
+                                  ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                    snackbar(
+                                      Get.context!,
+                                      "No cookies available",
+                                      size: SanckBarSize.MEDIUM,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                await Clipboard.setData(ClipboardData(text: cookies));
+                                ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                  snackbar(
+                                    Get.context!,
+                                    "Cookies copied to clipboard!",
+                                    size: SanckBarSize.MEDIUM,
+                                  ),
+                                );
+                              },
+                              child: const Text("Copy"),
+                            ),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                            leading: const Icon(Icons.file_download_outlined),
+                            title: const Text("Export Cookies (File)"),
+                            subtitle: Text(
+                              "Export ytm_cookies.txt to selected folder",
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            trailing: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                final cookies = ytmAuth.cookies;
+                                if (cookies == null || cookies.isEmpty) {
+                                  ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                    snackbar(
+                                      Get.context!,
+                                      "No cookies available to export",
+                                      size: SanckBarSize.MEDIUM,
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                final hasPermission =
+                                    await PermissionService.getExtStoragePermission();
+                                if (!hasPermission) return;
+
+                                final selectedDirectory =
+                                    await FilePicker.platform.getDirectoryPath();
+                                if (selectedDirectory != null) {
+                                  try {
+                                    final exportFile =
+                                        File("$selectedDirectory/ytm_cookies.txt");
+                                    await exportFile.writeAsString(cookies);
+                                    ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                      snackbar(
+                                        Get.context!,
+                                        "Cookies exported to: ${exportFile.path}",
+                                        size: SanckBarSize.BIG,
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                      snackbar(
+                                        Get.context!,
+                                        "Failed to export cookies: $e",
+                                        size: SanckBarSize.BIG,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                              child: const Text("Export"),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            child: Text(
+                              "Your listening history, liked songs, and personalized mixes are synced directly with your YouTube Music account.",
+                              style: TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          ListTile(
+                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                            leading: const CircleAvatar(
+                              radius: 20,
+                              child: Icon(Icons.account_circle),
+                            ),
+                            title: const Text("Login with Google"),
+                            subtitle: Text(
+                              "Log in via In-App Browser to sync playlists and mixes",
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            trailing: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const YtmLoginScreen(),
+                                  ),
+                                );
+                              },
+                              child: const Text("Browser"),
+                            ),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                            leading: const Icon(Icons.vpn_key_rounded),
+                            title: const Text("Import Cookies (Direct Text)"),
+                            subtitle: Text(
+                              "Paste raw cookie string directly without browser login",
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            trailing: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.secondary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => const ImportCookieDialog(),
+                                );
+                              },
+                              child: const Text("Paste"),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  }),
+                ],
+              ),
+                    ],
+                  ),
+                  // Tab 5: Backup, Misc & App Info
+                  ListView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.only(bottom: 200, top: 8),
+                    children: [
               CustomExpansionTile(
                   title: "${"backup".tr} & ${"restore".tr}",
                   icon: Icons.restore,
@@ -1258,14 +1351,22 @@ class SettingsScreen extends StatelessWidget {
               )
             ],
           )),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 20.0),
-            child: Text(
-              "${settingsController.currentVersion} ${"by".tr} OddBoyXD",
-              style: Theme.of(context).textTheme.bodySmall,
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0, top: 4.0),
+              child: Center(
+                child: Text(
+                  "${settingsController.currentVersion} ${"by".tr} OddBoyXD",
+                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 11),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
