@@ -172,14 +172,33 @@ void sortArtist(
 /// Return true if new version available
 Future<bool> newVersionCheck(String currentVersion) async {
   try {
-    final tags = (await Dio()
-            .get("https://api.github.com/repos/OddBoyXD/Odd-Verse/tags"))
-        .data;
-    if (tags == null || (tags as List).isEmpty) return false;
-    final availableVersion = tags[0]['name'] as String;
+    String? availableVersion;
+    final dio = Dio(
+      BaseOptions(
+        connectTimeout: const Duration(seconds: 4),
+        receiveTimeout: const Duration(seconds: 4),
+      ),
+    );
 
-    final curClean = currentVersion.replaceAll(RegExp(r'^[vV]'), '');
-    final availClean = availableVersion.replaceAll(RegExp(r'^[vV]'), '');
+    try {
+      final release = (await dio
+              .get("https://api.github.com/repos/OddBoyXD/Odd-Verse/releases/latest"))
+          .data;
+      if (release != null && release is Map && release['tag_name'] != null) {
+        availableVersion = release['tag_name'] as String;
+      }
+    } catch (_) {}
+
+    if (availableVersion == null) {
+      final tags = (await dio
+              .get("https://api.github.com/repos/OddBoyXD/Odd-Verse/tags"))
+          .data;
+      if (tags == null || (tags as List).isEmpty) return false;
+      availableVersion = tags[0]['name'] as String;
+    }
+
+    final curClean = currentVersion.replaceAll(RegExp(r'^[vV]'), '').trim();
+    final availClean = availableVersion.replaceAll(RegExp(r'^[vV]'), '').trim();
 
     List currentVersion_ = curClean.split(".");
     List availableVersion_ = availClean.split(".");
