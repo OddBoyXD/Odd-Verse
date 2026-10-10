@@ -14,23 +14,43 @@ class AlbumArtNLyrics extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final PlayerController playerController = Get.find<PlayerController>();
-    //final size = MediaQuery.of(context).size;
-    //double playerArtImageSize = size.width - ((size.height < 750) ? 90 : 60);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Obx(() => playerController.currentSong.value != null
         ? Stack(
+            alignment: Alignment.center,
             children: [
+              // Ambient Glowing Shadow behind Album Art
+              Container(
+                width: playerArtImageSize - 16,
+                height: playerArtImageSize - 16,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.colorScheme.secondary.withOpacity(isDark ? 0.35 : 0.22),
+                      blurRadius: 36,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 14),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Album Art Image with Gestures & Rounded Corners
               GestureDetector(
                 onLongPress: () {
                   showModalBottomSheet(
                     constraints: const BoxConstraints(maxWidth: 500),
                     shape: const RoundedRectangleBorder(
                       borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(10.0)),
+                          BorderRadius.vertical(top: Radius.circular(20.0)),
                     ),
                     isScrollControlled: true,
                     context:
                         playerController.homeScaffoldkey.currentState!.context,
-                    barrierColor: Colors.transparent.withAlpha(100),
+                    barrierColor: Colors.black.withOpacity(0.5),
                     builder: (context) => SongInfoBottomSheet(
                       playerController.currentSong.value!,
                       calledFromPlayer: true,
@@ -48,35 +68,46 @@ class AlbumArtNLyrics extends StatelessWidget {
                     playerController.prev();
                   }
                 },
-                child: ImageWidget(
-                  size: playerArtImageSize,
-                  song: playerController.currentSong.value!,
-                  isPlayerArtImage: true,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: ImageWidget(
+                    size: playerArtImageSize,
+                    song: playerController.currentSong.value!,
+                    isPlayerArtImage: true,
+                  ),
                 ),
               ),
+
+              // Lyrics Overlay Container
               Obx(() => playerController.showLyricsflag.isTrue
                   ? Container(
                       height: playerArtImageSize,
                       width: playerArtImageSize,
                       decoration: BoxDecoration(
-                        color: const Color(0xF2121212),
-                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.black.withOpacity(0.88),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.12),
+                          width: 1.0,
+                        ),
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: Stack(
                         children: [
                           LyricsWidget(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: playerArtImageSize / 4)),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: playerArtImageSize / 4,
+                            ),
+                          ),
                           Positioned(
-                            top: 4,
-                            right: 4,
+                            top: 8,
+                            right: 8,
                             child: IconButton(
                               icon: const Icon(
                                 Icons.close_rounded,
                                 color: Colors.white70,
-                                size: 22,
+                                size: 24,
                               ),
                               onPressed: () {
                                 playerController.showLyrics();
@@ -87,52 +118,53 @@ class AlbumArtNLyrics extends StatelessWidget {
                       ),
                     )
                   : const SizedBox.shrink()),
+
+              // Sleep Timer Active Badge
               if (playerController.isSleepTimerActive.isTrue)
                 SizedBox(
                   width: playerArtImageSize,
                   height: playerArtImageSize,
-                  //color: Colors.green,
                   child: Align(
                     alignment: Alignment.bottomRight,
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.all(10.0),
                       child: Container(
-                        height: 50,
-                        width: 60,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15),
-                            border: Border.all(width: 1.3, color: Colors.white),
-                            color: Theme.of(context)
-                                .colorScheme
-                                .secondary
-                                .withAlpha(150)),
-                        child: IconButton(
-                          onPressed: () {
-                            showModalBottomSheet(
-                              constraints: const BoxConstraints(maxWidth: 500),
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.vertical(
-                                    top: Radius.circular(10.0)),
-                              ),
-                              isScrollControlled: true,
-                              context: playerController
-                                  .homeScaffoldkey.currentState!.context,
-                              barrierColor: Colors.transparent.withAlpha(100),
-                              builder: (context) =>
-                                  const SleepTimerBottomSheet(),
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.timer,
-                            color: Colors.white,
+                          color: Colors.black.withOpacity(0.75),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.15),
                           ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.timer_outlined,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Obx(
+                              () => Text(
+                                playerController.sleepTimerLeftDuration.value,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
-                )
+                ),
             ],
           )
-        : Container());
+        : const SizedBox.shrink());
   }
 }
