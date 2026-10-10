@@ -72,6 +72,15 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch(`https://api.github.com/repos/${repo}/releases/latest`)
     .then(res => res.json())
     .then(data => {
+      if (data && data.tag_name) {
+        const latestTag = data.tag_name;
+        // Dynamically update version badges and buttons on the page
+        document.querySelectorAll('.brand-badge, .pill-text, .section-title, .mobile-item').forEach(el => {
+          if (el.textContent.includes('v1.')) {
+            el.textContent = el.textContent.replace(/v1\.\d+\.\d+/g, latestTag);
+          }
+        });
+      }
       if (data && data.assets && data.assets.length > 0) {
         data.assets.forEach(asset => {
           if (asset.name.includes('arm64-v8a')) {
@@ -91,6 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     })
     .catch(() => {
-      // Fallback is already hardcoded to reliable direct v1.0.1 URLs in HTML
+      // Fallback is already hardcoded to reliable direct URLs in HTML
     });
 });

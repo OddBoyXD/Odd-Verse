@@ -42,18 +42,19 @@ jobs:
           fi
           ls -la android/app/master_release.keystore
 
-      - name: Build Split-ABI APKs
-        run: flutter build apk --release --split-per-abi
-
       - name: Build Universal APK
-        run: flutter build apk --release
-
-      - name: Prepare & Organize Release APKs
         run: |
+          flutter build apk --release
           mkdir -p release_artifacts
-          VERSION_TAG=${GITHUB_REF_NAME:-v1.0.0}
-          
-          # Copy Split APKs
+          VERSION_TAG=${GITHUB_REF_NAME:-v1.0.2}
+          if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
+            cp build/app/outputs/flutter-apk/app-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-universal.apk"
+          fi
+
+      - name: Build Split-ABI APKs
+        run: |
+          flutter build apk --release --split-per-abi --target-platform android-arm,android-arm64,android-x64
+          VERSION_TAG=${GITHUB_REF_NAME:-v1.0.2}
           if [ -f "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk" ]; then
             cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-arm64-v8a.apk"
           fi
@@ -63,12 +64,6 @@ jobs:
           if [ -f "build/app/outputs/flutter-apk/app-x86_64-release.apk" ]; then
             cp build/app/outputs/flutter-apk/app-x86_64-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-x86_64.apk"
           fi
-          
-          # Copy Universal APK
-          if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-            cp build/app/outputs/flutter-apk/app-release.apk "release_artifacts/OddVerse-${VERSION_TAG}-universal.apk"
-          fi
-          
           ls -lh release_artifacts/
 
       - name: Upload Build Artifacts
