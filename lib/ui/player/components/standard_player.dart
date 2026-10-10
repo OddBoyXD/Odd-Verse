@@ -33,6 +33,7 @@ class StandardPlayer extends StatelessWidget {
         size.height - (70 + Get.mediaQuery.padding.bottom + 330);
     playerArtImageSize = playerArtImageSize > spaceAvailableForArtImage
         ? spaceAvailableForArtImage
+        : playerArtImageSize;
     return Obx(() {
       final fullPlayerOpacity =
           (1.0 - playerController.playerPaneOpacity.value).clamp(0.0, 1.0);
