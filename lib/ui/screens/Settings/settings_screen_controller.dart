@@ -58,7 +58,7 @@ class SettingsScreenController extends GetxController {
   final enableAutoInfiniteRadio = true.obs;
   final romanizeLyricsEnabled = true.obs;
   final enableSponsorBlock = true.obs;
-  final currentVersion = "V1.0.2";
+  final currentVersion = "V1.0.3";
 
   @override
   void onInit() {
