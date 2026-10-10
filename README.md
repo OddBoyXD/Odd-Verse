@@ -11,7 +11,7 @@
 
 [![Release](https://img.shields.io/github/v/release/OddBoyXD/Odd-Verse?color=7C4DFF&label=Latest%20Release&logo=github&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases/latest)
 [![Total Downloads](https://img.shields.io/github/downloads/OddBoyXD/Odd-Verse/total?color=00E676&label=Total%20Downloads&logo=android&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases)
-[![Latest Downloads](https://img.shields.io/github/downloads/OddBoyXD/Odd-Verse/latest/total?color=00E676&label=v1.0.1%20Downloads&logo=android&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases/latest)
+[![Latest Downloads](https://img.shields.io/github/downloads/OddBoyXD/Odd-Verse/latest/total?color=00E676&label=v1.0.2%20Downloads&logo=android&style=for-the-badge)](https://github.com/OddBoyXD/Odd-Verse/releases/latest)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20Linux%20%7C%20Windows-blue?style=for-the-badge&logo=android)](https://github.com/OddBoyXD/Odd-Verse)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-FFD600?style=for-the-badge&logo=gnu)](LICENSE)
 
@@ -42,9 +42,11 @@
 
 ### ⚡ Blazing-Fast Audio Engine
 - **Instant Playback Start (0–0.5s)**: Fine-tuned ExoPlayer `AndroidLoadControl` (`150ms` buffer start) ensuring instant audio playback upon tapping any song.
+- **Fail-Safe Stream Resolution**: Automatic fallback from audio-only streams to pure audio muxed streams, guaranteeing 100% playable music videos and live sessions without playback errors.
 - **5 MB Network Burst Buffering**: Saturated socket data pipelines engineered for 5G and Wi-Fi networks to eliminate buffering stutter.
 - **Stale-While-Revalidate Database Caching**: Home feeds, artist hubs, and playlists load in `~2ms` directly from local Hive storage with background silent sync.
 - **Predictive Upcoming Song Pre-buffering**: Automatically pre-fetches audio stream URLs for upcoming queue items for seamless next-track transitions.
+- **Speed & Dynamic Pitch Modulation**: Granular real-time playback speed (0.5x–2.0x) and pitch controls.
 
 ### 📁 Local & Offline Music Engine
 - **Internal Storage & SD Card Scanner**: Automatically discovers audio files (`.mp3`, `.m4a`, `.flac`, `.wav`, `.aac`, `.ogg`, `.opus`) across internal storage and external MicroSD cards.
@@ -57,6 +59,7 @@
 - **Multiple Sort Modes**: Sort artist songs, videos, and albums by **Newest First**, **Most Popular / Views**, **Oldest First**, and **Alphabetical (A–Z / Z–A)** with zero-latency in-memory reordering.
 
 ### 🎤 Synchronized Lyrics & Auto-Snap
+- **Multi-Provider Synced & Plain Lyrics**: Multi-tier lyrics engine pulling from LRCLIB, YouTube Closed Captions (auto-converted to `.lrc` timestamps), Netease Cloud Music, and YouTube Music.
 - **Smart Viewport Centering**: Dynamic `RenderBox` viewport calculation centers the active lyric line smoothly.
 - **3-Second Inactivity Snap-Back**: Manual scrolling pauses auto-scroll; resumes and snaps back after 3 seconds of inactivity.
 - **Interactive Tap-to-Seek**: Tap any lyric line to instantly jump audio playback to that timestamp.
@@ -72,16 +75,16 @@
 
 ---
 
-## 📱 Download APKs (v1.0.1)
+## 📱 Download APKs (v1.0.2)
 
 Get the latest official release directly from [GitHub Releases](https://github.com/OddBoyXD/Odd-Verse/releases/latest):
 
 | Architecture | Device Compatibility | Download Link |
 | :--- | :--- | :--- |
-| **`arm64-v8a`** | Modern 64-bit Android Phones & Tablets *(Recommended for 99% of phones)* | [Download ARM64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-arm64-v8a.apk) |
-| **`universal`** | All Android Architectures (All-in-One Fat APK) | [Download Universal APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-universal.apk) |
-| **`armeabi-v7a`** | Legacy 32-bit Android Devices | [Download ARMv7 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-armeabi-v7a.apk) |
-| **`x86_64`** | 64-bit Emulators & ChromeOS | [Download x86_64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.1-x86_64.apk) |
+| **`arm64-v8a`** | Modern 64-bit Android Phones & Tablets *(Recommended for 99% of phones)* | [Download ARM64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.2-arm64-v8a.apk) |
+| **`universal`** | All Android Architectures (All-in-One Fat APK) | [Download Universal APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.2-universal.apk) |
+| **`armeabi-v7a`** | Legacy 32-bit Android Devices | [Download ARMv7 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.2-armeabi-v7a.apk) |
+| **`x86_64`** | 64-bit Emulators & ChromeOS | [Download x86_64 APK](https://github.com/OddBoyXD/Odd-Verse/releases/latest/download/OddVerse-v1.0.2-x86_64.apk) |
 
 ---
 
