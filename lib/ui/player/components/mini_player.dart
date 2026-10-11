@@ -7,8 +7,107 @@ import '../../widgets/image_widget.dart';
 import '../../widgets/mini_player_progress_bar.dart';
 import 'animated_play_button.dart';
 
-class MiniPlayer extends StatelessWidget {
+class MiniPlayer extends StatefulWidget {
   const MiniPlayer({super.key});
+
+  @override
+  State<MiniPlayer> createState() => _MiniPlayerState();
+}
+
+class _MiniPlayerState extends State<MiniPlayer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  Animation<double>? _dragAnimation;
+  double _dragOffset = 0.0;
+  bool _isDismissing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 250),
+    )..addListener(() {
+        if (_dragAnimation != null && mounted) {
+          setState(() {
+            _dragOffset = _dragAnimation!.value;
+          });
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _onVerticalDragUpdate(DragUpdateDetails details) {
+    if (_isDismissing) return;
+    // Only capture downward drag (> 0) on the pill!
+    // If dy < 0 (swiping up), forward directly to SlidingUpPanel so it smoothly expands!
+    if (details.delta.dy < 0 && _dragOffset <= 0.0) {
+      final playerController = Get.find<PlayerController>();
+      if (playerController.playerPanelController.isAttached) {
+        playerController.playerPanelController.open();
+      }
+      return;
+    }
+
+    setState(() {
+      _dragOffset = (_dragOffset + details.delta.dy).clamp(0.0, 200.0);
+    });
+  }
+
+  void _onVerticalDragEnd(DragEndDetails details) {
+    if (_isDismissing) return;
+    final velocity = details.primaryVelocity ?? 0.0;
+    final totalHeight = Get.find<PlayerController>().playerPanelMinHeight.value;
+    final targetHeight = totalHeight > 0 ? totalHeight : 75.0;
+
+    // Intentional downward dismiss threshold: velocity > 220 or drag > 40px
+    if (velocity > 220 || _dragOffset > 40.0) {
+      _isDismissing = true;
+      _dragAnimation = Tween<double>(
+        begin: _dragOffset,
+        end: targetHeight + 60.0,
+      ).animate(CurvedAnimation(
+        parent: _animController,
+        curve: Curves.easeOutCubic,
+      ));
+      _animController.forward(from: 0.0).then((_) {
+        Get.find<PlayerController>().dismissMiniPlayer();
+        if (mounted) {
+          setState(() {
+            _dragOffset = 0.0;
+            _isDismissing = false;
+          });
+        }
+      });
+    } else {
+      // Snap back smoothly
+      _dragAnimation = Tween<double>(
+        begin: _dragOffset,
+        end: 0.0,
+      ).animate(CurvedAnimation(
+        parent: _animController,
+        curve: Curves.easeOutBack,
+      ));
+      _animController.forward(from: 0.0);
+    }
+  }
+
+  void _onVerticalDragCancel() {
+    if (_isDismissing) return;
+    _dragAnimation = Tween<double>(
+      begin: _dragOffset,
+      end: 0.0,
+    ).animate(CurvedAnimation(
+      parent: _animController,
+      curve: Curves.easeOutCubic,
+    ));
+    _animController.forward(from: 0.0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +115,7 @@ class MiniPlayer extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return Obx(() {
+      final isDismissing = playerController.isDismissingMiniPlayer.value;
       final panelVisible = playerController.isPlayerpanelTopVisible.value;
       final minHeight = playerController.playerPanelMinHeight.value;
 
@@ -23,20 +123,32 @@ class MiniPlayer extends StatelessWidget {
         return const SizedBox.shrink();
       }
 
-      final effectiveOpacity =
-          playerController.playerPaneOpacity.value.clamp(0.0, 1.0);
+      final dragRatio =
+          minHeight > 0 ? (_dragOffset / minHeight).clamp(0.0, 1.0) : 0.0;
+      final effectiveOpacity = isDismissing
+          ? 0.0
+          : (playerController.playerPaneOpacity.value *
+                  (1.0 - dragRatio * 0.95))
+              .clamp(0.0, 1.0);
 
       final theme = Theme.of(context);
       final isDark = theme.brightness == Brightness.dark;
 
-      return Opacity(
-        opacity: effectiveOpacity,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            playerController.playerPanelController.open();
-          },
-          child: Container(
+      return Transform.translate(
+        offset: Offset(0.0, _dragOffset),
+        child: Opacity(
+          opacity: effectiveOpacity,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (_dragOffset == 0.0) {
+                playerController.playerPanelController.open();
+              }
+            },
+            onVerticalDragUpdate: _onVerticalDragUpdate,
+            onVerticalDragEnd: _onVerticalDragEnd,
+            onVerticalDragCancel: _onVerticalDragCancel,
+            child: Container(
                 width: size.width,
                 height: minHeight,
                 alignment: Alignment.topCenter,
@@ -227,10 +339,11 @@ class MiniPlayer extends StatelessWidget {
                       ],
                     ),
                   ),
-                ),
               ),
             ),
-          );
-        });
-      }
-    }
+          ),
+        ),
+      );
+    });
+  }
+}
