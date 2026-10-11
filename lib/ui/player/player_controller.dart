@@ -410,10 +410,10 @@ class PlayerController extends GetxController
     isRadioModeOn = radio;
 
     // Start playback immediately for 0-lag instant response
+    _playerPanelCheck();
     if (playlistid == null &&
         (!radio || currentSong.value?.id != mediaItem?.id) &&
         mediaItem != null) {
-      _playerPanelCheck();
       _audioHandler.customAction("setSourceNPlay", {'mediaItem': mediaItem});
     }
 
@@ -651,22 +651,22 @@ class PlayerController extends GetxController
     final autoOpenPlayer = Hive.box("AppPrefs").get("autoOpenPlayer") ?? true;
     isPlayerpanelTopVisible.value = true;
     playerPaneOpacity.value = 1.0;
-    if ((!isWideScreen && autoOpenPlayer && playerPanelController.isAttached) &&
-        !restoreSession) {
-      playerPanelController.open();
+    if (playerPanelController.isAttached) {
+      playerPanelController.show();
+      if (!isWideScreen && autoOpenPlayer && !restoreSession) {
+        playerPanelController.open();
+      }
     }
 
-    if (initFlagForPlayer || playerPanelMinHeight.value == 0.0) {
-      final miniPlayerHeight = isWideScreen ? 105.0 : 75.0;
-      if (Get.find<SettingsScreenController>().isBottomNavBarEnabled.isFalse ||
-          getCurrentRouteName() != '/homeScreen') {
-        playerPanelMinHeight.value =
-            miniPlayerHeight + Get.mediaQuery.viewPadding.bottom;
-      } else {
-        playerPanelMinHeight.value = miniPlayerHeight;
-      }
-      initFlagForPlayer = false;
+    final miniPlayerHeight = isWideScreen ? 105.0 : 75.0;
+    if (Get.find<SettingsScreenController>().isBottomNavBarEnabled.isFalse ||
+        getCurrentRouteName() != '/homeScreen') {
+      playerPanelMinHeight.value =
+          miniPlayerHeight + Get.mediaQuery.viewPadding.bottom;
+    } else {
+      playerPanelMinHeight.value = miniPlayerHeight;
     }
+    initFlagForPlayer = false;
   }
 
   Future<void> dismissMiniPlayer() async {

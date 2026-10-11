@@ -12,7 +12,6 @@ import '../../widgets/cust_switch.dart';
 import '../../widgets/export_file_dialog.dart';
 import '../../widgets/backup_dialog.dart';
 import '../../widgets/restore_dialog.dart';
-import '../../widgets/new_version_dialog.dart';
 import '../Library/library_controller.dart';
 import '../Library/local_songs_controller.dart';
 import '../../widgets/snackbar.dart';
@@ -1349,22 +1348,6 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       onTap: () {
                         settingsController.manualCheckForUpdates(context);
-                      },
-                    ),
-                    const Divider(),
-                    ListTile(
-                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                      title: const Text("Test In-App Update Dialog (Dev)"),
-                      subtitle: Text(
-                        "Test in-app APK download, progress bar & auto-installer",
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      trailing: const Icon(Icons.developer_mode_rounded, size: 20),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => const NewVersionDialog(isTestMode: true),
-                        );
                       },
                     ),
                     const Divider(),

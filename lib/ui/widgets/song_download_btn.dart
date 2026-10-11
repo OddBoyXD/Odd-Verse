@@ -55,17 +55,16 @@ class SongDownloadButton extends StatelessWidget {
       Widget buttonWidget;
       if (isDownloaded) {
         buttonWidget = IconButton(
-          tooltip: "Downloaded (Tap to delete)",
+          tooltip: "Downloaded",
           icon: Icon(
             Icons.download_done_rounded,
             color: Theme.of(context).colorScheme.secondary,
             size: 24,
           ),
           onPressed: () {
-            downloader.cancelSongDownload(currentSongItem, deleteFile: true);
             ScaffoldMessenger.of(context).showSnackBar(snackbar(
               context,
-              "Removed download for ${currentSongItem.title}",
+              "songAlreadyOfflineAlert".tr,
               size: SanckBarSize.MEDIUM,
             ));
           },

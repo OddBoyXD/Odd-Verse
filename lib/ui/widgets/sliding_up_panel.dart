@@ -604,11 +604,21 @@ class _SlidingUpPanelState extends State<SlidingUpPanel>
 
   //close the panel
   Future<void> _close() {
+    if (!_isPanelVisible) {
+      setState(() {
+        _isPanelVisible = true;
+      });
+    }
     return _ac.fling(velocity: -1.0);
   }
 
   //open the panel
   Future<void> _open() {
+    if (!_isPanelVisible) {
+      setState(() {
+        _isPanelVisible = true;
+      });
+    }
     return _ac.fling(velocity: 1.0);
   }
 
@@ -623,11 +633,12 @@ class _SlidingUpPanelState extends State<SlidingUpPanel>
 
   //show the panel (in collapsed mode)
   Future<void> _show() {
-    return _ac.fling(velocity: -1.0).then((x) {
+    if (!_isPanelVisible) {
       setState(() {
         _isPanelVisible = true;
       });
-    });
+    }
+    return _ac.fling(velocity: -1.0);
   }
 
   //animate the panel position to value - must
@@ -635,6 +646,11 @@ class _SlidingUpPanelState extends State<SlidingUpPanel>
   Future<void> _animatePanelToPosition(double value,
       {Duration? duration, Curve curve = Curves.linear}) {
     assert(0.0 <= value && value <= 1.0);
+    if (!_isPanelVisible) {
+      setState(() {
+        _isPanelVisible = true;
+      });
+    }
     return _ac.animateTo(value, duration: duration, curve: curve);
   }
 
