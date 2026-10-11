@@ -596,9 +596,16 @@ class PlayerController extends GetxController
     Hive.box("AppPrefs").put("playbackPitch", pitch);
   }
 
+  void setDspReverb(bool enable) {
+    if (_audioHandler is MyAudioHandler) {
+      (_audioHandler as MyAudioHandler).setDspReverb(enable);
+    }
+  }
+
   void resetSpeedAndPitch() {
     setPlaybackSpeed(1.0);
     setPlaybackPitch(1.0);
+    setDspReverb(false);
   }
 
   void _playViaAndroidAuto(String songId, String libraryId) {

@@ -124,6 +124,9 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     _player.androidAudioSessionIdStream.listen((int? id) {
       if (id != null) {
         EqualizerService.initAudioEffect(id);
+        if (isDspReverbActive) {
+          EqualizerService.setPresetReverb(id, true);
+        }
       }
     });
   }
@@ -373,8 +376,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     playbackState.add(playbackState.value.copyWith(speed: speed));
   }
 
-  Future<void> setPitch(double pitch) async {
-    await _player.setPitch(pitch);
+  bool isDspReverbActive = false;
+
+  Future<void> setDspReverb(bool enable) async {
+    isDspReverbActive = enable;
+    if (GetPlatform.isAndroid && _player.androidAudioSessionId != null) {
+      await EqualizerService.setPresetReverb(_player.androidAudioSessionId!, enable);
+    }
   }
 
   double get speed => _player.speed;

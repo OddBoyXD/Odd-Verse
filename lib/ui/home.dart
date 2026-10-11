@@ -20,6 +20,7 @@ import 'widgets/up_next_queue.dart';
 class Home extends StatelessWidget {
   const Home({super.key});
   static const routeName = '/appHome';
+  static DateTime? _lastBackPressTime;
   @override
   Widget build(BuildContext context) {
     printINFO("Home");
@@ -60,12 +61,37 @@ class Home extends StatelessWidget {
               settingsScreenController.isBottomNavBarEnabled.isTrue
                   ? homeScreenController.onBottonBarTabSelected(0)
                   : homeScreenController.onSideBarTabSelected(0);
-            } else if (playerController.buttonState.value ==
-                PlayButtonState.playing) {
-              SystemNavigator.pop();
             } else {
-              await Get.find<AudioHandler>().customAction("saveSession");
-              exit(0);
+              final now = DateTime.now();
+              if (Home._lastBackPressTime == null ||
+                  now.difference(Home._lastBackPressTime!) >
+                      const Duration(seconds: 2)) {
+                Home._lastBackPressTime = now;
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      "Press back again to exit",
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    duration: const Duration(seconds: 2),
+                    width: 230,
+                  ),
+                );
+                return;
+              }
+
+              // Double back confirmed - clean exit
+              if (playerController.buttonState.value ==
+                  PlayButtonState.playing) {
+                SystemNavigator.pop();
+              } else {
+                await Get.find<AudioHandler>().customAction("saveSession");
+                SystemNavigator.pop();
+              }
             }
           }
         }

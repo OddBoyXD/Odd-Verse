@@ -207,9 +207,48 @@ class MainActivity : AudioServiceActivity() {
                 } catch (e: Exception) {
                     result.success("arm64-v8a")
                 }
+            } else if (call.method == "setPresetReverb") {
+                val sessionId = call.argument<Int>("sessionId") ?: 0
+                val enabled = call.argument<Boolean>("enabled") ?: false
+                try {
+                    DspReverbManager.setReverb(sessionId, enabled)
+                    result.success(true)
+                } catch (e: Exception) {
+                    result.error("REVERB_ERROR", e.message, null)
+                }
             } else {
                 result.notImplemented()
             }
+        }
+    }
+}
+
+object DspReverbManager {
+    private var presetReverb: android.media.audiofx.PresetReverb? = null
+    private var currentSessionId: Int = -1
+
+    fun setReverb(sessionId: Int, enabled: Boolean) {
+        if (!enabled) {
+            presetReverb?.enabled = false
+            presetReverb?.release()
+            presetReverb = null
+            currentSessionId = -1
+            return
+        }
+
+        if (sessionId <= 0) return
+
+        try {
+            if (presetReverb == null || currentSessionId != sessionId) {
+                presetReverb?.release()
+                presetReverb = android.media.audiofx.PresetReverb(0, sessionId).apply {
+                    preset = android.media.audiofx.PresetReverb.PRESET_LARGEHALL
+                }
+                currentSessionId = sessionId
+            }
+            presetReverb?.enabled = true
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }

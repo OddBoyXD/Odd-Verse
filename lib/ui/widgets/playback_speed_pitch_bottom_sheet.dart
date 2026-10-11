@@ -168,6 +168,8 @@ class PlaybackSpeedPitchBottomSheet extends StatelessWidget {
                           onTap: () {
                             playerController.setPlaybackSpeed(targetSpeed);
                             playerController.setPlaybackPitch(targetPitch);
+                            final isReverbProfile = profile["name"] == "Slowed + Reverb";
+                            playerController.setDspReverb(isReverbProfile);
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
