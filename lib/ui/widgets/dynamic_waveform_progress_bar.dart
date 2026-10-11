@@ -236,38 +236,44 @@ class _ProfessionalWavePainter extends CustomPainter {
 
     // 3. Smooth Moving Audio Wave Above The Line (ONLY up to active playing position)
     if (activeWidth > 6.0) {
-      final double maxAmplitude = (size.height * 0.48).clamp(8.0, 18.0);
+      final double maxAmplitude = (size.height * 0.44).clamp(8.0, 16.0);
       final double waveW = activeWidth;
 
       // Primary Flowing Wave Path
       final Path wavePath = Path();
-      wavePath.moveTo(0, baselineY);
-
+      final Path backWavePath = Path();
       final Path fillPath = Path();
-      fillPath.moveTo(0, baselineY);
 
-      const int samplePoints = 48;
+      const int samplePoints = 56;
       for (int i = 0; i <= samplePoints; i++) {
         final double t = i / samplePoints;
         final double x = t * waveW;
 
-        // Envelope dampens the wave to 0 at the start (x=0) and end (x=activeWidth)
+        // Envelope smooth window (0 at start and end)
         final double envelope = math.sin(t * math.pi);
 
-        // Harmonic composite sine wave for natural audio flow
-        final double wave1 = math.sin((t * 3.5 * math.pi) - animationPhase);
-        final double wave2 = math.sin((t * 7.0 * math.pi) + (animationPhase * 0.6));
-        final double wave3 = math.cos((t * 2.0 * math.pi) - (animationPhase * 0.3));
+        // Integer phase multipliers ensure 100% mathematically seamless infinite looping!
+        final double wave1 = math.sin((t * 4.0 * math.pi) - animationPhase);
+        final double wave2 = math.sin((t * 8.0 * math.pi) + (animationPhase * 2.0));
 
-        final double displacement = (wave1 * 0.55 + wave2 * 0.30 + wave3 * 0.15);
-        final double y = baselineY - (maxAmplitude * envelope * displacement.abs());
+        // Full up-and-down oscillation around buoyant wave center
+        final double displacement = wave1 * 0.70 + wave2 * 0.30;
+        final double waveLift = maxAmplitude * 0.55 * envelope;
+        final double y = baselineY - waveLift - (maxAmplitude * 0.45 * envelope * displacement);
+
+        // Secondary subtle counter-wave for rich depth
+        final double backDisplacement = math.sin((t * 4.0 * math.pi) + animationPhase);
+        final double backY = baselineY - waveLift - (maxAmplitude * 0.35 * envelope * backDisplacement);
 
         if (i == 0) {
-          wavePath.moveTo(x, y);
+          wavePath.moveTo(x, baselineY);
+          backWavePath.moveTo(x, baselineY);
+          fillPath.moveTo(x, baselineY);
         } else {
           wavePath.lineTo(x, y);
+          backWavePath.lineTo(x, backY);
+          fillPath.lineTo(x, y);
         }
-        fillPath.lineTo(x, y);
       }
 
       fillPath.lineTo(activeWidth, baselineY);
@@ -279,14 +285,23 @@ class _ProfessionalWavePainter extends CustomPainter {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            activeColor.withOpacity(0.30),
-            activeColor.withOpacity(0.04),
+            activeColor.withOpacity(0.25),
+            activeColor.withOpacity(0.02),
           ],
-        ).createShader(Rect.fromLTWH(0, baselineY - maxAmplitude, activeWidth, maxAmplitude))
+        ).createShader(Rect.fromLTWH(0, baselineY - maxAmplitude * 1.1, activeWidth, maxAmplitude * 1.1))
         ..style = PaintingStyle.fill;
       canvas.drawPath(fillPath, fillPaint);
 
-      // Crisp glowing wave crest line
+      // Secondary depth wave stroke
+      final Paint backWaveStroke = Paint()
+        ..color = activeColor.withOpacity(0.35)
+        ..strokeWidth = 1.6
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      canvas.drawPath(backWavePath, backWaveStroke);
+
+      // Primary crisp glowing wave crest line
       final Paint waveStroke = Paint()
         ..color = activeColor
         ..strokeWidth = 2.4

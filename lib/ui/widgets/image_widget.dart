@@ -67,15 +67,17 @@ class ImageWidget extends StatelessWidget {
 
     Widget buildCachedImage() {
       if (imageUrl.isEmpty || isLocalUri) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.secondary,
+              color: isDark ? const Color(0xFF1E1E1E) : Theme.of(context).colorScheme.secondary.withOpacity(0.12),
               shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
               borderRadius: artist != null ? null : BorderRadius.circular(10),
             ),
             child: Image.asset(
-                "assets/icons/${song != null ? "song" : artist != null ? "artist" : "album"}.png"));
+                "assets/icons/${song != null ? "song" : artist != null ? "artist" : "album"}.png",
+                color: Theme.of(context).colorScheme.secondary));
       }
 
       return CachedNetworkImage(
@@ -92,16 +94,18 @@ class ImageWidget extends StatelessWidget {
         imageUrl: imageUrl,
         fit: BoxFit.cover,
         errorWidget: (context, url, error) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           return Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.secondary,
+                color: isDark ? const Color(0xFF1E1E1E) : Theme.of(context).colorScheme.secondary.withOpacity(0.12),
                 shape: artist != null ? BoxShape.circle : BoxShape.rectangle,
                 borderRadius:
                     artist != null ? null : BorderRadius.circular(10),
               ),
               child: Image.asset(
-                  "assets/icons/${song != null ? "song" : artist != null ? "artist" : "album"}.png"));
+                  "assets/icons/${song != null ? "song" : artist != null ? "artist" : "album"}.png",
+                  color: Theme.of(context).colorScheme.secondary));
         },
         progressIndicatorBuilder: ((_, __, ___) => Shimmer.fromColors(
             baseColor: Colors.grey[500]!,

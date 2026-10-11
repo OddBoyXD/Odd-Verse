@@ -281,6 +281,9 @@ class ThemeController extends GetxController {
             systemStatusBarContrastEnforced: false,
             systemNavigationBarContrastEnforced: false),
       );
+      final MaterialColor amoledSwatch =
+          _createMaterialColor(primaryColor.value ?? Colors.deepPurple[400]!);
+      final Color amoledAccent = amoledSwatch[300] ?? const Color(0xFF9070FF);
       final baseTheme = ThemeData(
           useMaterial3: false,
           brightness: Brightness.dark,
@@ -289,7 +292,7 @@ class ThemeController extends GetxController {
           primaryColor: Colors.black,
           primaryColorDark: Colors.black,
           primaryColorLight: const Color(0xFF141414),
-          cardColor: Colors.black,
+          cardColor: const Color(0xFF0E0E0E),
           dialogBackgroundColor: const Color(0xFF0C0C0C),
           dialogTheme: const DialogTheme(
             backgroundColor: Color(0xFF0C0C0C),
@@ -299,34 +302,35 @@ class ThemeController extends GetxController {
             ),
           ),
           colorScheme: ColorScheme.fromSwatch(
-              accentColor: Colors.white,
+              accentColor: amoledAccent,
               backgroundColor: Colors.black,
-              cardColor: Colors.black,
+              cardColor: const Color(0xFF0E0E0E),
+              primarySwatch: amoledSwatch,
               brightness: Brightness.dark),
-          progressIndicatorTheme: const ProgressIndicatorThemeData(
-              color: Colors.white, linearTrackColor: Colors.white24),
-          textTheme: const TextTheme(
-              titleLarge: TextStyle(
+          progressIndicatorTheme: ProgressIndicatorThemeData(
+              color: amoledAccent, linearTrackColor: Colors.white24),
+          textTheme: TextTheme(
+              titleLarge: const TextStyle(
                 fontSize: 23,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              titleMedium: TextStyle(
+              titleMedium: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              titleSmall: TextStyle(color: Colors.white70),
-              labelMedium: TextStyle(
+              titleSmall: const TextStyle(color: Colors.white70),
+              labelMedium: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 23,
                 color: Colors.white,
               ),
-              labelSmall: TextStyle(
+              labelSmall: const TextStyle(
                   fontSize: 15,
                   letterSpacing: 0,
                   fontWeight: FontWeight.bold,
                   color: Colors.white70),
-              bodyMedium: TextStyle(color: Colors.white70)),
+              bodyMedium: TextStyle(color: Colors.grey[400])),
           navigationRailTheme: const NavigationRailThemeData(
               backgroundColor: Colors.black,
               selectedIconTheme: IconThemeData(
@@ -342,16 +346,16 @@ class ThemeController extends GetxController {
           bottomSheetTheme: const BottomSheetThemeData(
               backgroundColor: Colors.black,
               modalBarrierColor: Colors.black87),
-          sliderTheme: const SliderThemeData(
+          sliderTheme: SliderThemeData(
             inactiveTrackColor: Colors.white24,
-            activeTrackColor: Colors.white,
+            activeTrackColor: amoledAccent,
             valueIndicatorColor: Colors.black38,
-            thumbColor: Colors.white,
+            thumbColor: amoledAccent,
           ),
-          textSelectionTheme: const TextSelectionThemeData(
-              cursorColor: Colors.white70,
-              selectionColor: Colors.white38,
-              selectionHandleColor: Colors.white),
+          textSelectionTheme: TextSelectionThemeData(
+              cursorColor: amoledAccent,
+              selectionColor: amoledAccent.withOpacity(0.35),
+              selectionHandleColor: amoledAccent),
           inputDecorationTheme: const InputDecorationTheme(
               focusColor: Colors.white,
               focusedBorder: UnderlineInputBorder(

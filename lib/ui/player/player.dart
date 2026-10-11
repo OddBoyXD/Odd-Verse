@@ -61,7 +61,7 @@ class Player extends StatelessWidget {
               }
             },
             child: Container(
-                color: Theme.of(context).primaryColor,
+                color: Colors.transparent,
                 child: Column(
                   children: [
                     SizedBox(
