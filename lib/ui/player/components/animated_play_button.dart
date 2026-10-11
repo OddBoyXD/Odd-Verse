@@ -55,9 +55,8 @@ class _AnimatedPlayButtonState extends State<AnimatedPlayButton>
           isPlaying ? controller.pause() : controller.play();
         },
         icon: isLoading
-            ? LoadingIndicator(
-                dimension: widget.iconSize > 30 ? 28 : 20,
-                strokeWidth: widget.iconSize > 30 ? 3.5 : 2.5,
+            ? const LoadingIndicator(
+                dimension: 20,
               )
             : AnimatedIcon(
                 icon: AnimatedIcons.play_pause,

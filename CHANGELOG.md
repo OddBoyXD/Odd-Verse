@@ -2,13 +2,6 @@
 
 ## [v1.0.3] - Latest Release
 
-### ⚡ Instant Song Click Loading Indicator & Stable Audio Engine
-- **Always-Loading Song Tap Feedback**: Tapping any song or skipping tracks instantly switches the play button to a spinning loading circle indicator, completely eliminating the premature pause icon flash before the audio stream is ready.
-- **Stable Stream Engine & 2x Auto-Recovery**: Restored proven low-latency ExoPlayer buffering parameters with dual auto-retry token recovery, ensuring instant playback without stream stalls.
-
-### 🎯 Spotify / YouTube 5-Second Recommendation Rule
-- **Misclick & Fast-Skip Protection**: Skips under 5 seconds no longer pollute recommendations, playback history, or the Up Next queue.
-- **Intentional Listening Detection**: Radio and related tracks are only fetched after the user listens past 5 seconds, keeping recommendations pure and relevant.
 
 ### 🌌 Genuine Hardware DSP PresetReverb ("Slowed + Reverb")
 - **Real 3D Acoustic Echo**: Integrated Android's hardware `PresetReverb` (`PRESET_LARGEHALL`). Tapping the "Slowed + Reverb" preset engages true spacious room reverberation alongside 0.80x speed and pitch with **0 MB extra RAM**.

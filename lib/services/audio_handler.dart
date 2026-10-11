@@ -133,10 +133,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
   void _notifyAudioHandlerAboutPlaybackEvents() {
     _player.playbackEventStream.listen((PlaybackEvent event) {
-      final isCurrentlyLoading = isSongLoading ||
-          _player.processingState == ProcessingState.loading ||
-          _player.processingState == ProcessingState.buffering;
-      final playing = isCurrentlyLoading ? false : _player.playing;
+      final playing = _player.playing;
       playbackState.add(playbackState.value.copyWith(
         controls: [
           MediaControl.skipToPrevious,
@@ -147,7 +144,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           MediaAction.seek,
         },
         androidCompactActionIndices: const [0, 1, 2],
-        processingState: isCurrentlyLoading
+        processingState: isSongLoading
             ? AudioProcessingState.loading
             : const {
                 ProcessingState.idle: AudioProcessingState.idle,
@@ -504,10 +501,8 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             checkNGetUrl(currentSong.id, generateNewUrl: isNewUrlReq);
         final bool restoreSession = extras['restoreSession'] ?? false;
         isSongLoading = true;
-        playbackState.add(playbackState.value.copyWith(
-          playing: false,
-          processingState: AudioProcessingState.loading,
-        ));
+        playbackState.add(playbackState.value
+            .copyWith(processingState: AudioProcessingState.loading));
         if (_playList.children.isNotEmpty) {
           await _playList.clear();
         }
@@ -531,7 +526,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           isSongLoading = false;
           Get.find<PlayerController>().notifyPlayError(streamInfo.statusMSG);
           playbackState.add(playbackState.value.copyWith(
-              playing: false,
               processingState: AudioProcessingState.error,
               errorCode: 404,
               errorMessage: streamInfo.statusMSG));
@@ -542,6 +536,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
             .add(playbackState.value.copyWith(queueIndex: currentIndex));
         await _playList.add(_createAudioSource(currentSong));
 
+        isSongLoading = false;
         if (loudnessNormalizationEnabled && GetPlatform.isAndroid) {
           _normalizeVolume(streamInfo.audio!.loudnessDb);
         }
@@ -567,7 +562,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           } catch (_) {}
           await _player.play();
         }
-        isSongLoading = false;
         _prebufferUpcomingSongs();
         break;
 
@@ -607,10 +601,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final currMed = (extras!['mediaItem'] as MediaItem);
         final futureStreamInfo = checkNGetUrl(currMed.id);
         isSongLoading = true;
-        playbackState.add(playbackState.value.copyWith(
-          playing: false,
-          processingState: AudioProcessingState.loading,
-        ));
         currentIndex = 0;
         await _playList.clear();
         mediaItem.add(currMed);
@@ -628,14 +618,14 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           currentSongUrl = null;
           isSongLoading = false;
           Get.find<PlayerController>().notifyPlayError(streamInfo.statusMSG);
-          playbackState.add(playbackState.value.copyWith(
-              playing: false,
-              processingState: AudioProcessingState.error));
+          playbackState.add(playbackState.value
+              .copyWith(processingState: AudioProcessingState.error));
           return;
         }
         currentSongUrl = currMed.extras!['url'] = streamInfo.audio!.url;
 
         await _playList.add(_createAudioSource(currMed));
+        isSongLoading = false;
 
         // Normalize audio
         if (loudnessNormalizationEnabled && GetPlatform.isAndroid) {
@@ -646,7 +636,6 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           await _player.seek(Duration.zero, index: 0);
         } catch (_) {}
         await _player.play();
-        isSongLoading = false;
         _prebufferUpcomingSongs();
         break;
 

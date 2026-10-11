@@ -400,7 +400,6 @@ class PlayerController extends GetxController
       {String? playlistid, bool radio = false}) async {
     final session = ++_playbackSessionToken;
     isDismissingMiniPlayer.value = false;
-    buttonState.value = PlayButtonState.loading;
     progressBarStatus.value = ProgressBarState(
       buffered: Duration.zero,
       current: Duration.zero,
@@ -423,14 +422,9 @@ class PlayerController extends GetxController
       _audioHandler.customAction("setSourceNPlay", {'mediaItem': mediaItem});
     }
 
-    // 5-Second Rule: Only fetch related recommendations & update radio queue if user listens for at least 5s
     Future.delayed(
-      const Duration(seconds: 5),
+      Duration.zero,
       () async {
-        if (_playbackSessionToken != session) return;
-        // Verify song is actually still playing and current before fetching radio recommendations
-        if (currentSong.value?.id != mediaItem?.id) return;
-
         final content = await _musicServices.getWatchPlaylist(
             videoId: mediaItem?.id ?? "", radio: radio, playlistId: playlistid);
         if (_playbackSessionToken != session) return;
@@ -476,7 +470,6 @@ class PlayerController extends GetxController
       {PlaylingFrom? playfrom}) async {
     final session = ++_playbackSessionToken;
     isDismissingMiniPlayer.value = false;
-    buttonState.value = PlayButtonState.loading;
     isRadioModeOn = false;
     progressBarStatus.value = ProgressBarState(
       buffered: Duration.zero,
@@ -780,12 +773,10 @@ class PlayerController extends GetxController
   }
 
   void prev() {
-    buttonState.value = PlayButtonState.loading;
     _audioHandler.skipToPrevious();
   }
 
   Future<void> next() async {
-    buttonState.value = PlayButtonState.loading;
     await _audioHandler.skipToNext();
   }
 
@@ -794,7 +785,6 @@ class PlayerController extends GetxController
   }
 
   void seekByIndex(int index) {
-    buttonState.value = PlayButtonState.loading;
     _audioHandler.customAction("playByIndex", {"index": index});
   }
 
