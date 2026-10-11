@@ -2,10 +2,9 @@
 
 ## [v1.0.3] - Latest Release
 
-### ⚡ Instant Fast-Start Playback & Smart Continuous Streaming
-- **1-Second Low-Latency Start**: Tuned `AndroidLoadControl` playback threshold to 500ms; audio begins playing within 1 second of tapping without buffering delays.
-- **Race-To-Sleep Background Buffering**: Once playing starts, the stream continues actively caching up to 360 seconds (full song) in the background, allowing the mobile modem to sleep and saving device battery.
-- **2x Automatic Stream Recovery**: If a YouTube stream token expires or encounters a temporary drop, the engine automatically retries twice with fresh stream manifests before interrupting playback.
+### ⚡ Instant Song Click Loading Indicator & Stable Audio Engine
+- **Always-Loading Song Tap Feedback**: Tapping any song or skipping tracks instantly switches the play button to a spinning loading circle indicator, completely eliminating the premature pause icon flash before the audio stream is ready.
+- **Stable Stream Engine & 2x Auto-Recovery**: Restored proven low-latency ExoPlayer buffering parameters with dual auto-retry token recovery, ensuring instant playback without stream stalls.
 
 ### 🎯 Spotify / YouTube 5-Second Recommendation Rule
 - **Misclick & Fast-Skip Protection**: Skips under 5 seconds no longer pollute recommendations, playback history, or the Up Next queue.

@@ -400,6 +400,7 @@ class PlayerController extends GetxController
       {String? playlistid, bool radio = false}) async {
     final session = ++_playbackSessionToken;
     isDismissingMiniPlayer.value = false;
+    buttonState.value = PlayButtonState.loading;
     progressBarStatus.value = ProgressBarState(
       buffered: Duration.zero,
       current: Duration.zero,
@@ -475,6 +476,7 @@ class PlayerController extends GetxController
       {PlaylingFrom? playfrom}) async {
     final session = ++_playbackSessionToken;
     isDismissingMiniPlayer.value = false;
+    buttonState.value = PlayButtonState.loading;
     isRadioModeOn = false;
     progressBarStatus.value = ProgressBarState(
       buffered: Duration.zero,
@@ -778,10 +780,12 @@ class PlayerController extends GetxController
   }
 
   void prev() {
+    buttonState.value = PlayButtonState.loading;
     _audioHandler.skipToPrevious();
   }
 
   Future<void> next() async {
+    buttonState.value = PlayButtonState.loading;
     await _audioHandler.skipToNext();
   }
 
@@ -790,6 +794,7 @@ class PlayerController extends GetxController
   }
 
   void seekByIndex(int index) {
+    buttonState.value = PlayButtonState.loading;
     _audioHandler.customAction("playByIndex", {"index": index});
   }
 
