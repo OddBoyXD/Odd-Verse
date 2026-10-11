@@ -496,7 +496,17 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         }
 
         mediaItem.add(currentSong);
-        final streamInfo = await futureStreamInfo;
+        var streamInfo = await futureStreamInfo;
+        int retryCount = 0;
+        while (!streamInfo.playable && retryCount < 2) {
+          if (songIndex != currentIndex) return;
+          retryCount++;
+          printINFO("Stream fetch failed. Retrying ($retryCount/2) for song: ${currentSong.title} (${currentSong.id})");
+          await Future.delayed(const Duration(milliseconds: 600));
+          if (songIndex != currentIndex) return;
+          streamInfo = await checkNGetUrl(currentSong.id, generateNewUrl: true);
+        }
+
         if (songIndex != currentIndex) {
           return;
         } else if (!streamInfo.playable) {
@@ -583,7 +593,15 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         await _playList.clear();
         mediaItem.add(currMed);
         queue.add([currMed]);
-        final streamInfo = (await futureStreamInfo);
+        var streamInfo = (await futureStreamInfo);
+        int retryCount = 0;
+        while (!streamInfo.playable && retryCount < 2) {
+          retryCount++;
+          printINFO("setSourceNPlay failed. Retrying ($retryCount/2) for song: ${currMed.title} (${currMed.id})");
+          await Future.delayed(const Duration(milliseconds: 600));
+          streamInfo = await checkNGetUrl(currMed.id, generateNewUrl: true);
+        }
+
         if (!streamInfo.playable) {
           currentSongUrl = null;
           isSongLoading = false;

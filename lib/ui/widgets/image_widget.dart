@@ -85,10 +85,10 @@ class ImageWidget extends StatelessWidget {
         fadeOutDuration: const Duration(milliseconds: 100),
         memCacheHeight: isPlayerArtImage
             ? 500
-            : (size > 0 ? (size * 2).toInt().clamp(80, 400) : 180),
+            : (size > 0 ? (size * 2).toInt().clamp(80, 280) : 160),
         memCacheWidth: isPlayerArtImage
             ? 500
-            : (size > 0 ? (size * 2).toInt().clamp(80, 400) : 180),
+            : (size > 0 ? (size * 2).toInt().clamp(80, 280) : 160),
         imageUrl: imageUrl,
         fit: BoxFit.cover,
         errorWidget: (context, url, error) {

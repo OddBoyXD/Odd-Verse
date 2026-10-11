@@ -54,7 +54,7 @@ class SettingsScreenController extends GetxController {
   final maxCacheLimitMB = 500.obs;
   final isAutoCacheCleanEnabled = true.obs;
   final prebufferSeconds = 15.obs;
-  final prebufferSongCount = 2.obs;
+  final prebufferSongCount = 1.obs;
   final enableAutoInfiniteRadio = true.obs;
   final romanizeLyricsEnabled = true.obs;
   final enableSponsorBlock = false.obs;
@@ -145,7 +145,7 @@ class SettingsScreenController extends GetxController {
     maxCacheLimitMB.value = setBox.get("maxCacheLimitMB") ?? 500;
     isAutoCacheCleanEnabled.value = setBox.get("isAutoCacheCleanEnabled") ?? true;
     prebufferSeconds.value = setBox.get("prebufferSeconds") ?? 15;
-    prebufferSongCount.value = setBox.get("prebufferSongCount") ?? 2;
+    prebufferSongCount.value = setBox.get("prebufferSongCount") ?? 1;
     enableAutoInfiniteRadio.value = setBox.get("enableAutoInfiniteRadio") ?? true;
     romanizeLyricsEnabled.value = setBox.get("romanizeLyricsEnabled") ?? true;
     enableSponsorBlock.value = setBox.get("enableSponsorBlock") ?? false;
