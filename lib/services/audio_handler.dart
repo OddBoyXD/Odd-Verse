@@ -376,6 +376,10 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     playbackState.add(playbackState.value.copyWith(speed: speed));
   }
 
+  Future<void> setPitch(double pitch) async {
+    await _player.setPitch(pitch);
+  }
+
   bool isDspReverbActive = false;
 
   Future<void> setDspReverb(bool enable) async {
