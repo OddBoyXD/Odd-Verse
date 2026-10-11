@@ -14,11 +14,12 @@
 - **Offline Cache Protection**: Guarded `cachedSongs/` directory in `checkAndCleanCacheIfNeeded()` so offline songs are never purged accidentally during auto cleanup.
 - **Stylish Confirmation Dialogs**: Manual "Clear App Cache" and "Clear Image Cache" actions prompt modern confirmation dialogs detailing what will be deleted with "Cancel" and "Clear" actions.
 
-### 🎵 Dynamic Audio Waveform Progress Bar
-- **Responsive 42-Bar Audio Waveform**: Built `DynamicWaveformProgressBar` featuring responsive vertical audio bars with rounded caps, live timestamps, and album accent reactive coloring.
-- **Deterministic Song Wave Silhouettes**: Generates a unique, natural audio waveform pattern for every song based on song metadata and duration seeds.
+### 🎵 Dynamic Flowing Wave Progress Bar
+- **Sleek Progress Line Track**: Clean, professional baseline track across the player width with inactive, buffered, and active states.
+- **Dynamic Audio Wave Strictly Above Playing Track**: Smooth continuous sine wave ripples gracefully only above the played portion of the track up to the current playback position, with a calm clean line for the unplayed track.
+- **Glowing Playhead Thumb Indicator**: Thumb with glowing halo cleanly connects the wave crest back to the baseline at the exact playback position.
 - **Full Interactive Seeking**: Tap or horizontally drag/scrub across the waveform with live preview timestamp updates and smooth seek dispatch.
-- **Toggleable in Settings**: Added a setting under Music & Playback to switch between the Dynamic Waveform and standard progress bars.
+- **Toggleable in Settings**: Added a setting under Music & Playback to switch between the Dynamic Wave and standard progress bars.
 
 ### 💊 Perfect Floating Pill Centering (Zero Square Artifacts)
 - **Symmetric Centering (Equal 10px Margins)**: Fixed horizontal misalignment by constraining the sliding panel header with exact edge bounds (`left: 0`, `right: 0`, full width) and responsive horizontal padding. The pill now has mathematically identical 10px margins on both left and right sides on all device resolutions.

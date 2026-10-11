@@ -1,8 +1,9 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// A dynamic audio waveform progress bar with interactive seek gesture support,
-/// live time labels, and song-specific wave silhouettes.
+/// A professional audio wave progress bar.
+/// Features a sleek baseline track and a smooth, continuous flowing audio wave
+/// strictly rendered above the active/played portion of the track.
 class DynamicWaveformProgressBar extends StatefulWidget {
   final Duration progress;
   final Duration total;
@@ -28,7 +29,7 @@ class DynamicWaveformProgressBar extends StatefulWidget {
     this.thumbColor,
     required this.seedKey,
     this.timeLabelTextStyle,
-    this.barHeight = 32.0,
+    this.barHeight = 36.0,
   });
 
   @override
@@ -37,54 +38,25 @@ class DynamicWaveformProgressBar extends StatefulWidget {
 }
 
 class _DynamicWaveformProgressBarState
-    extends State<DynamicWaveformProgressBar> {
+    extends State<DynamicWaveformProgressBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _waveAnimCtrl;
   bool _isDragging = false;
   double _dragFraction = 0.0;
-  List<double> _cachedHeights = const [];
-  String _cachedSeedKey = "";
 
   @override
   void initState() {
     super.initState();
-    _updateWaveform();
+    _waveAnimCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2400),
+    )..repeat();
   }
 
   @override
-  void didUpdateWidget(covariant DynamicWaveformProgressBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.seedKey != widget.seedKey || _cachedHeights.isEmpty) {
-      _updateWaveform();
-    }
-  }
-
-  void _updateWaveform() {
-    _cachedSeedKey = widget.seedKey;
-    _cachedHeights = _generateWaveform(widget.seedKey, 42);
-  }
-
-  /// Generates a deterministic sound wave silhouette based on a seed key (e.g. song ID).
-  List<double> _generateWaveform(String seed, int count) {
-    final int hash = seed.hashCode;
-    final List<double> heights = [];
-    for (int i = 0; i < count; i++) {
-      final double x = i / count;
-      final double sine1 = math.sin(x * math.pi); // natural arch
-      final double sine2 = math.sin(x * math.pi * 3.5);
-      final double sine3 = math.cos(x * math.pi * 7.0);
-
-      // Pseudo-random deterministic noise
-      final int n = (hash ^ (i * 397)) & 0x7FFFFFFF;
-      final double pseudo = (n % 1000) / 1000.0;
-
-      double h = 0.22 +
-          0.38 * sine1.abs() +
-          0.18 * (sine2 * 0.5 + 0.5) +
-          0.10 * (sine3 * 0.5 + 0.5) +
-          0.18 * pseudo;
-
-      heights.add(h.clamp(0.18, 1.0));
-    }
-    return heights;
+  void dispose() {
+    _waveAnimCtrl.dispose();
+    super.dispose();
   }
 
   String _formatDuration(Duration duration) {
@@ -97,7 +69,7 @@ class _DynamicWaveformProgressBarState
   void _handleSeek(double localDx, double totalWidth) {
     if (totalWidth <= 0 || widget.total <= Duration.zero) return;
     final double fraction = (localDx / totalWidth).clamp(0.0, 1.0);
-    final targetMs = (widget.total.inMilliseconds * fraction).round();
+    final int targetMs = (widget.total.inMilliseconds * fraction).round();
     widget.onSeek(Duration(milliseconds: targetMs));
   }
 
@@ -124,9 +96,9 @@ class _DynamicWaveformProgressBarState
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Current Time Label
+          // Current Time
           SizedBox(
-            width: 42,
+            width: 44,
             child: Text(
               _formatDuration(displayCurrent),
               textAlign: TextAlign.start,
@@ -135,7 +107,7 @@ class _DynamicWaveformProgressBarState
           ),
           const SizedBox(width: 6),
 
-          // Waveform Canvas with interactive drag & tap
+          // Interactive Track & Wave
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -170,21 +142,23 @@ class _DynamicWaveformProgressBarState
                   onTapDown: (details) {
                     _handleSeek(details.localPosition.dx, width);
                   },
-                  child: SizedBox(
-                    height: widget.barHeight + 10,
-                    child: CustomPaint(
-                      painter: _WaveformPainter(
-                        heights: _cachedHeights,
-                        progressFraction: progressFraction,
-                        bufferedFraction: bufferedFraction,
-                        activeColor: widget.activeColor,
-                        inactiveColor: widget.inactiveColor,
-                        bufferedColor: widget.bufferedColor,
-                        thumbColor: widget.thumbColor ?? widget.activeColor,
-                        isDragging: _isDragging,
-                      ),
-                      size: Size(width, widget.barHeight + 10),
-                    ),
+                  child: AnimatedBuilder(
+                    animation: _waveAnimCtrl,
+                    builder: (context, _) {
+                      return CustomPaint(
+                        size: Size(width, widget.barHeight),
+                        painter: _ProfessionalWavePainter(
+                          progressFraction: progressFraction,
+                          bufferedFraction: bufferedFraction,
+                          animationPhase: _waveAnimCtrl.value * 2 * math.pi,
+                          activeColor: widget.activeColor,
+                          inactiveColor: widget.inactiveColor,
+                          bufferedColor: widget.bufferedColor,
+                          thumbColor: widget.thumbColor ?? widget.activeColor,
+                          isDragging: _isDragging,
+                        ),
+                      );
+                    },
                   ),
                 );
               },
@@ -192,9 +166,9 @@ class _DynamicWaveformProgressBarState
           ),
 
           const SizedBox(width: 6),
-          // Total Time Label
+          // Total Time
           SizedBox(
-            width: 42,
+            width: 44,
             child: Text(
               _formatDuration(widget.total),
               textAlign: TextAlign.end,
@@ -207,20 +181,20 @@ class _DynamicWaveformProgressBarState
   }
 }
 
-class _WaveformPainter extends CustomPainter {
-  final List<double> heights;
+class _ProfessionalWavePainter extends CustomPainter {
   final double progressFraction;
   final double bufferedFraction;
+  final double animationPhase;
   final Color activeColor;
   final Color inactiveColor;
   final Color bufferedColor;
   final Color thumbColor;
   final bool isDragging;
 
-  _WaveformPainter({
-    required this.heights,
+  _ProfessionalWavePainter({
     required this.progressFraction,
     required this.bufferedFraction,
+    required this.animationPhase,
     required this.activeColor,
     required this.inactiveColor,
     required this.bufferedColor,
@@ -230,81 +204,141 @@ class _WaveformPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    if (heights.isEmpty || size.width <= 0) return;
+    if (size.width <= 0) return;
 
-    final int count = heights.length;
-    final double spacing = 2.4;
-    final double availableWidthForBars = size.width - (spacing * (count - 1));
-    final double barWidth = (availableWidthForBars / count).clamp(1.5, 6.0);
-    final double totalW = (count * barWidth) + ((count - 1) * spacing);
-    final double startX = (size.width - totalW) / 2.0;
-    final double maxH = size.height - 8.0;
+    final double baselineY = size.height * 0.72;
+    final double trackHeight = 4.0;
+    final double totalWidth = size.width;
+    final double activeWidth = (totalWidth * progressFraction).clamp(0.0, totalWidth);
+    final double bufferedWidth = (totalWidth * bufferedFraction).clamp(0.0, totalWidth);
 
-    final Paint activePaint = Paint()
-      ..color = activeColor
-      ..style = PaintingStyle.fill;
-
+    // 1. Inactive Baseline Track (Full Width)
     final Paint inactivePaint = Paint()
       ..color = inactiveColor
       ..style = PaintingStyle.fill;
+    final RRect inactiveTrack = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, baselineY - trackHeight / 2, totalWidth, trackHeight),
+      Radius.circular(trackHeight / 2),
+    );
+    canvas.drawRRect(inactiveTrack, inactivePaint);
 
-    final Paint bufferedPaint = Paint()
-      ..color = bufferedColor
-      ..style = PaintingStyle.fill;
-
-    double playheadX = startX;
-
-    for (int i = 0; i < count; i++) {
-      final double x = startX + i * (barWidth + spacing);
-      final double h = (heights[i] * maxH).clamp(4.0, maxH);
-      final double y = (size.height - h) / 2.0;
-
-      final double barCenterFraction = (x + barWidth / 2.0 - startX) / totalW;
-
-      Paint paintToUse;
-      if (barCenterFraction <= progressFraction) {
-        paintToUse = activePaint;
-        playheadX = x + barWidth;
-      } else if (barCenterFraction <= bufferedFraction) {
-        paintToUse = bufferedPaint;
-      } else {
-        paintToUse = inactivePaint;
-      }
-
-      final RRect rrect = RRect.fromRectAndRadius(
-        Rect.fromLTWH(x, y, barWidth, h),
-        Radius.circular(barWidth / 2.0),
+    // 2. Buffered Baseline Track (Up to buffered position)
+    if (bufferedWidth > 0) {
+      final Paint bufferedPaint = Paint()
+        ..color = bufferedColor
+        ..style = PaintingStyle.fill;
+      final RRect bufferedTrack = RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, baselineY - trackHeight / 2, bufferedWidth, trackHeight),
+        Radius.circular(trackHeight / 2),
       );
-
-      canvas.drawRRect(rrect, paintToUse);
+      canvas.drawRRect(bufferedTrack, bufferedPaint);
     }
 
-    // Playhead indicator
-    final double targetX = (startX + (totalW * progressFraction)).clamp(startX, startX + totalW);
-    final double playheadRadius = isDragging ? 5.5 : 4.0;
+    // 3. Smooth Moving Audio Wave Above The Line (ONLY up to active playing position)
+    if (activeWidth > 6.0) {
+      final double maxAmplitude = (size.height * 0.48).clamp(8.0, 18.0);
+      final double waveW = activeWidth;
 
-    // Subtle glow behind the playhead
+      // Primary Flowing Wave Path
+      final Path wavePath = Path();
+      wavePath.moveTo(0, baselineY);
+
+      final Path fillPath = Path();
+      fillPath.moveTo(0, baselineY);
+
+      const int samplePoints = 48;
+      for (int i = 0; i <= samplePoints; i++) {
+        final double t = i / samplePoints;
+        final double x = t * waveW;
+
+        // Envelope dampens the wave to 0 at the start (x=0) and end (x=activeWidth)
+        final double envelope = math.sin(t * math.pi);
+
+        // Harmonic composite sine wave for natural audio flow
+        final double wave1 = math.sin((t * 3.5 * math.pi) - animationPhase);
+        final double wave2 = math.sin((t * 7.0 * math.pi) + (animationPhase * 0.6));
+        final double wave3 = math.cos((t * 2.0 * math.pi) - (animationPhase * 0.3));
+
+        final double displacement = (wave1 * 0.55 + wave2 * 0.30 + wave3 * 0.15);
+        final double y = baselineY - (maxAmplitude * envelope * displacement.abs());
+
+        if (i == 0) {
+          wavePath.moveTo(x, y);
+        } else {
+          wavePath.lineTo(x, y);
+        }
+        fillPath.lineTo(x, y);
+      }
+
+      fillPath.lineTo(activeWidth, baselineY);
+      fillPath.close();
+
+      // Soft glow fill between wave and baseline
+      final Paint fillPaint = Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            activeColor.withOpacity(0.30),
+            activeColor.withOpacity(0.04),
+          ],
+        ).createShader(Rect.fromLTWH(0, baselineY - maxAmplitude, activeWidth, maxAmplitude))
+        ..style = PaintingStyle.fill;
+      canvas.drawPath(fillPath, fillPaint);
+
+      // Crisp glowing wave crest line
+      final Paint waveStroke = Paint()
+        ..color = activeColor
+        ..strokeWidth = 2.4
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      canvas.drawPath(wavePath, waveStroke);
+    }
+
+    // 4. Active Baseline Track (Up to current position)
+    if (activeWidth > 0) {
+      final Paint activePaint = Paint()
+        ..color = activeColor
+        ..style = PaintingStyle.fill;
+      final RRect activeTrack = RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, baselineY - trackHeight / 2, activeWidth, trackHeight),
+        Radius.circular(trackHeight / 2),
+      );
+      canvas.drawRRect(activeTrack, activePaint);
+    }
+
+    // 5. Thumb & Playhead Glow Indicator (Directly at current playing position)
+    final double thumbRadius = isDragging ? 7.0 : 5.5;
+
+    // Glowing halo behind thumb
     final Paint glowPaint = Paint()
-      ..color = activeColor.withOpacity(isDragging ? 0.45 : 0.25)
+      ..color = activeColor.withOpacity(isDragging ? 0.40 : 0.22)
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(targetX, size.height / 2.0), playheadRadius + 3.0, glowPaint);
+    canvas.drawCircle(Offset(activeWidth, baselineY), thumbRadius + 5.0, glowPaint);
 
-    // Playhead thumb dot
+    // Solid Thumb Cap
     final Paint thumbPaint = Paint()
       ..color = thumbColor
       ..style = PaintingStyle.fill;
-    canvas.drawCircle(Offset(targetX, size.height / 2.0), playheadRadius, thumbPaint);
+    canvas.drawCircle(Offset(activeWidth, baselineY), thumbRadius, thumbPaint);
+
+    // Inner bright pip
+    final Paint innerPip = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(activeWidth, baselineY), thumbRadius * 0.45, innerPip);
   }
 
   @override
-  bool shouldRepaint(covariant _WaveformPainter oldDelegate) {
+  bool shouldRepaint(covariant _ProfessionalWavePainter oldDelegate) {
     return oldDelegate.progressFraction != progressFraction ||
         oldDelegate.bufferedFraction != bufferedFraction ||
+        oldDelegate.animationPhase != animationPhase ||
         oldDelegate.activeColor != activeColor ||
         oldDelegate.inactiveColor != inactiveColor ||
         oldDelegate.bufferedColor != bufferedColor ||
         oldDelegate.thumbColor != thumbColor ||
-        oldDelegate.isDragging != isDragging ||
-        oldDelegate.heights != heights;
+        oldDelegate.isDragging != isDragging;
   }
 }
