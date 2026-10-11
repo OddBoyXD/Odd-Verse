@@ -15,7 +15,6 @@ import '../../widgets/restore_dialog.dart';
 import '../Library/library_controller.dart';
 import '../Library/local_songs_controller.dart';
 import '../../widgets/snackbar.dart';
-import '/ui/widgets/link_piped.dart';
 import '/services/music_service.dart';
 import '/ui/player/player_controller.dart';
 import '/ui/utils/theme_controller.dart';
@@ -397,59 +396,7 @@ class SettingsScreen extends StatelessWidget {
                               onChanged:
                                   settingsController.toggleCacheHomeScreenData),
                         )),
-                    ListTile(
-                      contentPadding:
-                          const EdgeInsets.only(left: 5, right: 10, top: 0),
-                      title: Text("Piped".tr),
-                      subtitle: Text("linkPipedDes".tr,
-                          style: Theme.of(context).textTheme.bodyMedium),
-                      trailing: TextButton(
-                          child: Obx(() => Text(
-                                settingsController.isLinkedWithPiped.value
-                                    ? "unLink".tr
-                                    : "link".tr,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium!
-                                    .copyWith(fontSize: 15),
-                              )),
-                          onPressed: () {
-                            if (settingsController.isLinkedWithPiped.isFalse) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => const LinkPiped(),
-                              ).whenComplete(
-                                  () => Get.delete<PipedLinkedController>());
-                            } else {
-                              settingsController.unlinkPiped();
-                            }
-                          }),
-                    ),
-                    Obx(() => (settingsController.isLinkedWithPiped.isTrue)
-                        ? ListTile(
-                            contentPadding: const EdgeInsets.only(
-                                left: 5, right: 10, top: 0),
-                            title: Text("resetblacklistedplaylist".tr),
-                            subtitle: Text("resetblacklistedplaylistDes".tr,
-                                style: Theme.of(context).textTheme.bodyMedium),
-                            trailing: TextButton(
-                                child: Text(
-                                  "reset".tr,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium!
-                                      .copyWith(fontSize: 15),
-                                ),
-                                onPressed: () async {
-                                  await Get.find<LibraryPlaylistsController>()
-                                      .resetBlacklistedPlaylist();
-                                  ScaffoldMessenger.of(Get.context!)
-                                      .showSnackBar(snackbar(Get.context!,
-                                          "blacklistPlstResetAlert".tr,
-                                          size: SanckBarSize.MEDIUM));
-                                }),
-                          )
-                        : const SizedBox.shrink()),
+
                     ListTile(
                       contentPadding: const EdgeInsets.only(left: 5, right: 10),
                       title: Text("clearImgCache".tr),

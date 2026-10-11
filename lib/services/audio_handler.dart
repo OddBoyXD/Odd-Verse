@@ -857,8 +857,16 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     final stopForegroundService =
         Get.find<SettingsScreenController>().stopPlyabackOnSwipeAway.value;
     if (stopForegroundService) {
-      await Get.find<HomeScreenController>().cachedHomeScreenData();
-      await saveSessionData();
+      try {
+        await Get.find<HomeScreenController>().cachedHomeScreenData();
+        await saveSessionData();
+      } catch (e) {
+        printERROR("onTaskRemoved save error: $e");
+      }
+      playbackState.add(playbackState.value.copyWith(
+        playing: false,
+        processingState: AudioProcessingState.idle,
+      ));
       await stop();
     }
   }

@@ -192,7 +192,13 @@ class StandardPlayer extends StatelessWidget {
                     color: Colors.white,
                     size: 30,
                   ),
-                  onPressed: playerController.playerPanelController.close,
+                  onPressed: () {
+                    if (playerController.queuePanelController.isAttached &&
+                        !playerController.queuePanelController.isPanelClosed) {
+                      playerController.queuePanelController.close();
+                    }
+                    playerController.playerPanelController.close();
+                  },
                 ),
 
                 /// Playing from [Album name]

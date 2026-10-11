@@ -38,17 +38,17 @@ class SettingsScreenController extends GetxController {
   final isAutoUpdateCheckEnabled = true.obs;
   final isManualCheckingForUpdates = false.obs;
   final isLinkedWithPiped = false.obs;
-  final stopPlyabackOnSwipeAway = false.obs;
+  final stopPlyabackOnSwipeAway = true.obs;
   final currentAppLanguageCode = "en".obs;
   final downloadLocationPath = "".obs;
   final exportLocationPath = "".obs;
   final downloadingFormat = "".obs;
   final autoDownloadFavoriteSongEnabled = false.obs;
   final isTransitionAnimationDisabled = false.obs;
-  final isBottomNavBarEnabled = false.obs;
+  final isBottomNavBarEnabled = true.obs;
   final backgroundPlayEnabled = true.obs;
   final keepScreenAwake = false.obs;
-  final restorePlaybackSession = false.obs;
+  final restorePlaybackSession = true.obs;
   final cacheHomeScreenData = true.obs;
   final cacheSizeString = "Calculating...".obs;
   final maxCacheLimitMB = 500.obs;
@@ -57,7 +57,7 @@ class SettingsScreenController extends GetxController {
   final prebufferSongCount = 2.obs;
   final enableAutoInfiniteRadio = true.obs;
   final romanizeLyricsEnabled = true.obs;
-  final enableSponsorBlock = true.obs;
+  final enableSponsorBlock = false.obs;
   final currentVersion = "V1.0.3";
 
   @override
@@ -98,7 +98,7 @@ class SettingsScreenController extends GetxController {
             ? "zh-CN"
             : appLang;
     isBottomNavBarEnabled.value =
-        isDesktop ? false : (setBox.get("isBottomNavBarEnabled") ?? false);
+        isDesktop ? false : (setBox.get("isBottomNavBarEnabled") ?? true);
     noOfHomeScreenContent.value = setBox.get("noOfHomeScreenContent") ?? 3;
     isTransitionAnimationDisabled.value =
         setBox.get("isTransitionAnimationDisabled") ?? false;
@@ -109,9 +109,9 @@ class SettingsScreenController extends GetxController {
     loudnessNormalizationEnabled.value = isDesktop
         ? false
         : (setBox.get("loudnessNormalizationEnabled") ?? false);
-    autoOpenPlayer.value = (setBox.get("autoOpenPlayer") ?? true);
+    autoOpenPlayer.value = (setBox.get("autoOpenPlayer") ?? false);
     restorePlaybackSession.value =
-        setBox.get("restrorePlaybackSession") ?? false;
+        setBox.get("restrorePlaybackSession") ?? true;
     cacheHomeScreenData.value = setBox.get("cacheHomeScreenData") ?? true;
     streamingQuality.value =
         AudioQuality.values[setBox.get('streamingQuality')];
@@ -135,7 +135,7 @@ class SettingsScreenController extends GetxController {
       isLinkedWithPiped.value = setBox.get("piped")['isLoggedIn'];
     }
     stopPlyabackOnSwipeAway.value =
-        setBox.get('stopPlyabackOnSwipeAway') ?? false;
+        setBox.get('stopPlyabackOnSwipeAway') ?? true;
     if (GetPlatform.isAndroid) {
       isIgnoringBatteryOptimizations.value =
           (await Permission.ignoreBatteryOptimizations.isGranted);
@@ -148,7 +148,7 @@ class SettingsScreenController extends GetxController {
     prebufferSongCount.value = setBox.get("prebufferSongCount") ?? 2;
     enableAutoInfiniteRadio.value = setBox.get("enableAutoInfiniteRadio") ?? true;
     romanizeLyricsEnabled.value = setBox.get("romanizeLyricsEnabled") ?? true;
-    enableSponsorBlock.value = setBox.get("enableSponsorBlock") ?? true;
+    enableSponsorBlock.value = setBox.get("enableSponsorBlock") ?? false;
     isAutoUpdateCheckEnabled.value =
         setBox.get("isAutoUpdateCheckEnabled") ?? true;
     calculateCacheSize();

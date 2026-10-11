@@ -168,6 +168,11 @@ class PlayerController extends GetxController
     if (x >= 0 && x <= 0.2) {
       playerPaneOpacity.value = (1 - (x * 5)).clamp(0.0, 1.0);
       isPlayerpanelTopVisible.value = true;
+      if (x == 0.0 &&
+          queuePanelController.isAttached &&
+          !queuePanelController.isPanelClosed) {
+        queuePanelController.close();
+      }
     } else {
       playerPaneOpacity.value = 0.0;
       isPlayerpanelTopVisible.value = false;
@@ -648,7 +653,7 @@ class PlayerController extends GetxController
   void _playerPanelCheck({bool restoreSession = false}) {
     isDismissingMiniPlayer.value = false;
     final isWideScreen = Get.size.width > 800;
-    final autoOpenPlayer = Hive.box("AppPrefs").get("autoOpenPlayer") ?? true;
+    final autoOpenPlayer = Hive.box("AppPrefs").get("autoOpenPlayer") ?? false;
     isPlayerpanelTopVisible.value = true;
     playerPaneOpacity.value = 1.0;
     if (playerPanelController.isAttached) {
