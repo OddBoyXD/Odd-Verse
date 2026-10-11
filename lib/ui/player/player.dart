@@ -212,6 +212,7 @@ class Player extends StatelessWidget {
           body: settingsScreenController.playerUi.value == 0
               ? const StandardPlayer()
               : const GesturePlayer(),
+          ),
         ),
       );
     });
