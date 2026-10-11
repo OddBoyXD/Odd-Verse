@@ -4,7 +4,7 @@
 
 ### 🖤 Pure AMOLED Pitch Black Theme ("AMOLED Dark")
 - **True #000000 Deep Black**: Added dedicated Pure AMOLED Black theme preset (`ThemeType.amoled`) providing 100% pitch black backgrounds on scaffold, canvas, cards, and modal sheets with zero grey tint, saving battery on OLED displays.
-- **High-Contrast AMOLED Color Palette**: Resolved white-on-white clashing across buttons, chips, and text by pairing pitch-black surfaces with vibrant user-accent highlights and dark refined fallback song art backgrounds.
+- **Electric Cyan (#00E5FF) Accent**: Integrated a vibrant Electric Cyan signature music accent for AMOLED Dark, delivering razor-sharp contrast and eliminating clashing red or washed-out white elements.
 - **Unified Dialog & Sheet Styling**: Dialogs, bottom sheets, and navigation bars adopt pitch black styling with subtle edge highlights for high-contrast visibility.
 - **Dedicated Theme Selector Entry**: Added "AMOLED Dark (Pitch Black)" option directly in the Theme Mode selector dialog and settings.
 
@@ -24,8 +24,10 @@
 - **Full Interactive Seeking**: Tap or horizontally drag/scrub across the waveform with live preview timestamp updates and smooth seek dispatch.
 - **Toggleable in Settings**: Added a setting under Music & Playback to switch between the Dynamic Wave and standard progress bars.
 
-### ⬇️ Transparent Big Player Queue Arrow
-- **100% Fully Transparent Background**: Removed the opaque colored container behind the bottom queue chevron (`Icons.keyboard_arrow_up`), allowing only the sleek arrow icon to float seamlessly over the player canvas.
+### ⬇️ Clean Big Player: Zero Queue Bleed & Floating Arrow
+- **Zero Queue Bar Bleed**: Set queue panel `minHeight: 0`, completely removing the bottom queue bar and peeking songs from showing when the Big Player is open.
+- **Pure Transparent Upward Arrow**: Floating upward chevron (`^`) floats directly on the player canvas with 100% transparent background and zero black box or strip behind it.
+- **Removed Heavy Bottom Gradient**: Eliminated the artificial black gradient container in `StandardPlayer` for seamless album artwork background presentation.
 
 ### 💊 Perfect Floating Pill Centering (Zero Square Artifacts)
 - **Symmetric Centering (Equal 10px Margins)**: Fixed horizontal misalignment by constraining the sliding panel header with exact edge bounds (`left: 0`, `right: 0`, full width) and responsive horizontal padding. The pill now has mathematically identical 10px margins on both left and right sides on all device resolutions.

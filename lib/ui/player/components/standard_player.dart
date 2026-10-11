@@ -66,27 +66,8 @@ class StandardPlayer extends StatelessWidget {
                 ),
               ),
 
-              /// used to hide queue header when player is minimized
-              /// gradient to used here
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: 65 + Get.mediaQuery.padding.bottom + 120,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor.withOpacity(0.4),
-                        Theme.of(context).primaryColor.withOpacity(0),
-                      ],
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      stops: const [0, 0.5, 0.8, 1],
-                    ),
-                  ),
-                ),
-              ),
+              /// Clean transparent bottom area
+              const SizedBox.shrink(),
             ],
           ),
         ),

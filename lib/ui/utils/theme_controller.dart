@@ -281,9 +281,8 @@ class ThemeController extends GetxController {
             systemStatusBarContrastEnforced: false,
             systemNavigationBarContrastEnforced: false),
       );
-      final MaterialColor amoledSwatch =
-          _createMaterialColor(primaryColor.value ?? Colors.deepPurple[400]!);
-      final Color amoledAccent = amoledSwatch[300] ?? const Color(0xFF9070FF);
+      const Color amoledAccent = Color(0xFF00E5FF); // Electric Cyan / Neon Aqua
+      final MaterialColor amoledSwatch = _createMaterialColor(amoledAccent);
       final baseTheme = ThemeData(
           useMaterial3: false,
           brightness: Brightness.dark,

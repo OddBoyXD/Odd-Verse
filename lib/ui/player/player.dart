@@ -40,42 +40,12 @@ class Player extends StatelessWidget {
           body: SlidingUpPanel(
           color: Colors.transparent,
           boxShadow: const [],
-          minHeight: settingsScreenController.playerUi.value == 0
-              ? 65 + Get.mediaQuery.padding.bottom
-              : 0,
+          minHeight: 0,
           maxHeight: size.height,
           isDraggable: !GetPlatform.isDesktop,
           controller: GetPlatform.isDesktop
               ? null
               : playerController.queuePanelController,
-
-          /// this is the header of the collapsed panel
-          /// contains the button ^ to open the queue panel
-          collapsed: InkWell(
-            onTap: () {
-              /// queue open in end drawer in desktop
-              if (GetPlatform.isDesktop) {
-                playerController.homeScaffoldkey.currentState!.openEndDrawer();
-              } else {
-                playerController.queuePanelController.open();
-              }
-            },
-            child: Container(
-                color: Colors.transparent,
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 65,
-                      child: Center(
-                          child: Icon(
-                        color: Theme.of(context).textTheme.titleMedium!.color,
-                        Icons.keyboard_arrow_up,
-                        size: 40,
-                      )),
-                    ),
-                  ],
-                )),
-          ),
 
           /// Panel for queue
           panelBuilder: (ScrollController sc, onReorderStart, onReorderEnd) {
@@ -87,6 +57,32 @@ class Player extends StatelessWidget {
                 UpNextQueue(
                   onReorderEnd: onReorderEnd,
                   onReorderStart: onReorderStart,
+                ),
+
+                /// Down arrow to close queue panel
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      playerController.queuePanelController.close();
+                    },
+                    child: Container(
+                      height: 50,
+                      width: double.infinity,
+                      alignment: Alignment.center,
+                      color: Colors.transparent,
+                      child: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .color
+                            ?.withOpacity(0.7),
+                        size: 36,
+                      ),
+                    ),
+                  ),
                 ),
 
                 /// Stack second child
@@ -209,9 +205,44 @@ class Player extends StatelessWidget {
 
           /// show player ui based on selected player ui in settings
           /// Gesture player is only applicable for mobile
-          body: settingsScreenController.playerUi.value == 0
-              ? const StandardPlayer()
-              : const GesturePlayer(),
+          body: Stack(
+            children: [
+              settingsScreenController.playerUi.value == 0
+                  ? const StandardPlayer()
+                  : const GesturePlayer(),
+              if (!GetPlatform.isDesktop)
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      playerController.queuePanelController.open();
+                    },
+                    onVerticalDragUpdate: (details) {
+                      if (details.primaryDelta! < -4) {
+                        playerController.queuePanelController.open();
+                      }
+                    },
+                    child: Container(
+                      height: 55 + Get.mediaQuery.padding.bottom,
+                      width: double.infinity,
+                      alignment: Alignment.topCenter,
+                      color: Colors.transparent,
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Icon(
+                        Icons.keyboard_arrow_up_rounded,
+                        color: Theme.of(context)
+                            .textTheme
+                            .titleMedium!
+                            .color
+                            ?.withOpacity(0.7),
+                        size: 38,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
           ),
         ),
       );
