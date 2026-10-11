@@ -12,6 +12,7 @@ import '../../widgets/cust_switch.dart';
 import '../../widgets/export_file_dialog.dart';
 import '../../widgets/backup_dialog.dart';
 import '../../widgets/restore_dialog.dart';
+import '../../widgets/new_version_dialog.dart';
 import '../Library/library_controller.dart';
 import '../Library/local_songs_controller.dart';
 import '../../widgets/snackbar.dart';
