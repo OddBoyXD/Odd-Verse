@@ -2,6 +2,9 @@
 
 ## [v1.0.3] - Latest Release
 
+### 💊 Truly Floating Miniplayer Pill (Zero Square Artifacts)
+- **Eliminated Dynamic Color Bleed**: Prevented background panel sheet and big player canvas from rendering behind the mini player while collapsed.
+- **Pure Floating Pill Design**: In all dynamic album art themes and dark/light modes, the floating pill now floats cleanly with zero square borders or color artifacts.
 
 ### 🌌 Genuine Hardware DSP PresetReverb ("Slowed + Reverb")
 - **Real 3D Acoustic Echo**: Integrated Android's hardware `PresetReverb` (`PRESET_LARGEHALL`). Tapping the "Slowed + Reverb" preset engages true spacious room reverberation alongside 0.80x speed and pitch with **0 MB extra RAM**.

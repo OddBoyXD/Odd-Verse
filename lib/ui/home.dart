@@ -270,6 +270,7 @@ class Home extends StatelessWidget {
               body: Obx(() => SlidingUpPanel(
                     color: Colors.transparent,
                     boxShadow: const [],
+                    renderPanelSheet: false,
                     onPanelSlide: playerController.panellistener,
                     controller: playerController.playerPanelController,
                     minHeight: playerController.playerPanelMinHeight.value,

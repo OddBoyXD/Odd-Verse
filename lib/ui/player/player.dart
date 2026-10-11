@@ -25,11 +25,19 @@ class Player extends StatelessWidget {
     final size = MediaQuery.of(context).size;
     final PlayerController playerController = Get.find<PlayerController>();
     final settingsScreenController = Get.find<SettingsScreenController>();
-    return Scaffold(
-      /// SlidingUpPanel is used to create a panel that can slide up and down
-      /// It is used to show the current queue panel in mobile
-      body: Obx(
-        () => SlidingUpPanel(
+    return Obx(() {
+      final fullPlayerOpacity =
+          (1.0 - playerController.playerPaneOpacity.value).clamp(0.0, 1.0);
+      if (fullPlayerOpacity <= 0.01) {
+        return const SizedBox.shrink();
+      }
+      return Opacity(
+        opacity: fullPlayerOpacity,
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          /// SlidingUpPanel is used to create a panel that can slide up and down
+          /// It is used to show the current queue panel in mobile
+          body: SlidingUpPanel(
           color: Colors.transparent,
           boxShadow: const [],
           minHeight: settingsScreenController.playerUi.value == 0
@@ -201,22 +209,11 @@ class Player extends StatelessWidget {
 
           /// show player ui based on selected player ui in settings
           /// Gesture player is only applicable for mobile
-          body: Obx(() {
-            final fullPlayerOpacity =
-                (1.0 - playerController.playerPaneOpacity.value)
-                    .clamp(0.0, 1.0);
-            if (fullPlayerOpacity <= 0.01) {
-              return const SizedBox.shrink();
-            }
-            return Opacity(
-              opacity: fullPlayerOpacity,
-              child: settingsScreenController.playerUi.value == 0
-                  ? const StandardPlayer()
-                  : const GesturePlayer(),
-            );
-          }),
+          body: settingsScreenController.playerUi.value == 0
+              ? const StandardPlayer()
+              : const GesturePlayer(),
         ),
-      ),
-    );
+      );
+    });
   }
 }
