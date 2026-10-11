@@ -201,16 +201,18 @@ class Downloader extends GetxService {
     _currentDownloadingFilePath = filePath;
     _currentCancelToken = CancelToken();
 
-    _dio.download(
-        requiredAudioStream.url,
-        cancelToken: _currentCancelToken,
-        options: Options(headers: {"Range": 'bytes=0-$totalBytes'}),
-        filePath, onReceiveProgress: (count, total) {
-      if (total <= 0) return;
-      songDownloadingProgress.value = ((count / total) * 100).toInt();
-    }).then(
-      (value) async {
-        printINFO(value.data);
+    _downloadStreamWithBurstChunks(
+      url: requiredAudioStream.url,
+      filePath: filePath,
+      totalBytes: totalBytes,
+      cancelToken: _currentCancelToken!,
+      onReceiveProgress: (count, total) {
+        if (total <= 0) return;
+        songDownloadingProgress.value = ((count / total) * 100).clamp(0, 100).toInt();
+      },
+    ).then(
+      (_) async {
+        printINFO("File downloaded, tagging metadata...");
 
         String? year;
         try {
@@ -349,6 +351,63 @@ class Downloader extends GetxService {
 
     if (songQueue.isEmpty) {
       isJobRunning.value = false;
+    }
+  }
+
+  Future<void> _downloadStreamWithBurstChunks({
+    required String url,
+    required String filePath,
+    required int totalBytes,
+    required CancelToken cancelToken,
+    required void Function(int count, int total) onReceiveProgress,
+  }) async {
+    const int chunkSize = 4 * 1024 * 1024; // 4 MB burst chunks to bypass YouTube throttling
+    if (totalBytes <= chunkSize) {
+      await _dio.download(
+        url,
+        filePath,
+        cancelToken: cancelToken,
+        options: Options(headers: {"Range": 'bytes=0-$totalBytes'}),
+        onReceiveProgress: onReceiveProgress,
+      );
+      return;
+    }
+
+    final file = File(filePath);
+    final raf = await file.open(mode: FileMode.write);
+    int downloadedBytes = 0;
+
+    try {
+      final burstDio = Dio();
+      for (int start = 0; start < totalBytes; start += chunkSize) {
+        if (cancelToken.isCancelled) {
+          throw DioException(
+            requestOptions: RequestOptions(path: url),
+            type: DioExceptionType.cancel,
+          );
+        }
+        int end = start + chunkSize - 1;
+        if (end >= totalBytes) end = totalBytes - 1;
+
+        final response = await burstDio.get<List<int>>(
+          url,
+          cancelToken: cancelToken,
+          options: Options(
+            responseType: ResponseType.bytes,
+            headers: {"Range": "bytes=$start-$end"},
+          ),
+        );
+
+        if (response.data != null && response.data!.isNotEmpty) {
+          await raf.setPosition(start);
+          await raf.writeFrom(response.data!);
+          downloadedBytes += response.data!.length;
+          onReceiveProgress(downloadedBytes, totalBytes);
+        }
+      }
+      await raf.flush();
+    } finally {
+      await raf.close();
     }
   }
 }

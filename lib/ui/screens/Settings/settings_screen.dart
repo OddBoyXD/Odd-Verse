@@ -1353,6 +1353,22 @@ class SettingsScreen extends StatelessWidget {
                     const Divider(),
                     ListTile(
                       contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                      title: const Text("Test In-App Update Dialog (Dev)"),
+                      subtitle: Text(
+                        "Test in-app APK download, progress bar & auto-installer",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      trailing: const Icon(Icons.developer_mode_rounded, size: 20),
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => const NewVersionDialog(isTestMode: true),
+                        );
+                      },
+                    ),
+                    const Divider(),
+                    ListTile(
+                      contentPadding: const EdgeInsets.only(left: 5, right: 10),
                       title: Text("resetToDefault".tr),
                       subtitle: Text(
                         "resetToDefaultDes".tr,

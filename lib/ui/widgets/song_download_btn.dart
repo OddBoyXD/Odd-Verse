@@ -22,8 +22,9 @@ class SongDownloadButton extends StatelessWidget {
     if (song == null) return "";
     final format =
         Hive.box("AppPrefs").get("downloadingFormat", defaultValue: "m4a");
-    final bitrateKbps = format == "opus" ? 160 : 256;
-    final durationSec = song.duration?.inSeconds ?? 210;
+    final bitrateKbps = format == "opus" ? 160 : 140;
+    final durationSec = song.duration?.inSeconds ?? 0;
+    if (durationSec <= 0) return "~4.5 MB";
     final sizeMB = (durationSec * bitrateKbps) / (8 * 1024);
     return "~${sizeMB.toStringAsFixed(1)} MB";
   }
@@ -145,24 +146,60 @@ class SongDownloadButton extends StatelessWidget {
         );
       }
 
+      Widget bottomText;
+      if (isCurrentlyDownloading) {
+        bottomText = Text(
+          "${downloader.songDownloadingProgress.value}%",
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        );
+      } else if (isQueued) {
+        bottomText = Text(
+          "Queued",
+          style: TextStyle(
+            fontSize: 9.5,
+            color: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.color
+                ?.withOpacity(0.7),
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      } else if (isDownloaded) {
+        bottomText = Text(
+          "Downloaded",
+          style: TextStyle(
+            fontSize: 9.5,
+            color: Theme.of(context).colorScheme.secondary,
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      } else {
+        bottomText = Text(
+          _getEstimatedDownloadSize(song),
+          style: TextStyle(
+            fontSize: 9.5,
+            color: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.color
+                ?.withOpacity(0.7),
+            fontWeight: FontWeight.w500,
+          ),
+        );
+      }
+
       return Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           buttonWidget,
-          Text(
-            _getEstimatedDownloadSize(song),
-            style: TextStyle(
-              fontSize: 9.5,
-              color: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.color
-                  ?.withOpacity(0.7),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          bottomText,
         ],
       );
     });

@@ -12,6 +12,7 @@ void startHouseKeeping() {
   removeExpiredSongsUrlFromDb();
   compactHiveBoxes();
   pruneThumbnailCache();
+  cleanUpdateApkCache();
 }
 
 Future<void> compactHiveBoxes() async {
@@ -114,5 +115,18 @@ Future<void> removeDeletedOfflineSongsFromDb() async {
     }
   } catch (e) {
     printERROR("Error in removeDeletedOfflineSongsFromDb: $e");
+  }
+}
+
+Future<void> cleanUpdateApkCache() async {
+  try {
+    final tempDir = await getTemporaryDirectory();
+    final updatesDir = Directory("${tempDir.path}/updates");
+    if (await updatesDir.exists()) {
+      await updatesDir.delete(recursive: true);
+      printINFO("Cleaned update APK cache");
+    }
+  } catch (e) {
+    printERROR("Error cleaning update APK cache: $e");
   }
 }

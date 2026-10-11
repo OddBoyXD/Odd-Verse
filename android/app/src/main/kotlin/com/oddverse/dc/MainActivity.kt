@@ -172,6 +172,41 @@ class MainActivity : AudioServiceActivity() {
                         }
                     }
                 }.start()
+            } else if (call.method == "installApk") {
+                val filePath = call.argument<String>("filePath")
+                if (filePath != null) {
+                    try {
+                        val file = File(filePath)
+                        if (file.exists()) {
+                            val apkUri = androidx.core.content.FileProvider.getUriForFile(
+                                applicationContext,
+                                "${applicationContext.packageName}.fileprovider",
+                                file
+                            )
+                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+                                setDataAndType(apkUri, "application/vnd.android.package-archive")
+                                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            }
+                            startActivity(intent)
+                            result.success(true)
+                        } else {
+                            result.error("FILE_NOT_FOUND", "APK file does not exist", null)
+                        }
+                    } catch (e: Exception) {
+                        result.error("INSTALL_ERROR", e.message, null)
+                    }
+                } else {
+                    result.error("INVALID_PATH", "filePath cannot be null", null)
+                }
+            } else if (call.method == "getDeviceAbi") {
+                try {
+                    val supportedAbis = Build.SUPPORTED_ABIS
+                    val primaryAbi = if (supportedAbis != null && supportedAbis.isNotEmpty()) supportedAbis[0] else "arm64-v8a"
+                    result.success(primaryAbi)
+                } catch (e: Exception) {
+                    result.success("arm64-v8a")
+                }
             } else {
                 result.notImplemented()
             }
