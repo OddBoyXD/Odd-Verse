@@ -422,9 +422,14 @@ class PlayerController extends GetxController
       _audioHandler.customAction("setSourceNPlay", {'mediaItem': mediaItem});
     }
 
+    // 5-Second Rule: Only fetch related recommendations & update radio queue if user listens for at least 5s
     Future.delayed(
-      Duration.zero,
+      const Duration(seconds: 5),
       () async {
+        if (_playbackSessionToken != session) return;
+        // Verify song is actually still playing and current before fetching radio recommendations
+        if (currentSong.value?.id != mediaItem?.id) return;
+
         final content = await _musicServices.getWatchPlaylist(
             videoId: mediaItem?.id ?? "", radio: radio, playlistId: playlistid);
         if (_playbackSessionToken != session) return;

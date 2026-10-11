@@ -67,18 +67,65 @@ class Home extends StatelessWidget {
                   now.difference(Home._lastBackPressTime!) >
                       const Duration(seconds: 2)) {
                 Home._lastBackPressTime = now;
+                final isDark = Theme.of(context).brightness == Brightness.dark;
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text(
-                      "Press back again to exit",
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
                     duration: const Duration(seconds: 2),
-                    width: 230,
+                    padding: EdgeInsets.zero,
+                    margin: EdgeInsets.only(
+                      bottom: (settingsScreenController.isBottomNavBarEnabled.isTrue ? 80 : 25) +
+                          Get.mediaQuery.padding.bottom,
+                      left: 45,
+                      right: 45,
+                    ),
+                    content: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1E1E24).withOpacity(0.92)
+                              : Colors.white.withOpacity(0.94),
+                          borderRadius: BorderRadius.circular(25),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white.withOpacity(0.12)
+                                : Colors.black.withOpacity(0.08),
+                            width: 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+                              blurRadius: 18,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.exit_to_app_rounded,
+                              size: 18,
+                              color: Theme.of(context).colorScheme.secondary,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Press back again to exit",
+                              style: TextStyle(
+                                color: isDark ? Colors.white : Colors.black87,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 );
                 return;

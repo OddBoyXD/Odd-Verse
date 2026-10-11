@@ -77,13 +77,13 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
     _player = AudioPlayer(
         audioLoadConfiguration: const AudioLoadConfiguration(
             androidLoadControl: AndroidLoadControl(
-      minBufferDuration: Duration(seconds: 30),
-      maxBufferDuration: Duration(seconds: 60),
-      bufferForPlaybackDuration: Duration(milliseconds: 150),
+      minBufferDuration: Duration(seconds: 15),
+      maxBufferDuration: Duration(seconds: 360),
+      bufferForPlaybackDuration: Duration(milliseconds: 500),
       bufferForPlaybackAfterRebufferDuration: Duration(milliseconds: 1000),
-      targetBufferBytes: 5 * 1024 * 1024,
-      prioritizeTimeOverSizeThresholds: true,
-      backBufferDuration: Duration(seconds: 15),
+      targetBufferBytes: 15 * 1024 * 1024,
+      prioritizeTimeOverSizeThresholds: false,
+      backBufferDuration: Duration(seconds: 30),
     )));
     _createCacheDir();
     _addEmptyList();
