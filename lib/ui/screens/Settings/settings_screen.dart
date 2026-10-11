@@ -24,6 +24,7 @@ import 'settings_screen_controller.dart';
 import '../Home/home_screen_controller.dart';
 import 'package:flutter/services.dart';
 import '../../../../services/ytm_auth_service.dart';
+import '../../widgets/cache_dialogs.dart';
 import '../../widgets/import_cookie_dialog.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -238,7 +239,10 @@ class SettingsScreen extends StatelessWidget {
                                   : settingsController.themeModetype.value ==
                                           ThemeType.dark
                                       ? "dark".tr
-                                      : "light".tr,
+                                      : settingsController.themeModetype.value ==
+                                              ThemeType.amoled
+                                          ? "AMOLED Dark (Pitch Black)"
+                                          : "light".tr,
                           style: Theme.of(context).textTheme.bodyMedium),
                     ),
                     onTap: () => showDialog(
@@ -406,10 +410,19 @@ class SettingsScreen extends StatelessWidget {
                       ),
                       isThreeLine: true,
                       onTap: () {
-                        settingsController.clearImagesCache().then((value) =>
-                            ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                snackbar(Get.context!, "clearImgCacheAlert".tr,
-                                    size: SanckBarSize.BIG)));
+                        showCacheConfirmationDialog(
+                          context: context,
+                          title: "Clear Image Cache?",
+                          message:
+                              "Cached song covers and artist images will be removed from your device. Do you want to continue?",
+                          confirmButtonText: "Clear Now",
+                          onConfirm: () {
+                            settingsController.clearImagesCache().then((value) =>
+                                ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                    snackbar(Get.context!, "clearImgCacheAlert".tr,
+                                        size: SanckBarSize.BIG)));
+                          },
+                        );
                       },
                     ),
                   ]),
@@ -558,9 +571,23 @@ class SettingsScreen extends StatelessWidget {
                         trailing: Obx(
                           () => CustSwitch(
                               value: settingsController.cacheSongs.value,
-                              onChanged:
-                                  settingsController.toggleCachingSongsValue),
+                              onChanged: (val) => settingsController
+                                  .handleToggleCachingSongs(context, val)),
                         )),
+                  ListTile(
+                      contentPadding:
+                          const EdgeInsets.only(left: 5, right: 10),
+                      title: const Text("Dynamic Waveform Progress Bar"),
+                      subtitle: Text(
+                          "Display animated audio waveform progress bar in player",
+                          style: Theme.of(context).textTheme.bodyMedium),
+                      trailing: Obx(
+                        () => CustSwitch(
+                            value: settingsController
+                                .dynamicWaveformProgressBar.value,
+                            onChanged: settingsController
+                                .toggleDynamicWaveformProgressBar),
+                      )),
                   if (!isDesktop)
                     ListTile(
                         contentPadding:
@@ -902,7 +929,16 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     trailing: TextButton(
                       onPressed: () {
-                        settingsController.clearAppCache();
+                        showCacheConfirmationDialog(
+                          context: context,
+                          title: "Clear App Cache?",
+                          message:
+                              "All cached songs and temporary playback files will be permanently removed from your device. Do you want to continue?",
+                          confirmButtonText: "Clear Cache",
+                          onConfirm: () {
+                            settingsController.clearAppCache();
+                          },
+                        );
                       },
                       child: const Text("Clear Cache"),
                     ),
@@ -978,7 +1014,8 @@ class SettingsScreen extends StatelessWidget {
                     trailing: Obx(
                       () => CustSwitch(
                         value: settingsController.isAutoCacheCleanEnabled.value,
-                        onChanged: settingsController.toggleAutoCacheClean,
+                        onChanged: (val) => settingsController
+                            .handleToggleAutoCacheClean(context, val),
                       ),
                     ),
                   ),
@@ -1472,6 +1509,10 @@ class ThemeSelectorDialog extends StatelessWidget {
               label: "dark".tr,
               controller: settingsController,
               value: ThemeType.dark),
+          radioWidget(
+              label: "AMOLED Dark (Pitch Black)",
+              controller: settingsController,
+              value: ThemeType.amoled),
           radioWidget(
               label: "light".tr,
               controller: settingsController,

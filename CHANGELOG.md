@@ -2,6 +2,24 @@
 
 ## [v1.0.3] - Latest Release
 
+### 🖤 Pure AMOLED Pitch Black Theme ("AMOLED Dark")
+- **True #000000 Deep Black**: Added dedicated Pure AMOLED Black theme preset (`ThemeType.amoled`) providing 100% pitch black backgrounds on scaffold, canvas, cards, and modal sheets with zero grey tint, saving battery on OLED displays.
+- **Unified Dialog & Sheet Styling**: Dialogs, bottom sheets, and navigation bars adopt pitch black styling with subtle edge highlights for high-contrast visibility.
+- **Dedicated Theme Selector Entry**: Added "AMOLED Dark (Pitch Black)" option directly in the Theme Mode selector dialog and settings.
+
+### 🛡️ Smart Cache Conflict Prevention & Stylish Popups
+- **Coordinated Cache Toggles**: Prevents conflicting cache settings from clashing. Enabling "Cache Songs while playing" when "Auto Cache Cleaner" is active triggers a stylish conflict dialog warning that auto cleaner would purge offline songs, with a 1-tap action to turn off Auto Cleaner and enable song caching.
+- **Auto Cleaner Protection**: Enabling "Auto Cache Cleaner" when "Cache Songs" is enabled warns the user and provides a 1-tap toggle to resolve the conflict.
+- **Lightweight Home Cache Independent**: "Cache Home screen data" remains lightweight and unaffected without any popups.
+- **Offline Cache Protection**: Guarded `cachedSongs/` directory in `checkAndCleanCacheIfNeeded()` so offline songs are never purged accidentally during auto cleanup.
+- **Stylish Confirmation Dialogs**: Manual "Clear App Cache" and "Clear Image Cache" actions prompt modern confirmation dialogs detailing what will be deleted with "Cancel" and "Clear" actions.
+
+### 🎵 Dynamic Audio Waveform Progress Bar
+- **Responsive 42-Bar Audio Waveform**: Built `DynamicWaveformProgressBar` featuring responsive vertical audio bars with rounded caps, live timestamps, and album accent reactive coloring.
+- **Deterministic Song Wave Silhouettes**: Generates a unique, natural audio waveform pattern for every song based on song metadata and duration seeds.
+- **Full Interactive Seeking**: Tap or horizontally drag/scrub across the waveform with live preview timestamp updates and smooth seek dispatch.
+- **Toggleable in Settings**: Added a setting under Music & Playback to switch between the Dynamic Waveform and standard progress bars.
+
 ### 💊 Perfect Floating Pill Centering (Zero Square Artifacts)
 - **Symmetric Centering (Equal 10px Margins)**: Fixed horizontal misalignment by constraining the sliding panel header with exact edge bounds (`left: 0`, `right: 0`, full width) and responsive horizontal padding. The pill now has mathematically identical 10px margins on both left and right sides on all device resolutions.
 - **Zero Square Shadow Clipping**: Replaced overflowing blur/spread with a soft, non-clipping shadow (`spreadRadius: 0`, `blurRadius: 14`), completely eliminating sharp-cut rectangular shadows.

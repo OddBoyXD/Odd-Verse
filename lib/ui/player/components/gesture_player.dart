@@ -9,6 +9,8 @@ import 'package:ionicons/ionicons.dart';
 import 'package:widget_marquee/widget_marquee.dart';
 
 import '../../widgets/songinfo_bottom_sheet.dart';
+import '../../widgets/dynamic_waveform_progress_bar.dart';
+import '../../screens/Settings/settings_screen_controller.dart';
 import '../../utils/theme_controller.dart';
 import '../player_controller.dart';
 
@@ -234,6 +236,38 @@ class GesturePlayer extends StatelessWidget {
                         height: 5,
                       ),
                       GetX<PlayerController>(builder: (controller) {
+                        final settingsController =
+                            Get.find<SettingsScreenController>();
+                        final songId =
+                            controller.currentSong.value?.id ?? "oddverse";
+                        final theme = Theme.of(context);
+                        final isDark = theme.brightness == Brightness.dark;
+
+                        if (settingsController.dynamicWaveformProgressBar.value) {
+                          return DynamicWaveformProgressBar(
+                            progress: controller.progressBarStatus.value.current,
+                            total: controller.progressBarStatus.value.total,
+                            buffered: controller.progressBarStatus.value.buffered,
+                            onSeek: controller.seek,
+                            activeColor: theme.sliderTheme.activeTrackColor ??
+                                theme.colorScheme.secondary,
+                            bufferedColor: theme.sliderTheme.valueIndicatorColor ??
+                                (isDark
+                                    ? Colors.white.withOpacity(0.25)
+                                    : Colors.black.withOpacity(0.18)),
+                            inactiveColor: theme.sliderTheme.inactiveTrackColor ??
+                                (isDark
+                                    ? Colors.white.withOpacity(0.12)
+                                    : Colors.black.withOpacity(0.08)),
+                            seedKey: songId,
+                            timeLabelTextStyle: theme.textTheme.titleSmall?.copyWith(
+                              color: theme.primaryColor.complementaryColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          );
+                        }
+
                         return ProgressBar(
                           thumbRadius: 6,
                           baseBarColor:

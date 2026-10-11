@@ -270,6 +270,94 @@ class ThemeController extends GetxController {
                   borderSide: BorderSide(color: Colors.white))));
       return baseTheme.copyWith(
           textTheme: GoogleFonts.interTextTheme(baseTheme.textTheme));
+    } else if (themeType == ThemeType.amoled) {
+      SystemChrome.setSystemUIOverlayStyle(
+        const SystemUiOverlayStyle(
+            statusBarIconBrightness: Brightness.light,
+            statusBarColor: Colors.transparent,
+            systemNavigationBarColor: Colors.black,
+            systemNavigationBarDividerColor: Colors.transparent,
+            systemNavigationBarIconBrightness: Brightness.light,
+            systemStatusBarContrastEnforced: false,
+            systemNavigationBarContrastEnforced: false),
+      );
+      final baseTheme = ThemeData(
+          useMaterial3: false,
+          brightness: Brightness.dark,
+          canvasColor: Colors.black,
+          scaffoldBackgroundColor: Colors.black,
+          primaryColor: Colors.black,
+          primaryColorDark: Colors.black,
+          primaryColorLight: const Color(0xFF141414),
+          cardColor: Colors.black,
+          dialogBackgroundColor: const Color(0xFF0C0C0C),
+          dialogTheme: const DialogTheme(
+            backgroundColor: Color(0xFF0C0C0C),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.all(Radius.circular(16)),
+              side: BorderSide(color: Color(0xFF242424), width: 1),
+            ),
+          ),
+          colorScheme: ColorScheme.fromSwatch(
+              accentColor: Colors.white,
+              backgroundColor: Colors.black,
+              cardColor: Colors.black,
+              brightness: Brightness.dark),
+          progressIndicatorTheme: const ProgressIndicatorThemeData(
+              color: Colors.white, linearTrackColor: Colors.white24),
+          textTheme: const TextTheme(
+              titleLarge: TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              titleMedium: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              titleSmall: TextStyle(color: Colors.white70),
+              labelMedium: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 23,
+                color: Colors.white,
+              ),
+              labelSmall: TextStyle(
+                  fontSize: 15,
+                  letterSpacing: 0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white70),
+              bodyMedium: TextStyle(color: Colors.white70)),
+          navigationRailTheme: const NavigationRailThemeData(
+              backgroundColor: Colors.black,
+              selectedIconTheme: IconThemeData(
+                color: Colors.white,
+              ),
+              unselectedIconTheme: IconThemeData(color: Colors.white38),
+              selectedLabelTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15),
+              unselectedLabelTextStyle: TextStyle(
+                  color: Colors.white38, fontWeight: FontWeight.bold)),
+          bottomSheetTheme: const BottomSheetThemeData(
+              backgroundColor: Colors.black,
+              modalBarrierColor: Colors.black87),
+          sliderTheme: const SliderThemeData(
+            inactiveTrackColor: Colors.white24,
+            activeTrackColor: Colors.white,
+            valueIndicatorColor: Colors.black38,
+            thumbColor: Colors.white,
+          ),
+          textSelectionTheme: const TextSelectionThemeData(
+              cursorColor: Colors.white70,
+              selectionColor: Colors.white38,
+              selectionHandleColor: Colors.white),
+          inputDecorationTheme: const InputDecorationTheme(
+              focusColor: Colors.white,
+              focusedBorder: UnderlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white))));
+      return baseTheme.copyWith(
+          textTheme: GoogleFonts.interTextTheme(baseTheme.textTheme));
     } else {
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
@@ -429,4 +517,5 @@ enum ThemeType {
   system,
   dark,
   light,
+  amoled,
 }

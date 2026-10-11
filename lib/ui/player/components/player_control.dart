@@ -8,6 +8,8 @@ import '/ui/player/components/animated_play_button.dart';
 import '../../widgets/playback_speed_pitch_bottom_sheet.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
+import '../../widgets/dynamic_waveform_progress_bar.dart';
+import '../../screens/Settings/settings_screen_controller.dart';
 import '../player_controller.dart';
 
 class PlayerControlWidget extends StatelessWidget {
@@ -115,8 +117,33 @@ class PlayerControlWidget extends StatelessWidget {
 
         const SizedBox(height: 16),
 
-        // Modern Sleek Progress Bar with Custom Thumb Glow
+        // Dynamic Waveform or Sleek Progress Bar
         GetX<PlayerController>(builder: (controller) {
+          final settingsController = Get.find<SettingsScreenController>();
+          final songId = controller.currentSong.value?.id ?? "oddverse";
+
+          if (settingsController.dynamicWaveformProgressBar.value) {
+            return DynamicWaveformProgressBar(
+              progress: controller.progressBarStatus.value.current,
+              total: controller.progressBarStatus.value.total,
+              buffered: controller.progressBarStatus.value.buffered,
+              onSeek: controller.seek,
+              activeColor: theme.colorScheme.secondary,
+              bufferedColor: isDark
+                  ? Colors.white.withOpacity(0.25)
+                  : Colors.black.withOpacity(0.18),
+              inactiveColor: isDark
+                  ? Colors.white.withOpacity(0.12)
+                  : Colors.black.withOpacity(0.08),
+              seedKey: songId,
+              timeLabelTextStyle: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+              ),
+            );
+          }
+
           return ProgressBar(
             thumbRadius: 8.0,
             thumbGlowRadius: 20.0,

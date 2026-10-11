@@ -18,11 +18,13 @@ import '/services/music_service.dart';
 import '/ui/player/player_controller.dart';
 import '../Home/home_screen_controller.dart';
 import '/ui/utils/theme_controller.dart';
+import '/ui/widgets/cache_dialogs.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 class SettingsScreenController extends GetxController {
   late String _supportDir;
   final cacheSongs = false.obs;
+  final dynamicWaveformProgressBar = true.obs;
   final setBox = Hive.box("AppPrefs");
   final themeModetype = ThemeType.dynamic.obs;
   final skipSilenceEnabled = false.obs;
@@ -149,6 +151,8 @@ class SettingsScreenController extends GetxController {
     enableAutoInfiniteRadio.value = setBox.get("enableAutoInfiniteRadio") ?? true;
     romanizeLyricsEnabled.value = setBox.get("romanizeLyricsEnabled") ?? true;
     enableSponsorBlock.value = setBox.get("enableSponsorBlock") ?? false;
+    dynamicWaveformProgressBar.value =
+        setBox.get("dynamicWaveformProgressBar") ?? true;
     isAutoUpdateCheckEnabled.value =
         setBox.get("isAutoUpdateCheckEnabled") ?? true;
     calculateCacheSize();
@@ -350,9 +354,32 @@ class SettingsScreenController extends GetxController {
     Get.find<HomeScreenController>().changeDiscoverContent(value);
   }
 
+  void toggleDynamicWaveformProgressBar(bool val) {
+    setBox.put('dynamicWaveformProgressBar', val);
+    dynamicWaveformProgressBar.value = val;
+  }
+
   void toggleCachingSongsValue(bool value) {
     setBox.put("cacheSongs", value);
     cacheSongs.value = value;
+  }
+
+  void handleToggleCachingSongs(BuildContext context, bool value) {
+    if (value && isAutoCacheCleanEnabled.value) {
+      showCacheConflictDialog(
+        context: context,
+        title: "Cache Conflict Detected",
+        message:
+            "Auto Cache Cleaner is currently enabled. If both are on, your cached offline songs will be automatically removed when the cache limit is reached.\n\nWould you like to turn off Auto Cache Cleaner and enable song caching?",
+        confirmButtonText: "Turn Off Auto Cleaner & Enable",
+        onConfirm: () {
+          toggleAutoCacheClean(false);
+          toggleCachingSongsValue(true);
+        },
+      );
+    } else {
+      toggleCachingSongsValue(value);
+    }
   }
 
   void toggleSkipSilence(bool val) {
@@ -512,6 +539,24 @@ class SettingsScreenController extends GetxController {
     if (val) checkAndCleanCacheIfNeeded();
   }
 
+  void handleToggleAutoCacheClean(BuildContext context, bool val) {
+    if (val && cacheSongs.value) {
+      showCacheConflictDialog(
+        context: context,
+        title: "Auto Cleaner Warning",
+        message:
+            "Song Caching is currently enabled for offline listening. Enabling Auto Cache Cleaner will purge cached songs when the storage limit is reached.\n\nWould you like to turn off Song Caching to enable Auto Cleaner?",
+        confirmButtonText: "Turn Off Song Caching & Enable",
+        onConfirm: () {
+          toggleCachingSongsValue(false);
+          toggleAutoCacheClean(true);
+        },
+      );
+    } else {
+      toggleAutoCacheClean(val);
+    }
+  }
+
   Future<void> checkAndCleanCacheIfNeeded() async {
     if (!isAutoCacheCleanEnabled.value || maxCacheLimitMB.value <= 0) return;
     try {
@@ -542,6 +587,9 @@ class SettingsScreenController extends GetxController {
             if (activeSongId != null &&
                 activeSongId.isNotEmpty &&
                 f.path.contains(activeSongId)) {
+              continue;
+            }
+            if (cacheSongs.isTrue && f.path.contains('cachedSongs')) {
               continue;
             }
             await f.delete();
