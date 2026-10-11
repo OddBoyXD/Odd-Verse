@@ -15,13 +15,8 @@ class MiniPlayer extends StatefulWidget {
 }
 
 class _MiniPlayerState extends State<MiniPlayer>
-    with TickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController _animController;
-  late AnimationController _bounceController;
-  late Animation<double> _bounceScaleAnimation;
-  late Animation<double> _bounceYAnimation;
-  Worker? _opacityWorker;
-  double _prevOpacity = 1.0;
   Animation<double>? _dragAnimation;
   double _dragOffset = 0.0;
   bool _isDismissing = false;
@@ -39,36 +34,10 @@ class _MiniPlayerState extends State<MiniPlayer>
           });
         }
       });
-
-    _bounceController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 240),
-    )..addListener(() {
-        if (mounted) setState(() {});
-      });
-
-    _bounceScaleAnimation = Tween<double>(begin: 0.93, end: 1.0).animate(
-      CurvedAnimation(parent: _bounceController, curve: Curves.easeOutBack),
-    );
-    _bounceYAnimation = Tween<double>(begin: 8.0, end: 0.0).animate(
-      CurvedAnimation(parent: _bounceController, curve: Curves.easeOutCubic),
-    );
-    _bounceController.value = 1.0;
-
-    final playerController = Get.find<PlayerController>();
-    _prevOpacity = playerController.playerPaneOpacity.value;
-    _opacityWorker = ever(playerController.playerPaneOpacity, (double val) {
-      if (val == 1.0 && _prevOpacity < 1.0 && mounted) {
-        _bounceController.forward(from: 0.0);
-      }
-      _prevOpacity = val;
-    });
   }
 
   @override
   void dispose() {
-    _opacityWorker?.dispose();
-    _bounceController.dispose();
     _animController.dispose();
     super.dispose();
   }
@@ -155,35 +124,20 @@ class _MiniPlayerState extends State<MiniPlayer>
 
       final dragRatio =
           minHeight > 0 ? (_dragOffset / minHeight).clamp(0.0, 1.0) : 0.0;
-      final panelOpacity = playerController.playerPaneOpacity.value;
-      // Scroll-up transition dynamics (as panel opens from 0.0 to 0.2)
-      final slideRatio = (1.0 - panelOpacity).clamp(0.0, 1.0);
-      final scrollUpLift = -slideRatio * 18.0;
-      final scrollUpScale = 1.0 - (slideRatio * 0.08);
-
       final effectiveOpacity = isDismissing
           ? 0.0
-          : (panelOpacity * panelOpacity * (1.0 - dragRatio * 0.95))
+          : (playerController.playerPaneOpacity.value *
+                  (1.0 - dragRatio * 0.95))
               .clamp(0.0, 1.0);
-
-      final currentScale = _bounceController.isAnimating
-          ? _bounceScaleAnimation.value * scrollUpScale
-          : scrollUpScale;
-      final bounceY =
-          _bounceController.isAnimating ? _bounceYAnimation.value : 0.0;
-      final totalOffsetY = _dragOffset + scrollUpLift + bounceY;
 
       final theme = Theme.of(context);
       final isDark = theme.brightness == Brightness.dark;
 
       return Transform.translate(
-        offset: Offset(0.0, totalOffsetY),
-        child: Transform.scale(
-          scale: currentScale,
-          alignment: Alignment.center,
-          child: Opacity(
-            opacity: effectiveOpacity,
-            child: GestureDetector(
+        offset: Offset(0.0, _dragOffset),
+        child: Opacity(
+          opacity: effectiveOpacity,
+          child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 if (_dragOffset == 0.0) {
@@ -389,8 +343,7 @@ class _MiniPlayerState extends State<MiniPlayer>
               ),
             ),
           ),
-        ),
-      );
+        );
     });
   }
 }

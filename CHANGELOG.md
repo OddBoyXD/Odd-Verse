@@ -2,11 +2,10 @@
 
 ## [v1.0.3] - Latest Release
 
-### 💊 Perfect Floating Pill Centering & Fluid Micro-Animations
+### 💊 Perfect Floating Pill Centering (Zero Square Artifacts)
 - **Symmetric Centering (Equal 10px Margins)**: Fixed horizontal misalignment by constraining the sliding panel header with exact edge bounds (`left: 0`, `right: 0`, full width) and responsive horizontal padding. The pill now has mathematically identical 10px margins on both left and right sides on all device resolutions.
 - **Zero Square Shadow Clipping**: Replaced overflowing blur/spread with a soft, non-clipping shadow (`spreadRadius: 0`, `blurRadius: 14`), completely eliminating sharp-cut rectangular shadows.
-- **Scroll-Up Exit Transition (Swipe Up to Open)**: Swiping up to expand into the Big Player smoothly glides the pill upwards (-18px), gently scales down to 0.92, and dissolves gracefully into the opening player sheet.
-- **Snappy Micro-Bounce on Close (Slide Down to Collapse)**: Returning from the Big Player triggers a fast, tactile micro-bounce (~240ms) driven by `Curves.easeOutBack`, springing the floating pill back into place with premium physical feedback.
+- **Clean Standard Floating Pill**: Preserved standard smooth panel sliding without unnecessary bounce or scaling, ensuring clean and native responsiveness.
 - **Eliminated Dynamic Color Bleed**: Prevented background panel sheet and big player canvas from rendering behind the mini player while collapsed with zero square background artifacts in all dynamic album art themes and dark/light modes.
 
 ### 🌌 Genuine Hardware DSP PresetReverb ("Slowed + Reverb")
