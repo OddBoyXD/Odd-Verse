@@ -321,6 +321,10 @@ class _SlidingUpPanelState extends State<SlidingUpPanel>
                   animation: _ac,
                   builder: (context, child) {
                     return Container(
+                      width: MediaQuery.of(context).size.width -
+                          (widget.margin != null
+                              ? widget.margin!.horizontal
+                              : 0),
                       height:
                           _ac.value * (widget.maxHeight - widget.minHeight) +
                               widget.minHeight,
@@ -371,6 +375,15 @@ class _SlidingUpPanelState extends State<SlidingUpPanel>
                                   widget.slideDirection == SlideDirection.DOWN
                                       ? 0.0
                                       : null,
+                              left: 0.0,
+                              right: 0.0,
+                              width: MediaQuery.of(context).size.width -
+                                  (widget.margin != null
+                                      ? widget.margin!.horizontal
+                                      : 0) -
+                                  (widget.padding != null
+                                      ? widget.padding!.horizontal
+                                      : 0),
                               child: widget.header ?? const SizedBox(),
                             )
                           : Container(),
@@ -385,6 +398,15 @@ class _SlidingUpPanelState extends State<SlidingUpPanel>
                                   widget.slideDirection == SlideDirection.DOWN
                                       ? null
                                       : 0.0,
+                              left: 0.0,
+                              right: 0.0,
+                              width: MediaQuery.of(context).size.width -
+                                  (widget.margin != null
+                                      ? widget.margin!.horizontal
+                                      : 0) -
+                                  (widget.padding != null
+                                      ? widget.padding!.horizontal
+                                      : 0),
                               child: widget.footer ?? const SizedBox())
                           : Container(),
 
