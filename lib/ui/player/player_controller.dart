@@ -42,6 +42,7 @@ class PlayerController extends GetxController
   final isQueueReorderingInProcess = false.obs;
   PanelController playerPanelController = PanelController();
   PanelController queuePanelController = PanelController();
+  final queueSlidePosition = 0.0.obs;
   AnimationController? gesturePlayerStateAnimationController;
   Animation<double>? gesturePlayerStateAnimation;
   bool isRadioModeOn = false;

@@ -24,9 +24,12 @@
 - **Full Interactive Seeking**: Tap or horizontally drag/scrub across the waveform with live preview timestamp updates and smooth seek dispatch.
 - **Toggleable in Settings**: Added a setting under Music & Playback to switch between the Dynamic Wave and standard progress bars.
 
-### ⬇️ Clean Big Player: Zero Queue Bleed & Floating Arrow
+### ⬇️ Clean Big Player: Zero Queue Bleed & Synchronized Animated Arrow
+- **Bottom-Only Queue Opening**: Removed screen-wide swipe trigger (`onSwipeUp`) on the main player so scrolling/swiping on album art, lyrics, or playback controls never accidentally triggers the queue. The queue only opens when swiping/scrolling directly from the bottom edge.
+- **Synchronized Animated Arrow Motion**: The arrow dynamically animates upward in 100% sync with the sliding queue panel. As the queue rises from bottom to top, the arrow rides along its leading edge while smoothly rotating 180° from an upward chevron (`^`) into a downward chevron (`v`).
+- **Interactive Drag & Tap**: Supports continuous vertical dragging directly from the bottom arrow handle with real-time tracking, flinging open/closed, and 1-tap toggling.
 - **Zero Queue Bar Bleed**: Set queue panel `minHeight: 0`, completely removing the bottom queue bar and peeking songs from showing when the Big Player is open.
-- **Pure Transparent Upward Arrow**: Floating upward chevron (`^`) floats directly on the player canvas with 100% transparent background and zero black box or strip behind it.
+- **Pure Transparent Background**: Floating arrow chevron floats directly on the canvas with 100% transparent background and zero black box or strip behind it.
 - **Removed Heavy Bottom Gradient**: Eliminated the artificial black gradient container in `StandardPlayer` for seamless album artwork background presentation.
 
 ### 💊 Perfect Floating Pill Centering (Zero Square Artifacts)
