@@ -64,12 +64,14 @@ class LyricsWidget extends StatelessWidget {
       final rawProvider =
           playerController.lyrics["provider"]?.toString() ?? "";
 
-      // Consistent Offset Rule:
-      // Whether SponsorBlock auto-skip is ENABLED or DISABLED:
-      // 1. If ENABLED: audio jumps to +introSec (e.g. 00:06). Lyrics must be shifted by +introSec to match the 00:06 playback position.
-      // 2. If DISABLED: audio plays the 6s intro (00:00 - 00:06). Lyrics must also wait until 00:06 when vocals begin!
-      // 3. Exception: If provider is youtube_captions, timestamps are already natively bound to the YouTube video clock.
-      final effectiveOffset = rawProvider != "youtube_captions"
+      // Alignment Priority Rule:
+      // 1. If lyrics were already aligned with YouTube video vocal subtitles (or provider is direct youtube_captions),
+      //    their timestamps are already 100% bound to the YouTube video clock. No extra sponsor offset is needed.
+      // 2. If YouTube captions were unavailable (captionAligned is false), sponsorIntroOffset serves as an intelligent
+      //    fallback offset to account for intro delays.
+      final isCaptionAligned = rawProvider == "youtube_captions" ||
+          playerController.lyrics["captionAligned"] == true;
+      final effectiveOffset = !isCaptionAligned
           ? playerController.sponsorIntroOffset.value
           : Duration.zero;
 

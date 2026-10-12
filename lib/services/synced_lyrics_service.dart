@@ -390,6 +390,7 @@ class SyncedLyricsService {
                 "synced": synced,
                 "plainLyrics": plain,
                 "provider": "lrclib",
+                "captionAligned": ytFirstVocalMs > 0,
               };
               await lyricsBox.put(song.id, lyricsData);
               return lyricsData;
@@ -442,6 +443,7 @@ class SyncedLyricsService {
               "synced": synced,
               "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
               "provider": "lrclib",
+              "captionAligned": ytFirstVocalMs > 0,
             };
             await lyricsBox.put(song.id, lyricsData);
             return lyricsData;
@@ -488,6 +490,7 @@ class SyncedLyricsService {
             "synced": synced,
             "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
             "provider": "lrclib",
+            "captionAligned": ytFirstVocalMs > 0,
           };
           await lyricsBox.put(song.id, lyricsData);
           return lyricsData;
@@ -499,6 +502,7 @@ class SyncedLyricsService {
     if (ytVideoCaptions != null &&
         ytVideoCaptions['synced'] != null &&
         ytVideoCaptions['synced'].toString().trim().isNotEmpty) {
+      ytVideoCaptions['captionAligned'] = true;
       await lyricsBox.put(song.id, ytVideoCaptions);
       return ytVideoCaptions;
     }
@@ -518,6 +522,7 @@ class SyncedLyricsService {
             "synced": synced,
             "plainLyrics": neteaseLyrics['plainLyrics'] ?? "",
             "provider": "netease",
+            "captionAligned": ytFirstVocalMs > 0,
           };
           await lyricsBox.put(song.id, lyricsData);
           return lyricsData;
