@@ -281,7 +281,7 @@ class ThemeController extends GetxController {
             systemStatusBarContrastEnforced: false,
             systemNavigationBarContrastEnforced: false),
       );
-      const Color amoledAccent = Color(0xFF00E5FF); // Electric Cyan / Neon Aqua
+      final Color amoledAccent = Colors.grey[700]!; // Same grey as Dark mode
       final MaterialColor amoledSwatch = _createMaterialColor(amoledAccent);
       final baseTheme = ThemeData(
           useMaterial3: false,
@@ -291,7 +291,7 @@ class ThemeController extends GetxController {
           primaryColor: Colors.black,
           primaryColorDark: Colors.black,
           primaryColorLight: const Color(0xFF141414),
-          cardColor: const Color(0xFF0E0E0E),
+          cardColor: Colors.black,
           dialogBackgroundColor: const Color(0xFF0C0C0C),
           dialogTheme: const DialogTheme(
             backgroundColor: Color(0xFF0C0C0C),
@@ -303,33 +303,33 @@ class ThemeController extends GetxController {
           colorScheme: ColorScheme.fromSwatch(
               accentColor: amoledAccent,
               backgroundColor: Colors.black,
-              cardColor: const Color(0xFF0E0E0E),
+              cardColor: Colors.black,
               primarySwatch: amoledSwatch,
               brightness: Brightness.dark),
           progressIndicatorTheme: ProgressIndicatorThemeData(
-              color: amoledAccent, linearTrackColor: Colors.white24),
-          textTheme: TextTheme(
-              titleLarge: const TextStyle(
+              color: amoledAccent, linearTrackColor: Colors.white),
+          textTheme: const TextTheme(
+              titleLarge: TextStyle(
                 fontSize: 23,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              titleMedium: const TextStyle(
+              titleMedium: TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
-              titleSmall: const TextStyle(color: Colors.white70),
-              labelMedium: const TextStyle(
+              titleSmall: TextStyle(color: Colors.white70),
+              labelMedium: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 23,
                 color: Colors.white,
               ),
-              labelSmall: const TextStyle(
+              labelSmall: TextStyle(
                   fontSize: 15,
                   letterSpacing: 0,
                   fontWeight: FontWeight.bold,
                   color: Colors.white70),
-              bodyMedium: TextStyle(color: Colors.grey[400])),
+              bodyMedium: TextStyle(color: Colors.grey)),
           navigationRailTheme: const NavigationRailThemeData(
               backgroundColor: Colors.black,
               selectedIconTheme: IconThemeData(
@@ -345,15 +345,15 @@ class ThemeController extends GetxController {
           bottomSheetTheme: const BottomSheetThemeData(
               backgroundColor: Colors.black,
               modalBarrierColor: Colors.black87),
-          sliderTheme: SliderThemeData(
-            inactiveTrackColor: Colors.white24,
-            activeTrackColor: amoledAccent,
+          sliderTheme: const SliderThemeData(
+            inactiveTrackColor: Colors.white30,
+            activeTrackColor: Colors.white,
             valueIndicatorColor: Colors.black38,
-            thumbColor: amoledAccent,
+            thumbColor: Colors.white,
           ),
           textSelectionTheme: TextSelectionThemeData(
               cursorColor: amoledAccent,
-              selectionColor: amoledAccent.withOpacity(0.35),
+              selectionColor: amoledAccent,
               selectionHandleColor: amoledAccent),
           inputDecorationTheme: const InputDecorationTheme(
               focusColor: Colors.white,

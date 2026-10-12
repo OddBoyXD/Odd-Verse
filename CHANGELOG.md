@@ -4,7 +4,7 @@
 
 ### 🖤 Pure AMOLED Pitch Black Theme ("AMOLED Dark")
 - **True #000000 Deep Black**: Added dedicated Pure AMOLED Black theme preset (`ThemeType.amoled`) providing 100% pitch black backgrounds on scaffold, canvas, cards, and modal sheets with zero grey tint, saving battery on OLED displays.
-- **Electric Cyan (#00E5FF) Accent**: Integrated a vibrant Electric Cyan signature music accent for AMOLED Dark, delivering razor-sharp contrast and eliminating clashing red or washed-out white elements.
+- **Matching Dark Mode Grey Accent**: Configured buttons, indicators, and accents to use the exact same clean grey tone as Dark mode (`Colors.grey[700]`), eliminating neon blue/light blue tint while keeping true `#000000` pitch black backgrounds.
 - **Unified Dialog & Sheet Styling**: Dialogs, bottom sheets, and navigation bars adopt pitch black styling with subtle edge highlights for high-contrast visibility.
 - **Dedicated Theme Selector Entry**: Added "AMOLED Dark (Pitch Black)" option directly in the Theme Mode selector dialog and settings.
 
