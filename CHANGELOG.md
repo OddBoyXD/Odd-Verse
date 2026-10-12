@@ -30,7 +30,7 @@
 - **Interactive Drag & Tap**: Supports continuous vertical dragging directly from the bottom arrow handle with real-time tracking, flinging open/closed, and 1-tap toggling.
 - **Zero Queue Bar Bleed**: Set queue panel `minHeight: 0`, completely removing the bottom queue bar and peeking songs from showing when the Big Player is open.
 - **Pure Transparent Background**: Floating arrow chevron floats directly on the canvas with 100% transparent background and zero black box or strip behind it.
-- **Removed Heavy Bottom Gradient**: Eliminated the artificial black gradient container in `StandardPlayer` for seamless album artwork background presentation.
+- **Restored Dark/AMOLED Player Background Gradient**: Reverted the background gradient in `StandardPlayer` to its original dark blend so the player maintains its original dark depth without thumbnail color overexposure.
 
 ### 💊 Perfect Floating Pill Centering (Zero Square Artifacts)
 - **Symmetric Centering (Equal 10px Margins)**: Fixed horizontal misalignment by constraining the sliding panel header with exact edge bounds (`left: 0`, `right: 0`, full width) and responsive horizontal padding. The pill now has mathematically identical 10px margins on both left and right sides on all device resolutions.
