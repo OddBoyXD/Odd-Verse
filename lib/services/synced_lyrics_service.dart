@@ -52,11 +52,14 @@ class SyncedLyricsService {
       final buffer = StringBuffer();
       final plainBuffer = StringBuffer();
 
+      Duration? firstCaptionOffset;
       for (final caption in track.captions) {
         final text = caption.text.trim();
         if (text.isEmpty) continue;
 
         final offset = caption.offset;
+        firstCaptionOffset ??= offset;
+
         final minutes =
             offset.inMinutes.remainder(60).toString().padLeft(2, '0');
         final seconds =
@@ -73,11 +76,12 @@ class SyncedLyricsService {
       final plain = plainBuffer.toString().trim();
 
       if (syncedLrc.isNotEmpty) {
-        printINFO("Synced Lyrics generated from YouTube Captions for $videoId");
+        printINFO("Synced Lyrics generated from YouTube Captions for $videoId (First vocal at ${firstCaptionOffset?.inMilliseconds}ms)");
         return {
           "synced": syncedLrc,
           "plainLyrics": plain,
           "provider": "youtube_captions",
+          "firstVocalMs": firstCaptionOffset?.inMilliseconds ?? 0,
         };
       }
     } catch (_) {
@@ -85,6 +89,59 @@ class SyncedLyricsService {
       yt.close();
     }
     return null;
+  }
+
+  /// Automatically adjusts studio lyrics (.lrc) timestamps by matching the first studio line with YouTube's true vocal onset
+  static String alignStudioLyricsWithCaptions(String studioLrc, int ytFirstVocalMs) {
+    if (studioLrc.trim().isEmpty || ytFirstVocalMs <= 0) return studioLrc;
+
+    final regex = RegExp(r'\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)');
+    final lines = studioLrc.split('\n');
+    int? studioFirstMs;
+
+    for (final line in lines) {
+      final match = regex.firstMatch(line.trim());
+      if (match != null && match.group(4)!.trim().isNotEmpty) {
+        final min = int.parse(match.group(1)!);
+        final sec = int.parse(match.group(2)!);
+        final msStr = match.group(3)!;
+        final ms = int.parse(msStr.padRight(3, '0').substring(0, 3));
+        studioFirstMs = (min * 60 + sec) * 1000 + ms;
+        break;
+      }
+    }
+
+    if (studioFirstMs == null) return studioLrc;
+
+    // Delta between video's true vocal onset and studio track's start
+    final deltaMs = ytFirstVocalMs - studioFirstMs;
+    // Only adjust if there is an audible difference (> 400ms) and within reasonable intro bounds (< 90 seconds)
+    if (deltaMs.abs() < 400 || deltaMs.abs() > 90000) return studioLrc;
+
+    final buffer = StringBuffer();
+    for (final line in lines) {
+      final match = regex.firstMatch(line.trim());
+      if (match != null) {
+        final min = int.parse(match.group(1)!);
+        final sec = int.parse(match.group(2)!);
+        final msStr = match.group(3)!;
+        final ms = int.parse(msStr.padRight(3, '0').substring(0, 3));
+        int originalMs = (min * 60 + sec) * 1000 + ms;
+        int alignedMs = originalMs + deltaMs;
+        if (alignedMs < 0) alignedMs = 0;
+
+        final alignedDuration = Duration(milliseconds: alignedMs);
+        final mStr = alignedDuration.inMinutes.remainder(60).toString().padLeft(2, '0');
+        final sStr = alignedDuration.inSeconds.remainder(60).toString().padLeft(2, '0');
+        final milliStr = (alignedDuration.inMilliseconds.remainder(1000) ~/ 10).toString().padLeft(2, '0');
+        buffer.writeln('[$mStr:$sStr.$milliStr]${match.group(4)}');
+      } else {
+        buffer.writeln(line);
+      }
+    }
+
+    printINFO("Auto-aligned studio lyrics with YouTube video subtitles by ${deltaMs >= 0 ? '+' : ''}${deltaMs}ms");
+    return buffer.toString().trim();
   }
 
   static Future<Map<String, dynamic>?> _fetchFromNetease(
@@ -304,6 +361,16 @@ class SyncedLyricsService {
     final dur = song.duration?.inSeconds ?? durInSec;
     String? fallbackPlain;
 
+    // Check YouTube video captions first to discover the exact vocal onset of THIS specific video
+    Map<String, dynamic>? ytVideoCaptions;
+    try {
+      ytVideoCaptions = await _fetchFromYouTubeCaptions(song.id);
+    } catch (_) {}
+
+    final ytFirstVocalMs = (ytVideoCaptions != null && ytVideoCaptions['firstVocalMs'] is int)
+        ? (ytVideoCaptions['firstVocalMs'] as int)
+        : 0;
+
     // 2. Tier 1: LRCLIB Exact Lookup
     if (cleanArtist.isNotEmpty && cleanTitle.isNotEmpty) {
       try {
@@ -312,9 +379,12 @@ class SyncedLyricsService {
         final response = (await _dio.get(url)).data;
         if (response != null && response is Map) {
           if (_isStrictMatch(response, cleanTitle, cleanArtist, dur)) {
-            final synced = response["syncedLyrics"]?.toString();
+            String? synced = response["syncedLyrics"]?.toString();
             final plain = response["plainLyrics"]?.toString() ?? "";
             if (synced != null && synced.trim().isNotEmpty) {
+              if (ytFirstVocalMs > 0) {
+                synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+              }
               printINFO("Synced Lyrics found via LRCLIB exact match for $cleanTitle");
               final lyricsData = {
                 "synced": synced,
@@ -363,9 +433,13 @@ class SyncedLyricsService {
             }
           }
           if (bestMatch != null) {
+            String? synced = bestMatch["syncedLyrics"]?.toString();
+            if (synced != null && ytFirstVocalMs > 0) {
+              synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+            }
             printINFO("Synced Lyrics found via LRCLIB track search for $cleanTitle");
             final lyricsData = {
-              "synced": bestMatch["syncedLyrics"],
+              "synced": synced,
               "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
               "provider": "lrclib",
             };
@@ -405,9 +479,13 @@ class SyncedLyricsService {
           }
         }
         if (bestMatch != null) {
+          String? synced = bestMatch["syncedLyrics"]?.toString();
+          if (synced != null && ytFirstVocalMs > 0) {
+            synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+          }
           printINFO("Synced Lyrics found via LRCLIB general search for $cleanTitle");
           final lyricsData = {
-            "synced": bestMatch["syncedLyrics"],
+            "synced": synced,
             "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
             "provider": "lrclib",
           };
@@ -417,26 +495,27 @@ class SyncedLyricsService {
       }
     } catch (_) {}
 
-    // 4. Tier 4: YouTube Closed Captions (Direct Synced Timestamps)
-    try {
-      final ytCaptions = await _fetchFromYouTubeCaptions(song.id);
-      if (ytCaptions != null &&
-          ytCaptions['synced'] != null &&
-          ytCaptions['synced'].toString().trim().isNotEmpty) {
-        await lyricsBox.put(song.id, ytCaptions);
-        return ytCaptions;
-      }
-    } catch (_) {}
+    // 5. Tier 4: Direct YouTube Closed Captions (Already in memory)
+    if (ytVideoCaptions != null &&
+        ytVideoCaptions['synced'] != null &&
+        ytVideoCaptions['synced'].toString().trim().isNotEmpty) {
+      await lyricsBox.put(song.id, ytVideoCaptions);
+      return ytVideoCaptions;
+    }
 
-    // 5. Tier 5: Netease Cloud Music Synced Database
+    // 6. Tier 5: Netease Cloud Music Synced Database
     if (cleanTitle.isNotEmpty) {
       try {
         final neteaseLyrics = await _fetchFromNetease(cleanTitle, cleanArtist);
         if (neteaseLyrics != null &&
             neteaseLyrics['synced'] != null &&
             neteaseLyrics['synced'].toString().trim().isNotEmpty) {
+          String? synced = neteaseLyrics['synced']?.toString();
+          if (synced != null && ytFirstVocalMs > 0) {
+            synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+          }
           final lyricsData = {
-            "synced": neteaseLyrics['synced'],
+            "synced": synced,
             "plainLyrics": neteaseLyrics['plainLyrics'] ?? "",
             "provider": "netease",
           };
