@@ -11,6 +11,7 @@ import '/models/album.dart';
 import '/models/playlist.dart';
 import '/models/quick_picks.dart';
 import '/services/music_service.dart';
+import '/services/ytm_auth_service.dart';
 import '../Settings/settings_screen_controller.dart';
 import '/ui/widgets/new_version_dialog.dart';
 
@@ -90,6 +91,12 @@ class HomeScreenController extends GetxController {
       final homeContentListMap = await _musicServices.getHome(
           limit:
               Get.find<SettingsScreenController>().noOfHomeScreenContent.value);
+
+      bool isYtmLoggedIn = false;
+      if (Get.isRegistered<YtmAuthService>()) {
+        isYtmLoggedIn = Get.find<YtmAuthService>().isLoggedIn.value;
+      }
+
       if (contentType == "TR") {
         final index = homeContentListMap
             .indexWhere((element) => element['title'] == "Trending");
@@ -100,8 +107,7 @@ class HomeScreenController extends GetxController {
         } else if (index == -1) {
           List charts = await _musicServices.getCharts(contentType);
           final index = charts.indexWhere((element) =>
-              element['title'] ==
-              (contentType == "TMV" ? "Top Music Videos" : "Trending"));
+              element['title'] == "Trending");
           if (index != -1) {
             quickPicks.value = QuickPicks(
                 List<MediaItem>.from(charts[index]["contents"]),
@@ -119,8 +125,7 @@ class HomeScreenController extends GetxController {
         } else if (index == -1) {
           List charts = await _musicServices.getCharts(contentType);
           final index = charts.indexWhere((element) =>
-              element['title'] ==
-              (contentType == "TMV" ? "Top Music Videos" : "Trending"));
+              element['title'] == "Top Music Videos");
           if (index != -1) {
             quickPicks.value = QuickPicks(
                 List<MediaItem>.from(charts[index]["contents"]),
@@ -134,29 +139,106 @@ class HomeScreenController extends GetxController {
           if (songId != null) {
             final rel = (await _musicServices.getContentRelatedToSong(
                 songId, getContentHlCode()));
-            final con = rel.removeAt(0);
-            quickPicks.value =
-                QuickPicks(List<MediaItem>.from(con["contents"]));
-            middleContentTemp.addAll(rel);
+            if (rel.isNotEmpty &&
+                rel[0]["contents"] != null &&
+                (rel[0]["contents"] as List).isNotEmpty &&
+                rel[0]["contents"][0] is MediaItem) {
+              final con = rel.removeAt(0);
+              quickPicks.value = QuickPicks(
+                  List<MediaItem>.from(con["contents"]),
+                  title: con["title"] ?? "Recommended");
+              middleContentTemp.addAll(rel);
+            }
           }
         } catch (e) {
           printERROR(
               "Seems Based on last interaction content currently not available!");
         }
+      } else {
+        // Smart Default / Personalized Mode ("QP"):
+        // Dynamic top song shelf detection (works seamlessly for both YTM logged-in and anonymous users)
+        int songShelfIndex = -1;
+        final candidateTitles = [
+          "Quick picks",
+          "Listen again",
+          "Mixed for you",
+          "From your library",
+          "Speed dial",
+          "Forgotten favorites",
+        ];
+        for (final candidate in candidateTitles) {
+          songShelfIndex = homeContentListMap.indexWhere((element) =>
+              element['title']?.toString().toLowerCase() == candidate.toLowerCase() &&
+              element['contents'] != null &&
+              (element['contents'] as List).isNotEmpty &&
+              element['contents'][0] is MediaItem);
+          if (songShelfIndex != -1) break;
+        }
+
+        // Fallback: first shelf containing MediaItems
+        if (songShelfIndex == -1) {
+          songShelfIndex = homeContentListMap.indexWhere((element) =>
+              element['contents'] != null &&
+              (element['contents'] as List).isNotEmpty &&
+              element['contents'][0] is MediaItem);
+        }
+
+        if (songShelfIndex != -1) {
+          final con = homeContentListMap.removeAt(songShelfIndex);
+          final songs = (con["contents"] as List).whereType<MediaItem>().toList();
+          if (songs.isNotEmpty) {
+            quickPicks.value =
+                QuickPicks(songs, title: con["title"] ?? "Quick picks");
+          }
+        }
+
+        // In anonymous mode: enrich feed with recommendations based on user's recent listening (governed by 5s rule)
+        if (!isYtmLoggedIn) {
+          final recentSongId = box.get("recentSongId");
+          if (recentSongId != null && recentSongId.isNotEmpty) {
+            try {
+              final related = await _musicServices.getContentRelatedToSong(
+                  recentSongId, getContentHlCode());
+              if (related.isNotEmpty) {
+                middleContentTemp.addAll(related);
+              }
+            } catch (_) {}
+          }
+        }
       }
 
+      // If quickPicks is still empty (fallback for any mode):
       if (quickPicks.value.songList.isEmpty) {
-        final index = homeContentListMap
-            .indexWhere((element) => element['title'] == "Quick picks");
-        if (index >= 0) {
-          final con = homeContentListMap.removeAt(index);
-          quickPicks.value = QuickPicks(List<MediaItem>.from(con["contents"]),
-              title: "Quick picks");
+        final fallbackIndex = homeContentListMap.indexWhere((element) =>
+            element['contents'] != null &&
+            (element['contents'] as List).isNotEmpty &&
+            element['contents'][0] is MediaItem);
+        if (fallbackIndex >= 0) {
+          final con = homeContentListMap.removeAt(fallbackIndex);
+          final songs = (con["contents"] as List).whereType<MediaItem>().toList();
+          if (songs.isNotEmpty) {
+            quickPicks.value = QuickPicks(songs, title: con["title"] ?? "Quick picks");
+          }
         }
       }
 
       middleContent.value = _setContentList(middleContentTemp);
-      fixedContent.value = _setContentList(homeContentListMap);
+
+      // Deduplicate fixedContent so shelves already in middleContent or quickPicks never repeat
+      final existingTitles = <String>{};
+      if (quickPicks.value.title.isNotEmpty) {
+        existingTitles.add(quickPicks.value.title.toLowerCase());
+      }
+      for (final item in middleContent) {
+        if (item is AlbumContent) existingTitles.add(item.title.toLowerCase());
+        if (item is PlaylistContent) existingTitles.add(item.title.toLowerCase());
+      }
+      final deduplicatedFixed = homeContentListMap.where((element) {
+        final title = (element['title'] ?? '').toString().toLowerCase();
+        return !existingTitles.contains(title);
+      }).toList();
+
+      fixedContent.value = _setContentList(deduplicatedFixed);
 
       isContentFetched.value = true;
 
@@ -224,9 +306,13 @@ class HomeScreenController extends GetxController {
           final value = await _musicServices.getContentRelatedToSong(
               songId, getContentHlCode());
           middleContent.value = _setContentList(value);
-          if (value.isNotEmpty && (value[0]['title']).contains("like")) {
+          if (value.isNotEmpty &&
+              value[0]['contents'] != null &&
+              (value[0]['contents'] as List).isNotEmpty &&
+              value[0]['contents'][0] is MediaItem) {
             quickPicks_ =
-                QuickPicks(List<MediaItem>.from(value[0]["contents"]));
+                QuickPicks(List<MediaItem>.from(value[0]["contents"]),
+                    title: value[0]["title"] ?? "Recommended");
             Hive.box("AppPrefs").put("recentSongId", songId);
           }
           // ignore: empty_catches

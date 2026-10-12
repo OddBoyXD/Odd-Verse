@@ -2,6 +2,25 @@
 
 ## [v1.0.3] - Latest Release
 
+### ⚡ Lite Mode (Save Battery & RAM)
+- **Zero Transition Overhead**: Repurposed transition animation toggle to "Lite Mode (Save Battery & RAM)". Enabling Lite Mode turns off page transitions for instant zero-lag screen swapping.
+- **Complete GPU Blur Bypass**: Completely bypasses costly real-time GPU `BackdropFilter` convolution passes (sigma 10–30) across Standard Player, Gesture Player, and the queue bar, reducing CPU/GPU overhead, thermals, and battery consumption.
+- **Memory Conservation**: Skips redundant background thumbnail decoding in standard player during Lite Mode, saving extra megabytes of RAM.
+- **Intact Gesture Mechanics**: Bottom queue sliding up/down, rotating chevron arrow, and miniplayer expansion/collapse animations remain 100% intact and fluid.
+
+### ⏱️ 5-Second Playback Rule for History & Recommendations
+- **Protected History & Taste Profile**: Songs are strictly saved to Recently Played (`LIBRP`), `recentSongId`, and recommendation triggers only after the track has played for at least 5 seconds.
+- **Zero Skip Pollution**: Rapidly skipping through tracks in a playlist or queue no longer pollutes your listening history or skews recommendation seeds.
+- **YouTube Music Playback Sync**: Automatically reports playback to YouTube Music history after the 5-second mark when logged in.
+
+### 🎯 Seamless Smart Home Recommendations & Conflict Resolution
+- **Dynamic YouTube Music Shelf Recognition**: Intelligently detects and parses personalized YouTube Music top shelves (`"Listen again"`, `"Mixed for you"`, `"From your library"`, `"Speed dial"`, `"Forgotten favorites"`) for authenticated users, with clean fallback to `"Quick picks"` or the top song shelf.
+- **Fresh Network Updates**: Eliminated stale cache lock where cached offline data previously prevented fresh network recommendations from refreshing.
+- **Anonymous Taste Blending**: For anonymous users, blends global/regional shelves with related recommendations seeded by recent listening.
+- **Title Formatting & Preservation**: Fixed title mangling in `QuickPicksWidget`, preserving proper spaces, capitalization, and artist names for custom/non-dictionary shelf headers.
+- **Zero Duplicate Shelves**: Deduplicated `fixedContent` against `middleContent` and `quickPicks` to ensure identical shelves never repeat.
+- **Hidden Blank Space**: Hidden the empty 340px box whenever recommendation items are empty.
+
 ### 🖤 Pure AMOLED Pitch Black Theme ("AMOLED Dark")
 - **True #000000 Deep Black**: Added dedicated Pure AMOLED Black theme preset (`ThemeType.amoled`) providing 100% pitch black backgrounds on scaffold, canvas, cards, and modal sheets with zero grey tint, saving battery on OLED displays.
 - **Matching Dark Mode Grey Accent**: Configured buttons, indicators, and accents to use the exact same clean grey tone as Dark mode (`Colors.grey[700]`), eliminating neon blue/light blue tint while keeping true `#000000` pitch black backgrounds.

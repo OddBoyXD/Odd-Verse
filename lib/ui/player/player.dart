@@ -78,119 +78,19 @@ class Player extends StatelessWidget {
                       Align(
                         alignment: Alignment.bottomCenter,
                         child: ClipRRect(
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Container(
-                              padding: const EdgeInsets.only(
-                                  top: 15, bottom: 10, left: 10, right: 10),
-                              decoration: BoxDecoration(
-                                  boxShadow: const [
-                                    BoxShadow(
-                                        blurRadius: 5, color: Colors.black54)
-                                  ],
-                                  color: Theme.of(context)
-                                      .primaryColor
-                                      .withOpacity(0.5)),
-                              height: 60 + Get.mediaQuery.padding.bottom,
-                              child: Align(
-                                alignment: Alignment.topCenter,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    /// number of songs in queue
-                                    Obx(
-                                      () => Text(
-                                        "${playerController.currentQueue.length} ${"songs".tr}",
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall!
-                                            .copyWith(
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .titleMedium!
-                                                    .color),
-                                      ),
-                                    ),
-
-                                    /// queue loop button
-                                    InkWell(
-                                      onTap: () {
-                                        playerController.toggleQueueLoopMode();
-                                      },
-                                      child: Obx(
-                                        () => Container(
-                                          height: 30,
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 15),
-                                          decoration: BoxDecoration(
-                                            color: playerController
-                                                    .isQueueLoopModeEnabled
-                                                    .isFalse
-                                                ? Colors.white24
-                                                : Colors.white.withOpacity(0.8),
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: Center(
-                                              child: Text("queueLoop".tr)),
-                                        ),
-                                      ),
-                                    ),
-
-                                    /// queue shuffle button
-                                    InkWell(
-                                      onTap: () {
-                                        if (playerController
-                                            .isShuffleModeEnabled.isTrue) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(snackbar(
-                                                  context,
-                                                  "queueShufflingDeniedMsg".tr,
-                                                  size: SanckBarSize.BIG));
-                                          return;
-                                        }
-                                        playerController.shuffleQueue();
-                                      },
-                                      child: Container(
-                                        height: 30,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 15),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.8),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: const Center(
-                                            child: Icon(Icons.shuffle,
-                                                color: Colors.black)),
-                                      ),
-                                    ),
-
-                                    /// clear queue button
-                                    InkWell(
-                                      onTap: () {
-                                        playerController.clearQueue();
-                                      },
-                                      child: Container(
-                                        height: 30,
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 15),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.8),
-                                          borderRadius:
-                                              BorderRadius.circular(20),
-                                        ),
-                                        child: const Center(
-                                            child: Icon(Icons.playlist_remove,
-                                                color: Colors.black)),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+                          child: Obx(() {
+                            final isLiteMode = settingsScreenController
+                                .isTransitionAnimationDisabled.isTrue;
+                            final bar = _buildQueueBottomBar(
+                                context, playerController, isLiteMode);
+                            return isLiteMode
+                                ? bar
+                                : BackdropFilter(
+                                    filter:
+                                        ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                    child: bar,
+                                  );
+                          }),
                         ),
                       ),
                     ],
@@ -281,5 +181,96 @@ class Player extends StatelessWidget {
         ),
       );
     });
+  }
+
+  Widget _buildQueueBottomBar(BuildContext context,
+      PlayerController playerController, bool isLiteMode) {
+    return Container(
+      padding: const EdgeInsets.only(top: 15, bottom: 10, left: 10, right: 10),
+      decoration: BoxDecoration(
+          boxShadow: const [
+            BoxShadow(blurRadius: 5, color: Colors.black54)
+          ],
+          color: isLiteMode
+              ? Theme.of(context).primaryColor
+              : Theme.of(context).primaryColor.withOpacity(0.5)),
+      height: 60 + Get.mediaQuery.padding.bottom,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            /// number of songs in queue
+            Obx(
+              () => Text(
+                "${playerController.currentQueue.length} ${"songs".tr}",
+                style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                    color: Theme.of(context).textTheme.titleMedium!.color),
+              ),
+            ),
+
+            /// queue loop button
+            InkWell(
+              onTap: () {
+                playerController.toggleQueueLoopMode();
+              },
+              child: Obx(
+                () => Container(
+                  height: 30,
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  decoration: BoxDecoration(
+                    color: playerController.isQueueLoopModeEnabled.isFalse
+                        ? Colors.white24
+                        : Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Center(child: Text("queueLoop".tr)),
+                ),
+              ),
+            ),
+
+            /// queue shuffle button
+            InkWell(
+              onTap: () {
+                if (playerController.isShuffleModeEnabled.isTrue) {
+                  ScaffoldMessenger.of(context).showSnackBar(snackbar(
+                      context, "queueShufflingDeniedMsg".tr,
+                      size: SanckBarSize.BIG));
+                  return;
+                }
+                playerController.shuffleQueue();
+              },
+              child: Container(
+                height: 30,
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Center(
+                    child: Icon(Icons.shuffle, color: Colors.black)),
+              ),
+            ),
+
+            /// clear queue button
+            InkWell(
+              onTap: () {
+                playerController.clearQueue();
+              },
+              child: Container(
+                height: 30,
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Center(
+                    child: Icon(Icons.playlist_remove, color: Colors.black)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

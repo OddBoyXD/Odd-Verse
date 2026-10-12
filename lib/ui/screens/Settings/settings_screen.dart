@@ -321,8 +321,8 @@ class SettingsScreen extends StatelessWidget {
                         )),
                   ListTile(
                       contentPadding: const EdgeInsets.only(left: 5, right: 10),
-                      title: Text("disableTransitionAnimation".tr),
-                      subtitle: Text("disableTransitionAnimationDes".tr,
+                      title: Text("liteMode".tr),
+                      subtitle: Text("liteModeDes".tr,
                           style: Theme.of(context).textTheme.bodyMedium),
                       trailing: Obx(
                         () => CustSwitch(

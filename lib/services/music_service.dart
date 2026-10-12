@@ -356,6 +356,26 @@ class MusicServices extends getx.GetxService {
     return x;
   }
 
+  Future<void> recordPlayback(String videoId) async {
+    try {
+      if (getx.Get.isRegistered<YtmAuthService>() &&
+          getx.Get.find<YtmAuthService>().isLoggedIn.value) {
+        final data = Map.from(_context);
+        data['videoId'] = videoId;
+        data['playbackContext'] = {
+          'contentPlaybackContext': {
+            'signatureTimestamp': getDatestamp() - 1,
+            'autoPlay': false,
+          }
+        };
+        await _sendRequest('playback/record_playback', data);
+        printINFO("Playback reported to YouTube Music for $videoId");
+      }
+    } catch (e) {
+      printINFO("Playback report note: $e");
+    }
+  }
+
   dynamic getLyrics(String browseId) async {
     final data = Map.from(_context);
     data['browseId'] = browseId;

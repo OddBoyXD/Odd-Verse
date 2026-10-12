@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../screens/Settings/settings_screen_controller.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
 import '../../widgets/playback_speed_pitch_bottom_sheet.dart';
 import '../player_controller.dart';
@@ -25,6 +26,8 @@ class StandardPlayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final PlayerController playerController = Get.find<PlayerController>();
+    final SettingsScreenController settingsController =
+        Get.find<SettingsScreenController>();
 
     double playerArtImageSize =
         size.width - 60; //((size.height < 750) ? 90 : 60);
@@ -40,56 +43,67 @@ class StandardPlayer extends StatelessWidget {
       if (fullPlayerOpacity <= 0.01) {
         return const SizedBox.shrink();
       }
+      final isLiteMode =
+          settingsController.isTransitionAnimationDisabled.isTrue;
+
+      final backgroundOverlay = Stack(
+        children: [
+          /// opacity effect on background
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isLiteMode
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).primaryColor.withOpacity(0.8),
+              ),
+            ),
+          ),
+
+          /// used to hide queue header when player is minimized
+          /// gradient to used here
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Container(
+              height: 65 + Get.mediaQuery.padding.bottom + 120,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor,
+                    Theme.of(context).primaryColor.withOpacity(0.4),
+                    Theme.of(context).primaryColor.withOpacity(0),
+                  ],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  stops: const [0, 0.5, 0.8, 1],
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+
       return Opacity(
         opacity: fullPlayerOpacity,
         child: Stack(
           children: [
             /// Stack first child
-            /// Album art image in background covering the whole screen
-            BackgroudImage(
-              key: Key("${playerController.currentSong.value?.id}_background"),
-              cacheHeight: 200,
-            ),
-
-        /// Stack child
-        /// Blur effect on background
-        BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: Stack(
-            children: [
-              /// opacity effect on background
-              Positioned.fill(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.8),
-                  ),
-                ),
+            /// Album art image in background covering the whole screen (skipped in Lite Mode to save RAM)
+            if (!isLiteMode)
+              BackgroudImage(
+                key: Key("${playerController.currentSong.value?.id}_background"),
+                cacheHeight: 200,
               ),
 
-              /// used to hide queue header when player is minimized
-              /// gradient to used here
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  height: 65 + Get.mediaQuery.padding.bottom + 120,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor,
-                        Theme.of(context).primaryColor.withOpacity(0.4),
-                        Theme.of(context).primaryColor.withOpacity(0),
-                      ],
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      stops: const [0, 0.5, 0.8, 1],
-                    ),
-                  ),
-                ),
+            /// Stack child
+            /// Blur effect on background (bypassed in Lite Mode for 0 GPU overhead)
+            if (isLiteMode)
+              backgroundOverlay
+            else
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                child: backgroundOverlay,
               ),
-            ],
-          ),
-        ),
 
         /// Stack child
         /// Player content in landscape mode

@@ -83,6 +83,8 @@ class PlayerController extends GetxController
   final GlobalKey<ScaffoldState> homeScaffoldkey = GlobalKey<ScaffoldState>();
 
   final buttonState = PlayButtonState.paused.obs;
+  String? _trackedSongIdForFiveSec;
+  bool _hasTriggeredFiveSecondRule = false;
 
   // track whether wakelock is currently enabled to avoid repeated calls
   bool _wakelockActive = false;
@@ -274,6 +276,19 @@ class PlayerController extends GetxController
         val.buffered = oldState.buffered;
         val.total = oldState.total;
       });
+
+      // 5-second playback rule for history & recommendations
+      if (!_hasTriggeredFiveSecondRule &&
+          currentSong.value != null &&
+          currentSong.value!.id == _trackedSongIdForFiveSec) {
+        final totalSec = oldState.total.inSeconds;
+        final currentSec = position.inSeconds;
+        if (currentSec >= 5 ||
+            (totalSec > 0 && totalSec < 5 && currentSec >= totalSec - 1)) {
+          _hasTriggeredFiveSecondRule = true;
+          _onSongReachedFiveSeconds(currentSong.value!);
+        }
+      }
     });
   }
 
@@ -311,6 +326,10 @@ class PlayerController extends GetxController
         _newSongFlag = true;
         isCurrentSongBuffered.value = false;
         currentSong.value = mediaItem;
+        if (_trackedSongIdForFiveSec != mediaItem.id) {
+          _trackedSongIdForFiveSec = mediaItem.id;
+          _hasTriggeredFiveSecondRule = false;
+        }
         currentSongIndex.value = currentQueue
             .indexWhere((element) => element.id == currentSong.value!.id);
         _currentSponsorSegments = [];
@@ -335,7 +354,6 @@ class PlayerController extends GetxController
           }
         });
         await _checkFav();
-        await _addToRP(currentSong.value!);
         if (isRadioModeOn && (currentSong.value!.id == currentQueue.last.id)) {
           await _addRadioContinuation(radioInitiatorItem!);
         } else {
@@ -450,11 +468,6 @@ class PlayerController extends GetxController
       if (playlistid != null) {
         _playerPanelCheck();
         await _audioHandler.customAction("playByIndex", {"index": 0});
-      } else {
-        if (Hive.box("AppPrefs").get("discoverContentType") == "BOLI") {
-          Get.find<HomeScreenController>()
-              .changeDiscoverContent("BOLI", songId: mediaItem!.id);
-        }
       }
     });
 
@@ -482,15 +495,6 @@ class PlayerController extends GetxController
     /// update playing from value
     playinfrom.value =
         playfrom ?? PlaylingFrom(type: PlaylingFromType.SELECTION);
-
-    //for changing home content based on last interation
-    Future.delayed(const Duration(seconds: 3), () {
-      if (_playbackSessionToken != session) return;
-      if (Hive.box("AppPrefs").get("discoverContentType") == "BOLI") {
-        Get.find<HomeScreenController>()
-            .changeDiscoverContent("BOLI", songId: mediaItems[index].id);
-      }
-    });
 
     _playerPanelCheck();
     await _audioHandler.updateQueue(mediaItems);
@@ -697,6 +701,8 @@ class PlayerController extends GetxController
     await _audioHandler.stop();
     clearQueue();
     currentSong.value = null;
+    _trackedSongIdForFiveSec = null;
+    _hasTriggeredFiveSecondRule = false;
     try {
       final prevSessionData = await Hive.openBox("prevSessionData");
       await prevSessionData.clear();
@@ -920,6 +926,28 @@ class PlayerController extends GetxController
       } catch (e) {}
     }
     recentItem = mediaItem;
+  }
+
+  Future<void> _onSongReachedFiveSeconds(MediaItem mediaItem) async {
+    printINFO("5-second rule reached for: ${mediaItem.title} (${mediaItem.id})");
+    await _addToRP(mediaItem);
+    await Hive.box("AppPrefs").put("recentSongId", mediaItem.id);
+
+    try {
+      if (Get.isRegistered<MusicServices>()) {
+        Get.find<MusicServices>().recordPlayback(mediaItem.id);
+      }
+    } catch (_) {}
+
+    try {
+      if (Get.isRegistered<HomeScreenController>()) {
+        final homeController = Get.find<HomeScreenController>();
+        final type = Hive.box("AppPrefs").get("discoverContentType") ?? "QP";
+        if (type == "BOLI") {
+          homeController.changeDiscoverContent("BOLI", songId: mediaItem.id);
+        }
+      }
+    } catch (_) {}
   }
 
   Future<void> showLyrics() async {

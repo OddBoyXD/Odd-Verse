@@ -80,221 +80,30 @@ class GesturePlayer extends StatelessWidget {
                     : 20,
                 left: 20,
                 right: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(10)),
-              constraints: const BoxConstraints(maxWidth: 500),
-              height: 142,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 15, vertical: 10),
-                    child: Column(children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Obx(() {
-                                    return Marquee(
-                                      delay: const Duration(milliseconds: 300),
-                                      duration: const Duration(seconds: 10),
-                                      id: "${playerController.currentSong.value}_title",
-                                      child: Text(
-                                        playerController.currentSong.value !=
-                                                null
-                                            ? playerController
-                                                .currentSong.value!.title
-                                            : "NA",
-                                        textAlign: TextAlign.start,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleMedium!
-                                            .copyWith(
-                                                color: Theme.of(context)
-                                                    .primaryColor
-                                                    .complementaryColor),
-                                      ),
-                                    );
-                                  }),
-                                  const SizedBox(
-                                    height: 7,
-                                  ),
-                                  GetX<PlayerController>(builder: (controller) {
-                                    return Marquee(
-                                      delay: const Duration(milliseconds: 300),
-                                      duration: const Duration(seconds: 10),
-                                      id: "${playerController.currentSong.value}_subtitle",
-                                      child: Text(
-                                        playerController.currentSong.value !=
-                                                null
-                                            ? controller
-                                                .currentSong.value!.artist!
-                                            : "NA",
-                                        textAlign: TextAlign.start,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleSmall!
-                                            .copyWith(
-                                                color: Theme.of(context)
-                                                    .primaryColor
-                                                    .complementaryColor,
-                                                fontWeight: FontWeight.normal),
-                                      ),
-                                    );
-                                  }),
-                                ]),
-                          ),
-                          SizedBox(
-                            width: 75,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                    splashRadius: 10,
-                                    iconSize: 20,
-                                    visualDensity: const VisualDensity(
-                                        horizontal: -4, vertical: -4),
-                                    onPressed: playerController.toggleFavourite,
-                                    icon: Obx(() => Icon(
-                                          playerController
-                                                  .isCurrentSongFav.isFalse
-                                              ? Icons.favorite_border
-                                              : Icons.favorite,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium!
-                                              .color,
-                                        ))),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Obx(() {
-                                      return IconButton(
-                                          splashRadius: 10,
-                                          visualDensity: const VisualDensity(
-                                              horizontal: -4, vertical: -4),
-                                          iconSize: 18,
-                                          onPressed:
-                                              playerController.toggleLoopMode,
-                                          icon: Icon(
-                                            Icons.all_inclusive,
-                                            color: playerController
-                                                    .isLoopModeEnabled.value
-                                                ? Theme.of(context)
-                                                    .textTheme
-                                                    .titleLarge!
-                                                    .color
-                                                : Theme.of(context)
-                                                    .textTheme
-                                                    .titleLarge!
-                                                    .color!
-                                                    .withOpacity(0.2),
-                                          ));
-                                    }),
-                                    IconButton(
-                                      iconSize: 18,
-                                      splashRadius: 10,
-                                      visualDensity: const VisualDensity(
-                                          horizontal: -4, vertical: -4),
-                                      onPressed:
-                                          playerController.toggleShuffleMode,
-                                      icon: Obx(
-                                        () => Icon(
-                                          Ionicons.shuffle,
-                                          color: playerController
-                                                  .isShuffleModeEnabled.value
-                                              ? Theme.of(context)
-                                                  .textTheme
-                                                  .titleLarge!
-                                                  .color
-                                              : Theme.of(context)
-                                                  .textTheme
-                                                  .titleLarge!
-                                                  .color!
-                                                  .withOpacity(0.2),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 5,
-                      ),
-                      GetX<PlayerController>(builder: (controller) {
-                        final settingsController =
-                            Get.find<SettingsScreenController>();
-                        final songId =
-                            controller.currentSong.value?.id ?? "oddverse";
-                        final theme = Theme.of(context);
-                        final isDark = theme.brightness == Brightness.dark;
-
-                        if (settingsController.dynamicWaveformProgressBar.value) {
-                          return DynamicWaveformProgressBar(
-                            progress: controller.progressBarStatus.value.current,
-                            total: controller.progressBarStatus.value.total,
-                            buffered: controller.progressBarStatus.value.buffered,
-                            onSeek: controller.seek,
-                            activeColor: theme.sliderTheme.activeTrackColor ??
-                                theme.colorScheme.secondary,
-                            bufferedColor: theme.sliderTheme.valueIndicatorColor ??
-                                (isDark
-                                    ? Colors.white.withOpacity(0.25)
-                                    : Colors.black.withOpacity(0.18)),
-                            inactiveColor: theme.sliderTheme.inactiveTrackColor ??
-                                (isDark
-                                    ? Colors.white.withOpacity(0.12)
-                                    : Colors.black.withOpacity(0.08)),
-                            seedKey: songId,
-                            timeLabelTextStyle: theme.textTheme.titleSmall?.copyWith(
-                              color: theme.primaryColor.complementaryColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          );
-                        }
-
-                        return ProgressBar(
-                          thumbRadius: 6,
-                          baseBarColor:
-                              Theme.of(context).sliderTheme.inactiveTrackColor,
-                          bufferedBarColor:
-                              Theme.of(context).sliderTheme.valueIndicatorColor,
-                          progressBarColor:
-                              Theme.of(context).sliderTheme.activeTrackColor,
-                          thumbColor: Theme.of(context).sliderTheme.thumbColor,
-                          timeLabelTextStyle: Theme.of(context)
-                              .textTheme
-                              .titleSmall!
-                              .copyWith(
-                                  color: Theme.of(context)
-                                      .primaryColor
-                                      .complementaryColor),
-                          progress: controller.progressBarStatus.value.current,
-                          total: controller.progressBarStatus.value.total,
-                          buffered: controller.progressBarStatus.value.buffered,
-                          onSeek: controller.seek,
-                        );
-                      }),
-                    ]),
-                  ),
+            child: Obx(() {
+              final isLiteMode = Get.find<SettingsScreenController>()
+                  .isTransitionAnimationDisabled
+                  .isTrue;
+              final controls = _buildControls(context, playerController);
+              return Container(
+                decoration: BoxDecoration(
+                    color: isLiteMode
+                        ? Theme.of(context).primaryColor
+                        : Theme.of(context).primaryColor.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(10)),
+                constraints: const BoxConstraints(maxWidth: 500),
+                height: 142,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: isLiteMode
+                      ? controls
+                      : BackdropFilter(
+                          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                          child: controls,
+                        ),
                 ),
-              ),
-            ),
+              );
+            }),
           ),
         ),
         // absorb pointer to prevent the next,prev gesture from being triggered when the user tries to switch app
@@ -308,6 +117,205 @@ class GesturePlayer extends StatelessWidget {
           ),
         )
       ],
+    );
+  }
+
+  Widget _buildControls(
+      BuildContext context, PlayerController playerController) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+      child: Column(children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Obx(() {
+                      return Marquee(
+                        delay: const Duration(milliseconds: 300),
+                        duration: const Duration(seconds: 10),
+                        id: "${playerController.currentSong.value}_title",
+                        child: Text(
+                          playerController.currentSong.value != null
+                              ? playerController.currentSong.value!.title
+                              : "NA",
+                          textAlign: TextAlign.start,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium!
+                              .copyWith(
+                                  color: Theme.of(context)
+                                      .primaryColor
+                                      .complementaryColor),
+                        ),
+                      );
+                    }),
+                    const SizedBox(
+                      height: 7,
+                    ),
+                    GetX<PlayerController>(builder: (controller) {
+                      return Marquee(
+                        delay: const Duration(milliseconds: 300),
+                        duration: const Duration(seconds: 10),
+                        id: "${playerController.currentSong.value}_subtitle",
+                        child: Text(
+                          playerController.currentSong.value != null
+                              ? controller.currentSong.value!.artist!
+                              : "NA",
+                          textAlign: TextAlign.start,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall!
+                              .copyWith(
+                                  color: Theme.of(context)
+                                      .primaryColor
+                                      .complementaryColor,
+                                  fontWeight: FontWeight.normal),
+                        ),
+                      );
+                    }),
+                  ]),
+            ),
+            SizedBox(
+              width: 75,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  IconButton(
+                      splashRadius: 10,
+                      iconSize: 20,
+                      visualDensity: const VisualDensity(
+                          horizontal: -4, vertical: -4),
+                      onPressed: playerController.toggleFavourite,
+                      icon: Obx(() => Icon(
+                            playerController.isCurrentSongFav.isFalse
+                                ? Icons.favorite_border
+                                : Icons.favorite,
+                            color: Theme.of(context)
+                                .textTheme
+                                .titleMedium!
+                                .color,
+                          ))),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Obx(() {
+                        return IconButton(
+                            splashRadius: 10,
+                            visualDensity: const VisualDensity(
+                                horizontal: -4, vertical: -4),
+                            iconSize: 18,
+                            onPressed:
+                                playerController.toggleLoopMode,
+                            icon: Icon(
+                              Icons.all_inclusive,
+                              color: playerController
+                                      .isLoopModeEnabled.value
+                                  ? Theme.of(context)
+                                      .textTheme
+                                      .titleLarge!
+                                      .color
+                                  : Theme.of(context)
+                                      .textTheme
+                                      .titleLarge!
+                                      .color!
+                                      .withOpacity(0.2),
+                            ));
+                      }),
+                      IconButton(
+                        iconSize: 18,
+                        splashRadius: 10,
+                        visualDensity: const VisualDensity(
+                            horizontal: -4, vertical: -4),
+                        onPressed:
+                            playerController.toggleShuffleMode,
+                        icon: Obx(
+                          () => Icon(
+                            Ionicons.shuffle,
+                            color: playerController
+                                    .isShuffleModeEnabled.value
+                                ? Theme.of(context)
+                                    .textTheme
+                                    .titleLarge!
+                                    .color
+                                : Theme.of(context)
+                                    .textTheme
+                                    .titleLarge!
+                                    .color!
+                                    .withOpacity(0.2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(
+          height: 5,
+        ),
+        GetX<PlayerController>(builder: (controller) {
+          final settingsController =
+              Get.find<SettingsScreenController>();
+          final songId =
+              controller.currentSong.value?.id ?? "oddverse";
+          final theme = Theme.of(context);
+          final isDark = theme.brightness == Brightness.dark;
+
+          if (settingsController.dynamicWaveformProgressBar.value) {
+            return DynamicWaveformProgressBar(
+              progress: controller.progressBarStatus.value.current,
+              total: controller.progressBarStatus.value.total,
+              buffered: controller.progressBarStatus.value.buffered,
+              onSeek: controller.seek,
+              activeColor: theme.sliderTheme.activeTrackColor ??
+                  theme.colorScheme.secondary,
+              bufferedColor: theme.sliderTheme.valueIndicatorColor ??
+                  (isDark
+                      ? Colors.white.withOpacity(0.25)
+                      : Colors.black.withOpacity(0.18)),
+              inactiveColor: theme.sliderTheme.inactiveTrackColor ??
+                  (isDark
+                      ? Colors.white.withOpacity(0.12)
+                      : Colors.black.withOpacity(0.08)),
+              seedKey: songId,
+              timeLabelTextStyle: theme.textTheme.titleSmall?.copyWith(
+                color: theme.primaryColor.complementaryColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            );
+          }
+
+          return ProgressBar(
+            thumbRadius: 6,
+            baseBarColor:
+                Theme.of(context).sliderTheme.inactiveTrackColor,
+            bufferedBarColor:
+                Theme.of(context).sliderTheme.valueIndicatorColor,
+            progressBarColor:
+                Theme.of(context).sliderTheme.activeTrackColor,
+            thumbColor: Theme.of(context).sliderTheme.thumbColor,
+            timeLabelTextStyle: Theme.of(context)
+                .textTheme
+                .titleSmall!
+                .copyWith(
+                    color: Theme.of(context)
+                        .primaryColor
+                        .complementaryColor),
+            progress: controller.progressBarStatus.value.current,
+            total: controller.progressBarStatus.value.total,
+            buffered: controller.progressBarStatus.value.buffered,
+            onSeek: controller.seek,
+          );
+        }),
+      ]),
     );
   }
 }

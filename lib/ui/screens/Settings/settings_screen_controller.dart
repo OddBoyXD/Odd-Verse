@@ -319,10 +319,14 @@ class SettingsScreenController extends GetxController {
     downloadLocationPath.value = pickedFolderPath;
   }
 
+  RxBool get isLiteModeEnabled => isTransitionAnimationDisabled;
+
   void disableTransitionAnimation(bool val) {
     setBox.put('isTransitionAnimationDisabled', val);
     isTransitionAnimationDisabled.value = val;
   }
+
+  void toggleLiteMode(bool val) => disableTransitionAnimation(val);
 
   Future<void> clearImagesCache() async {
     final tempImgDirPath =
