@@ -63,15 +63,13 @@ class LyricsWidget extends StatelessWidget {
       final isRomanize = settingsController.romanizeLyricsEnabled.value;
       final rawProvider =
           playerController.lyrics["provider"]?.toString() ?? "";
-      final isSkipEnabled = settingsController.enableSponsorBlock.value;
 
-      // Smart Offset Rule:
-      // 1. If provider is youtube_captions, timestamps are already 100% video-aligned (never needs offset).
-      // 2. If SponsorBlock auto-skip is ENABLED, audio will jump past the intro, so studio lyrics match automatically.
-      // 3. If SponsorBlock auto-skip is DISABLED, music video plays the full intro dialogue, so studio lyrics NEED the +introSec offset!
-      final shouldApplyIntroOffset =
-          !isSkipEnabled && rawProvider != "youtube_captions";
-      final effectiveOffset = shouldApplyIntroOffset
+      // Consistent Offset Rule:
+      // Whether SponsorBlock auto-skip is ENABLED or DISABLED:
+      // 1. If ENABLED: audio jumps to +introSec (e.g. 00:06). Lyrics must be shifted by +introSec to match the 00:06 playback position.
+      // 2. If DISABLED: audio plays the 6s intro (00:00 - 00:06). Lyrics must also wait until 00:06 when vocals begin!
+      // 3. Exception: If provider is youtube_captions, timestamps are already natively bound to the YouTube video clock.
+      final effectiveOffset = rawProvider != "youtube_captions"
           ? playerController.sponsorIntroOffset.value
           : Duration.zero;
 

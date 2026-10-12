@@ -10,8 +10,8 @@
 
 ### 🎤 Enhanced Multi-Tier Synced Lyrics & Smart Sponsor Offset
 - **Priority YouTube Captions Matching**: Upgraded YouTube Closed Captions engine to prioritize official tracks across English, Hindi, and regional languages with direct video-synchronized timestamp generation.
-- **Smart SponsorBlock Lyrics Auto-Alignment**: Intelligently coordinates SponsorBlock intro segments with lyrics timestamps. When SponsorBlock auto-skip is disabled, studio lyrics automatically receive the exact `+introSec` offset so words sync with music video dialogue. When auto-skip is enabled, audio skips directly to vocals and lyrics stay perfectly aligned without double-offset conflicts.
-- **Source-Aware Provider Tracking**: Distinguishes video-aligned timestamps (`youtube_captions`) from studio lyrics (`lrclib`, `netease`), ensuring video-specific captions never receive redundant time shifts.
+- **Unified SponsorBlock Lyrics Alignment**: Intelligently synchronizes studio lyrics timestamps (`lrclib`, `netease`) with music video intro/sponsor skits. Whether SponsorBlock auto-skip is enabled (jumping past the intro to +introSec) or disabled (playing through the intro), studio lyrics automatically receive the exact `+introSec` time shift so lyrics are 100% in sync with the audio playback position at all times.
+- **Source-Aware Provider Tracking**: Distinguishes natively video-aligned timestamps (`youtube_captions`) from studio album lyrics, ensuring YouTube captions never receive redundant time shifts.
 
 ### ⏱️ 5-Second Playback Rule for History & Recommendations
 - **Protected History & Taste Profile**: Songs are strictly saved to Recently Played (`LIBRP`), `recentSongId`, and recommendation triggers only after the track has played for at least 5 seconds.

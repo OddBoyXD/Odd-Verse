@@ -341,7 +341,8 @@ class PlayerController extends GetxController
             _currentSponsorSegments = segments;
             double totalIntroSec = 0.0;
             for (final seg in segments) {
-              if (seg.category == 'intro' && seg.start <= 1.5) {
+              if ((seg.category == 'intro' || seg.category == 'sponsor') &&
+                  seg.start <= 2.5) {
                 totalIntroSec += (seg.end - seg.start);
               }
             }
