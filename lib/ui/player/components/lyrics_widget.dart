@@ -61,7 +61,20 @@ class LyricsWidget extends StatelessWidget {
       }
 
       final isRomanize = settingsController.romanizeLyricsEnabled.value;
-      final sponsorOffset = playerController.sponsorIntroOffset.value;
+      final rawProvider =
+          playerController.lyrics["provider"]?.toString() ?? "";
+      final isSkipEnabled = settingsController.enableSponsorBlock.value;
+
+      // Smart Offset Rule:
+      // 1. If provider is youtube_captions, timestamps are already 100% video-aligned (never needs offset).
+      // 2. If SponsorBlock auto-skip is ENABLED, audio will jump past the intro, so studio lyrics match automatically.
+      // 3. If SponsorBlock auto-skip is DISABLED, music video plays the full intro dialogue, so studio lyrics NEED the +introSec offset!
+      final shouldApplyIntroOffset =
+          !isSkipEnabled && rawProvider != "youtube_captions";
+      final effectiveOffset = shouldApplyIntroOffset
+          ? playerController.sponsorIntroOffset.value
+          : Duration.zero;
+
       final rawPlain =
           playerController.lyrics["plainLyrics"]?.toString().trim() ?? "";
       final displayPlain =
@@ -71,7 +84,7 @@ class LyricsWidget extends StatelessWidget {
 
       final rawSynced =
           playerController.lyrics['synced']?.toString().trim() ?? '';
-      final parsedSynced = _parseLrc(rawSynced, isRomanize, sponsorOffset);
+      final parsedSynced = _parseLrc(rawSynced, isRomanize, effectiveOffset);
 
       // Mode 1: Plain Lyrics
       if (playerController.lyricsMode.toInt() == 1) {
