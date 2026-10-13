@@ -288,7 +288,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
 
   void _startResumeTimer() {
     _resumeTimer?.cancel();
-    _resumeTimer = Timer(const Duration(seconds: 3), () {
+    _resumeTimer = Timer(const Duration(milliseconds: 1500), () {
       if (mounted) {
         setState(() {
           _userInteracting = false;
@@ -324,127 +324,106 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
         });
       }
 
-      return Listener(
-        onPointerDown: (_) {
-          _userInteracting = true;
-          _resumeTimer?.cancel();
-        },
-        onPointerMove: (_) {
-          _userInteracting = true;
-          _resumeTimer?.cancel();
-        },
-        onPointerUp: (_) {
-          _startResumeTimer();
-        },
-        onPointerCancel: (_) {
-          _startResumeTimer();
-        },
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            if (notification is ScrollStartNotification &&
-                notification.dragDetails != null) {
-              _userInteracting = true;
-              _resumeTimer?.cancel();
-            } else if (notification is ScrollUpdateNotification &&
-                notification.dragDetails != null) {
-              _userInteracting = true;
-              _resumeTimer?.cancel();
-            } else if (notification is ScrollEndNotification) {
-              _startResumeTimer();
-            }
-            return false;
-          },
-          child: SingleChildScrollView(
-            key: _viewportKey,
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            padding: widget.padding,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(widget.lyrics.length, (index) {
-                final line = widget.lyrics[index];
-                final isActive = index == activeIndex;
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final viewportHeight = constraints.maxHeight;
+          final verticalPad = (viewportHeight / 2) - 24.0;
+          final scrollPadding = EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: verticalPad > 20.0 ? verticalPad : 40.0,
+          );
 
-                return Center(
-                  key: _itemKeys[index],
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6.0),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      splashColor: const Color(0x33FFD54F),
-                      highlightColor: const Color(0x1AFFD54F),
-                      onTap: () {
-                        widget.playerController.seek(line.time);
-                        _userInteracting = false;
-                        _resumeTimer?.cancel();
-                        _scrollToActive(index);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 320),
-                        curve: Curves.easeOutCubic,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 18.0,
-                          vertical: 9.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? const Color(0x1FFFCA28)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isActive
-                                ? const Color(0x33FFD54F)
-                                : Colors.transparent,
-                            width: 1.0,
-                          ),
-                          boxShadow: isActive
-                              ? const [
-                                  BoxShadow(
-                                    color: Color(0x1AFFD54F),
-                                    blurRadius: 20,
-                                    spreadRadius: 2,
-                                  ),
-                                ]
-                              : const [],
-                        ),
-                        child: AnimatedDefaultTextStyle(
-                          duration: const Duration(milliseconds: 320),
+          return NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollStartNotification &&
+                  notification.dragDetails != null) {
+                _userInteracting = true;
+                _resumeTimer?.cancel();
+              } else if (notification is ScrollEndNotification &&
+                  _userInteracting) {
+                _startResumeTimer();
+              }
+              return false;
+            },
+            child: SingleChildScrollView(
+              key: _viewportKey,
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              padding: scrollPadding,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(widget.lyrics.length, (index) {
+                  final line = widget.lyrics[index];
+                  final isActive = index == activeIndex;
+
+                  return Center(
+                    key: _itemKeys[index],
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6.0),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        splashColor: const Color(0x33FFD54F),
+                        highlightColor: const Color(0x1AFFD54F),
+                        onTap: () {
+                          widget.playerController.seek(line.time);
+                          _userInteracting = false;
+                          _resumeTimer?.cancel();
+                          _scrollToActive(index);
+                        },
+                        child: AnimatedContainer(
+                          duration: isActive
+                              ? const Duration(milliseconds: 240)
+                              : Duration.zero,
                           curve: Curves.easeOutCubic,
-                          style: TextStyle(
-                            color: isActive
-                                ? const Color(0xFFFFD54F)
-                                : Colors.white.withOpacity(0.42),
-                            fontSize: isActive ? 20.0 : 15.5,
-                            fontWeight:
-                                isActive ? FontWeight.w800 : FontWeight.w500,
-                            letterSpacing: isActive ? 0.2 : 0.0,
-                            height: 1.5,
-                            shadows: isActive
-                                ? const [
-                                    Shadow(
-                                      color: Color(0xCCFFD54F),
-                                      blurRadius: 16.0,
-                                    ),
-                                    Shadow(
-                                      color: Color(0x66FFA000),
-                                      blurRadius: 28.0,
-                                    ),
-                                  ]
-                                : const [],
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 8.0,
                           ),
-                          child: Text(
-                            line.text,
-                            textAlign: TextAlign.center,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? const Color(0x18FFD54F)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: AnimatedDefaultTextStyle(
+                            duration: const Duration(milliseconds: 240),
+                            curve: Curves.easeOutCubic,
+                            style: TextStyle(
+                              color: isActive
+                                  ? const Color(0xFFFFD54F)
+                                  : Colors.white.withOpacity(0.40),
+                              fontSize: isActive ? 19.5 : 15.5,
+                              fontWeight:
+                                  isActive ? FontWeight.w800 : FontWeight.w500,
+                              letterSpacing: isActive ? 0.2 : 0.0,
+                              height: 1.5,
+                              shadows: isActive
+                                  ? const [
+                                      Shadow(
+                                        color: Color(0xCCFFD54F),
+                                        blurRadius: 14.0,
+                                      ),
+                                      Shadow(
+                                        color: Color(0x55FFA000),
+                                        blurRadius: 24.0,
+                                      ),
+                                    ]
+                                  : const [],
+                            ),
+                            child: Text(
+                              line.text,
+                              textAlign: TextAlign.center,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              }),
+                  );
+                }),
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
     });
   }
