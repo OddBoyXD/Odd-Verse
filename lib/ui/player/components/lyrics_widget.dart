@@ -380,29 +380,61 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
                         _scrollToActive(index);
                       },
                       child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeInOut,
+                        duration: const Duration(milliseconds: 320),
+                        curve: Curves.easeOutCubic,
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 8.0,
+                          horizontal: 18.0,
+                          vertical: 9.0,
                         ),
                         decoration: BoxDecoration(
                           color: isActive
-                              ? const Color(0x26FFD54F)
+                              ? const Color(0x1FFFCA28)
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isActive
+                                ? const Color(0x33FFD54F)
+                                : Colors.transparent,
+                            width: 1.0,
+                          ),
+                          boxShadow: isActive
+                              ? const [
+                                  BoxShadow(
+                                    color: Color(0x1AFFD54F),
+                                    blurRadius: 20,
+                                    spreadRadius: 2,
+                                  ),
+                                ]
+                              : const [],
                         ),
-                        child: Text(
-                          line.text,
-                          textAlign: TextAlign.center,
+                        child: AnimatedDefaultTextStyle(
+                          duration: const Duration(milliseconds: 320),
+                          curve: Curves.easeOutCubic,
                           style: TextStyle(
                             color: isActive
                                 ? const Color(0xFFFFD54F)
-                                : Colors.white.withOpacity(0.50),
-                            fontSize: isActive ? 19.5 : 15.5,
+                                : Colors.white.withOpacity(0.42),
+                            fontSize: isActive ? 20.0 : 15.5,
                             fontWeight:
                                 isActive ? FontWeight.w800 : FontWeight.w500,
+                            letterSpacing: isActive ? 0.2 : 0.0,
                             height: 1.5,
+                            shadows: isActive
+                                ? const [
+                                    Shadow(
+                                      color: Color(0xCCFFD54F),
+                                      blurRadius: 16.0,
+                                    ),
+                                    Shadow(
+                                      color: Color(0x66FFA000),
+                                      blurRadius: 28.0,
+                                    ),
+                                  ]
+                                : const [],
+                          ),
+                          child: Text(
+                            line.text,
+                            textAlign: TextAlign.center,
                           ),
                         ),
                       ),

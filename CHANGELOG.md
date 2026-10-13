@@ -8,7 +8,9 @@
 - **Memory Conservation**: Skips redundant background thumbnail decoding in standard player during Lite Mode, saving extra megabytes of RAM.
 - **Intact Gesture Mechanics**: Bottom queue sliding up/down, rotating chevron arrow, and miniplayer expansion/collapse animations remain 100% intact and fluid.
 
-### 🎤 Enhanced Multi-Tier Synced Lyrics & Smart Sponsor Offset
+### 🎤 Enhanced Multi-Tier Synced Lyrics & Radiant Golden Glow
+- **Radiant Golden Glow & Smooth Line Interpolation**: Transformed the active synced lyric presentation with dual-layer radiant text shadows (`0xCCFFD54F` sharp glow + `0x66FFA000` ambient warm bloom) and fluid `AnimatedDefaultTextStyle` interpolation (320ms `Curves.easeOutCubic`), providing an Apple Music / Karaoke-grade luminous glow transition without performance or battery overhead.
+- **Ambient Active Line Pill**: Outlined the active lyric line with an elegant translucent golden border and soft ambient back-glow shadow to visually emphasize currently sung lines.
 - **YouTube Subtitle Vocal Onset Auto-Alignment**: Engineered millisecond-accurate auto-alignment between YouTube video audio and studio lyrics databases. Detects the exact millisecond when singing begins in the specific YouTube upload and automatically time-shifts studio `.lrc` lines by the exact delta, ensuring 100% flawless sync on unofficial uploads, fan edits, slowed/reverb tracks, and trending music videos without extra CPU or RAM usage.
 - **Priority YouTube Captions Matching**: Upgraded YouTube Closed Captions engine to prioritize official tracks across English, Hindi, and regional languages with direct video-synchronized timestamp generation.
 - **Unified SponsorBlock Lyrics Alignment**: Intelligently synchronizes studio lyrics timestamps (`lrclib`, `netease`) with music video intro/sponsor skits. Whether SponsorBlock auto-skip is enabled (jumping past the intro to +introSec) or disabled (playing through the intro), studio lyrics automatically receive the exact `+introSec` time shift so lyrics are 100% in sync with the audio playback position at all times.
