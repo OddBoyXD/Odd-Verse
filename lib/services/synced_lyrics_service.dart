@@ -134,7 +134,25 @@ class SyncedLyricsService {
         final mStr = alignedDuration.inMinutes.remainder(60).toString().padLeft(2, '0');
         final sStr = alignedDuration.inSeconds.remainder(60).toString().padLeft(2, '0');
         final milliStr = (alignedDuration.inMilliseconds.remainder(1000) ~/ 10).toString().padLeft(2, '0');
-        buffer.writeln('[$mStr:$sStr.$milliStr]${match.group(4)}');
+        String lineContent = match.group(4) ?? '';
+        if (lineContent.contains('<') && lineContent.contains('>')) {
+          final wordRegex = RegExp(r'<(\d{2}):(\d{2})\.(\d{2,3})>');
+          lineContent = lineContent.replaceAllMapped(wordRegex, (wMatch) {
+            final wMin = int.parse(wMatch.group(1)!);
+            final wSec = int.parse(wMatch.group(2)!);
+            final wMsStr = wMatch.group(3)!;
+            final wMs = int.parse(wMsStr.padRight(3, '0').substring(0, 3));
+            int wOriginalMs = (wMin * 60 + wSec) * 1000 + wMs;
+            int wAlignedMs = wOriginalMs + deltaMs;
+            if (wAlignedMs < 0) wAlignedMs = 0;
+            final wDur = Duration(milliseconds: wAlignedMs);
+            final wm = wDur.inMinutes.remainder(60).toString().padLeft(2, '0');
+            final ws = wDur.inSeconds.remainder(60).toString().padLeft(2, '0');
+            final wmillis = (wDur.inMilliseconds.remainder(1000) ~/ 10).toString().padLeft(2, '0');
+            return '<$wm:$ws.$wmillis>';
+          });
+        }
+        buffer.writeln('[$mStr:$sStr.$milliStr]$lineContent');
       } else {
         buffer.writeln(line);
       }
@@ -169,6 +187,58 @@ class SyncedLyricsService {
                   "plainLyrics": plain,
                 };
               }
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromLrcRed(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final query = cleanArtist.isNotEmpty ? '$cleanTitle $cleanArtist' : cleanTitle;
+      final searchUrl = 'https://lrc.red/search.json?q=${Uri.encodeComponent(query)}';
+      final response = (await _dio.get(searchUrl)).data;
+      if (response != null && response is Map && response['hits'] is List) {
+        final hits = response['hits'] as List;
+        if (hits.isNotEmpty) {
+          Map? bestHit;
+          double minDiff = 99999.0;
+          final targetTitle = _normalize(cleanTitle);
+
+          for (final hit in hits) {
+            if (hit is Map) {
+              final hitTitle = _normalize(hit['title']?.toString() ?? '');
+              if (hitTitle.isEmpty) continue;
+              if (hitTitle == targetTitle ||
+                  hitTitle.contains(targetTitle) ||
+                  targetTitle.contains(hitTitle)) {
+                final hitDur = (hit['duration'] is num) ? (hit['duration'] as num).toDouble() : 0.0;
+                final diff = durationSec > 0 && hitDur > 0 ? (hitDur - durationSec).abs() : 0.0;
+                if (diff < minDiff && diff < 30.0) {
+                  minDiff = diff;
+                  bestHit = hit;
+                }
+              }
+            }
+          }
+
+          bestHit ??= hits.first as Map;
+          final isrc = bestHit['isrc']?.toString().trim();
+          if (isrc != null && isrc.isNotEmpty) {
+            final lrcUrl = 'https://lrc.red/s/$isrc.lrc';
+            final lrcRes = (await _dio.get(lrcUrl)).data;
+            if (lrcRes != null && lrcRes is String && lrcRes.trim().isNotEmpty) {
+              final plain = lrcRes.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+              printINFO("Word-Synced Apple Lyrics found via lrc.red ($isrc) for $cleanTitle");
+              return {
+                "synced": lrcRes.trim(),
+                "plainLyrics": plain,
+                "provider": "lrc_red",
+                "wordSynced": true,
+              };
             }
           }
         }
@@ -370,6 +440,26 @@ class SyncedLyricsService {
     final ytFirstVocalMs = (ytVideoCaptions != null && ytVideoCaptions['firstVocalMs'] is int)
         ? (ytVideoCaptions['firstVocalMs'] as int)
         : 0;
+
+    // Tier 0: lrc.red (Apple Music TTML / Word-by-word synced lyrics) - BitChord provider
+    try {
+      final lrcRedRes = await _fetchFromLrcRed(cleanTitle, cleanArtist, dur);
+      if (lrcRedRes != null) {
+        String synced = lrcRedRes["synced"] as String;
+        if (ytFirstVocalMs > 0) {
+          synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+        }
+        final lyricsData = {
+          "synced": synced,
+          "plainLyrics": lrcRedRes["plainLyrics"] ?? "",
+          "provider": "lrc_red",
+          "wordSynced": true,
+          "captionAligned": ytFirstVocalMs > 0,
+        };
+        await lyricsBox.put(song.id, lyricsData);
+        return lyricsData;
+      }
+    } catch (_) {}
 
     // 2. Tier 1: LRCLIB Exact Lookup
     if (cleanArtist.isNotEmpty && cleanTitle.isNotEmpty) {

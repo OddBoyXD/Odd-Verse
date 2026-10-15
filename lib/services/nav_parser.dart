@@ -143,7 +143,6 @@ const musicPlaylistShelfRenderer = [
 
 List<Map<String, dynamic>> parseMixedContent(List<dynamic> rows) {
   List<Map<String, dynamic>> items = [];
-  //inspect(rows);
 
   for (var row in rows) {
     dynamic title;
@@ -158,6 +157,12 @@ List<Map<String, dynamic>> parseMixedContent(List<dynamic> rows) {
         continue;
       }
       title = nav(results, carousel_title + ['text']);
+      if (title == null || title.toString().trim().isEmpty) {
+        title = nav(results, ['header', 'musicCarouselShelfBasicHeaderRenderer', 'strapline', 'runs', 0, 'text']);
+      }
+      if (title == null || title.toString().trim().isEmpty) {
+        title = nav(results, ['header', 'musicHeaderRenderer', 'title', 'runs', 0, 'text']);
+      }
 
       for (var result in results['contents']) {
         var data = nav(result, [mtrir]);
@@ -167,7 +172,21 @@ List<Map<String, dynamic>> parseMixedContent(List<dynamic> rows) {
               noneIfAbsent: true, funName: "mixed1");
           if (pageType == null) {
             if (nav(data, navigation_watch_playlist_id) != null) {
-              //  content = parseWatchPlaylistHome(data);
+              final playlistId = nav(data, navigation_watch_playlist_id);
+              final itemTitle = nav(data, title_text) ?? "Mix";
+              final thumbnails = nav(data, thumbnail_renderer);
+              var subtitle = data['subtitle'];
+              String description = "";
+              if (subtitle != null && subtitle.containsKey('runs')) {
+                var runs = subtitle['runs'];
+                description = runs.map((run) => run['text']).join('');
+              }
+              content = Playlist.fromJson({
+                'title': itemTitle,
+                'playlistId': playlistId,
+                'thumbnails': thumbnails,
+                'description': description,
+              });
             } else {
               content = parseSong(data);
             }
@@ -183,10 +202,14 @@ List<Map<String, dynamic>> parseMixedContent(List<dynamic> rows) {
           content = parseSongFlat(data);
         }
 
-        contents.add(content);
+        if (content != null) {
+          contents.add(content);
+        }
       }
 
-      items.add({'title': title, 'contents': contents});
+      if (contents.isNotEmpty) {
+        items.add({'title': title ?? 'Recommended', 'contents': contents});
+      }
     }
   }
   return items;

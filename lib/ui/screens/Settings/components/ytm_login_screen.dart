@@ -19,7 +19,7 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
   bool _loginCaptured = false;
 
   static const String _loginUrl =
-      "https://accounts.google.com/ServiceLogin?service=youtube&passive=true&continue=https%3A%2F%2Fmusic.youtube.com%2F";
+      "https://accounts.google.com/ServiceLogin?ltmpl=music&service=youtube&passive=true&continue=https%3A%2F%2Fmusic.youtube.com%2F";
 
   @override
   void initState() {

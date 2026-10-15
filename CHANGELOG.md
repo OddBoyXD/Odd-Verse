@@ -2,6 +2,19 @@
 
 ## [v1.0.3] - Latest Release
 
+### 🍎 Apple-Style Word-by-Word Synced Lyrics & Flowing Golden Glow (BitChord Parity)
+- **Word-by-Word Millisecond Timing**: Integrated `lrc.red` enhanced TTML/LRC provider directly into the synced lyrics resolution pipeline. Millisecond word-level timing tags (`<mm:ss.xx>word`) are dynamically parsed and structured into `LyricWord` tokens.
+- **Word-by-Word Radiant Golden Illumination**: Active lines now render in high-fidelity `Text.rich` spans. Words illuminate in glowing radiant gold (`0xFFFFD54F` with double-layer warm bloom shadows) exactly as they are vocalized, while upcoming words remain cleanly dimmed at 50% opacity, delivering identical Apple Music / BitChord visual elegance with zero extra GPU shaders and negligible CPU overhead.
+- **Vocal-Onset Word Alignment**: Auto-aligns word timestamps with YouTube audio when intro delays or sponsor segments are detected, ensuring word illumination matches the singer's exact voice on any video or upload.
+- **Zero Performance & Memory Overhead**: Implemented completely without high-memory animation controllers or GPU shader passes, keeping playback butter-smooth and maintaining 100% full compatibility with Lite Mode.
+
+### 🎵 Enhanced YouTube Music Shelves & Mixes
+- **Personalized Mix & Radio Parsing**: Enhanced `nav_parser.dart` to decode `navigation_watch_playlist_id`, turning custom mixes (My Supermix, My Mix 1–6, Mood Mixes, Discover Mix) into rich `Playlist` objects.
+- **Carousel & Strapline Header Extraction**: Added fallback shelf title extraction from `strapline` and `musicHeaderRenderer`, ensuring all dynamic personalized shelves from YouTube Music InnerTube feed populate properly.
+
+### 🔐 Seamless YouTube Music Login
+- **Official Google Music Login Template**: Configured `ltmpl=music` login template parameter in `ytm_login_screen.dart`, ensuring Google authentication completes smoothly without browser security blocks.
+
 ### ⚡ Lite Mode (Save Battery & RAM)
 - **Zero Transition Overhead**: Repurposed transition animation toggle to "Lite Mode (Save Battery & RAM)". Enabling Lite Mode turns off page transitions for instant zero-lag screen swapping.
 - **Complete GPU Blur Bypass**: Completely bypasses costly real-time GPU `BackdropFilter` convolution passes (sigma 10–30) across Standard Player, Gesture Player, and the queue bar, reducing CPU/GPU overhead, thermals, and battery consumption.

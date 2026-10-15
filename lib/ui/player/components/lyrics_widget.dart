@@ -7,10 +7,21 @@ import 'package:harmonymusic/utils/indic_transliteration.dart';
 import '../../widgets/loader.dart';
 import '../player_controller.dart';
 
+class LyricWord {
+  final Duration time;
+  final String text;
+  LyricWord({required this.time, required this.text});
+}
+
 class LyricLine {
   final Duration time;
   final String text;
-  LyricLine({required this.time, required this.text});
+  final List<LyricWord> words;
+  LyricLine({
+    required this.time,
+    required this.text,
+    this.words = const [],
+  });
 }
 
 class LyricsWidget extends StatelessWidget {
@@ -22,10 +33,11 @@ class LyricsWidget extends StatelessWidget {
     if (lrc.trim().isEmpty) return [];
     final lines = lrc.split('\n');
     final result = <LyricLine>[];
-    final regex = RegExp(r'\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)');
+    final lineRegex = RegExp(r'\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)');
+    final wordRegex = RegExp(r'<(\d{2}):(\d{2})\.(\d{2,3})>([^<]*)');
 
     for (final line in lines) {
-      final match = regex.firstMatch(line.trim());
+      final match = lineRegex.firstMatch(line.trim());
       if (match != null) {
         final min = int.parse(match.group(1)!);
         final sec = int.parse(match.group(2)!);
@@ -35,12 +47,42 @@ class LyricsWidget extends StatelessWidget {
         if (sponsorOffset != Duration.zero) {
           duration += sponsorOffset;
         }
-        var text = match.group(4)!.trim();
-        if (text.isNotEmpty) {
-          if (isRomanize) {
-            text = IndicTransliteration.transliterateLine(text);
+        var rawContent = match.group(4) ?? '';
+        final words = <LyricWord>[];
+
+        if (rawContent.contains('<') && rawContent.contains('>')) {
+          final wordMatches = wordRegex.allMatches(rawContent);
+          for (final wm in wordMatches) {
+            final wMin = int.parse(wm.group(1)!);
+            final wSec = int.parse(wm.group(2)!);
+            final wMsStr = wm.group(3)!;
+            final wMs = int.parse(wMsStr.padRight(3, '0').substring(0, 3));
+            var wDuration =
+                Duration(minutes: wMin, seconds: wSec, milliseconds: wMs);
+            if (sponsorOffset != Duration.zero) {
+              wDuration += sponsorOffset;
+            }
+            var wText = wm.group(4) ?? '';
+            if (wText.isNotEmpty) {
+              if (isRomanize && wText.trim().isNotEmpty) {
+                final hasTrailingSpace = wText.endsWith(' ');
+                wText = IndicTransliteration.transliterateLine(wText.trim()) +
+                    (hasTrailingSpace ? ' ' : '');
+              }
+              words.add(LyricWord(time: wDuration, text: wText));
+            }
           }
-          result.add(LyricLine(time: duration, text: text));
+          // Strip word tags for clean line fallback
+          rawContent = rawContent.replaceAll(RegExp(r'<.*?>'), '').trim();
+        } else {
+          rawContent = rawContent.trim();
+          if (isRomanize && rawContent.isNotEmpty) {
+            rawContent = IndicTransliteration.transliterateLine(rawContent);
+          }
+        }
+
+        if (rawContent.isNotEmpty) {
+          result.add(LyricLine(time: duration, text: rawContent, words: words));
         }
       }
     }
@@ -397,7 +439,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
                                   isActive ? FontWeight.w800 : FontWeight.w500,
                               letterSpacing: isActive ? 0.2 : 0.0,
                               height: 1.5,
-                              shadows: isActive
+                              shadows: (isActive && line.words.isEmpty)
                                   ? const [
                                       Shadow(
                                         color: Color(0xCCFFD54F),
@@ -410,10 +452,42 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
                                     ]
                                   : const [],
                             ),
-                            child: Text(
-                              line.text,
-                              textAlign: TextAlign.center,
-                            ),
+                            child: (isActive && line.words.isNotEmpty)
+                                ? Text.rich(
+                                    TextSpan(
+                                      children: line.words.map((w) {
+                                        final isSung = currentPos >= w.time;
+                                        return TextSpan(
+                                          text: w.text,
+                                          style: TextStyle(
+                                            color: isSung
+                                                ? const Color(0xFFFFD54F)
+                                                : Colors.white.withOpacity(0.50),
+                                            fontWeight: isSung
+                                                ? FontWeight.w800
+                                                : FontWeight.w600,
+                                            shadows: isSung
+                                                ? const [
+                                                    Shadow(
+                                                      color: Color(0xCCFFD54F),
+                                                      blurRadius: 14.0,
+                                                    ),
+                                                    Shadow(
+                                                      color: Color(0x55FFA000),
+                                                      blurRadius: 24.0,
+                                                    ),
+                                                  ]
+                                                : const [],
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  )
+                                : Text(
+                                    line.text,
+                                    textAlign: TextAlign.center,
+                                  ),
                           ),
                         ),
                       ),
