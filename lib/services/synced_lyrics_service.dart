@@ -809,6 +809,43 @@ class SyncedLyricsService {
     }
   }
 
+  /// Search a specific provider or across all providers for manual lyrics search
+  static Future<List<Map<String, dynamic>>> searchProvider(
+      String providerId, String title, String artist,
+      {int durationSec = 0, String videoId = ""}) async {
+    final cleanTitle = cleanTrackTitle(title, artist: artist);
+    final cleanArtist = cleanArtistName(artist);
+    final results = <Map<String, dynamic>>[];
+
+    if (providerId == 'all') {
+      return searchAllProviders(title, artist, durationSec: durationSec);
+    }
+
+    final allSources = LyricsSourceInfo.loadSavedSources();
+    final source = allSources.firstWhere(
+      (s) => s.id == providerId,
+      orElse: () => LyricsSourceInfo(id: providerId, label: providerId),
+    );
+
+    final res = await _dispatchProvider(
+        providerId, cleanTitle, cleanArtist, durationSec, videoId);
+    if (res != null &&
+        ((res['synced'] != null &&
+                res['synced'].toString().trim().isNotEmpty) ||
+            (res['plainLyrics'] != null &&
+                res['plainLyrics'].toString().trim().isNotEmpty))) {
+      results.add({
+        ...res,
+        'title': cleanTitle,
+        'artist': cleanArtist,
+        'sourceName':
+            '${source.label}${res['wordSynced'] == true ? " (Word-synced 🍎)" : ""}',
+      });
+    }
+
+    return results;
+  }
+
   /// Search across all providers simultaneously for manual lyrics search
   static Future<List<Map<String, dynamic>>> searchAllProviders(
       String title, String artist,
@@ -832,7 +869,7 @@ class SyncedLyricsService {
           'title': cleanTitle,
           'artist': cleanArtist,
           'sourceName':
-              '${src.label}${src.wordSynced ? " (Word-synced)" : ""}',
+              '${src.label}${res['wordSynced'] == true ? " (Word-synced 🍎)" : ""}',
         });
       }
     }).toList();
@@ -1062,15 +1099,17 @@ class SyncedLyricsService {
     final dur = song.duration?.inSeconds ?? durInSec;
     String? fallbackPlain;
 
-    // Concurrently discover the exact vocal onset from YouTube video captions
-    final ytCaptionsFuture = _fetchFromYouTubeCaptions(song.id).catchError((_) => null);
-
     final enabledSources =
         LyricsSourceInfo.loadSavedSources().where((s) => s.enabled).toList();
 
-    // Parallel search across all enabled providers in user preference order
     final Map<String, Map<String, dynamic>> providerResults = {};
-    final queries = enabledSources.map((source) async {
+
+    // Tier 1: Fast parallel check of the primary word-synced sources first (lrc_red, better_lyrics, kugou, lrclib)
+    final tier1Ids = {'lrc_red', 'better_lyrics', 'kugou', 'lrclib'};
+    final tier1Sources =
+        enabledSources.where((s) => tier1Ids.contains(s.id)).toList();
+
+    await Future.wait(tier1Sources.map((source) async {
       try {
         final res = await _dispatchProvider(
           source.id,
@@ -1078,23 +1117,16 @@ class SyncedLyricsService {
           cleanArtist,
           dur,
           song.id,
-          ytCaptionsFuture: ytCaptionsFuture,
         );
         if (res != null) {
           providerResults[source.id] = res;
         }
       } catch (_) {}
-    }).toList();
+    }));
 
-    await Future.wait(queries);
-    final ytVideoCaptions = await ytCaptionsFuture;
-    final ytFirstVocalMs = (ytVideoCaptions != null && ytVideoCaptions['firstVocalMs'] is int)
-        ? (ytVideoCaptions['firstVocalMs'] as int)
-        : 0;
-
-    // Priority 1: Word-by-word synced lyrics in user provider preference order
+    // Check if any Tier 1 source gave us word-synced lyrics
     Map<String, dynamic>? bestLyrics;
-    for (final src in enabledSources) {
+    for (final src in tier1Sources) {
       final cand = providerResults[src.id];
       if (cand != null &&
           cand['wordSynced'] == true &&
@@ -1105,25 +1137,63 @@ class SyncedLyricsService {
       }
     }
 
-    // Priority 2: Line-synced lyrics in user provider preference order
+    // Tier 2: If no word-synced lyrics from Tier 1, query remaining enabled sources in parallel
     if (bestLyrics == null) {
+      final tier2Sources =
+          enabledSources.where((s) => !tier1Ids.contains(s.id)).toList();
+      if (tier2Sources.isNotEmpty) {
+        await Future.wait(tier2Sources.map((source) async {
+          try {
+            final res = await _dispatchProvider(
+              source.id,
+              cleanTitle,
+              cleanArtist,
+              dur,
+              song.id,
+            );
+            if (res != null) {
+              providerResults[source.id] = res;
+            }
+          } catch (_) {}
+        }));
+      }
+
+      // Check all sources for word-synced lyrics
       for (final src in enabledSources) {
         final cand = providerResults[src.id];
         if (cand != null &&
+            cand['wordSynced'] == true &&
             cand['synced'] != null &&
             cand['synced'].toString().trim().isNotEmpty) {
           bestLyrics = Map<String, dynamic>.from(cand);
           break;
         }
       }
-    }
 
-    // Priority 3: YouTube Video Subtitles / Closed Captions
-    if (bestLyrics == null &&
-        ytVideoCaptions != null &&
-        ytVideoCaptions['synced'] != null &&
-        ytVideoCaptions['synced'].toString().trim().isNotEmpty) {
-      bestLyrics = Map<String, dynamic>.from(ytVideoCaptions);
+      // Priority 2: Line-synced lyrics in user provider preference order
+      if (bestLyrics == null) {
+        for (final src in enabledSources) {
+          final cand = providerResults[src.id];
+          if (cand != null &&
+              cand['synced'] != null &&
+              cand['synced'].toString().trim().isNotEmpty) {
+            bestLyrics = Map<String, dynamic>.from(cand);
+            break;
+          }
+        }
+      }
+
+      // Priority 3: Only check YouTube captions if no lyrics were found anywhere
+      if (bestLyrics == null) {
+        try {
+          final ytCaptions = await _fetchFromYouTubeCaptions(song.id);
+          if (ytCaptions != null &&
+              ytCaptions['synced'] != null &&
+              ytCaptions['synced'].toString().trim().isNotEmpty) {
+            bestLyrics = Map<String, dynamic>.from(ytCaptions);
+          }
+        } catch (_) {}
+      }
     }
 
     // Gather plain lyrics fallback from candidates if any

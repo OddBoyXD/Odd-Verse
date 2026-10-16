@@ -887,10 +887,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                           ),
                         ),
                       ),
-                      ),
                     ),
-                  ),
-                );
+                  );
                 }),
                 Padding(
                   padding: const EdgeInsets.only(top: 28.0, bottom: 20.0),
@@ -932,19 +930,44 @@ void showLyricsSearchSheet(
           ? SyncedLyricsService.cleanArtistName(current.artist)
           : "");
 
+  final allSources = LyricsSourceInfo.loadSavedSources();
+
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: const Color(0xFF181818),
+    backgroundColor: const Color(0xFF141414),
     shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
     ),
     builder: (ctx) {
       bool isSearching = false;
+      String selectedProviderId = 'all';
       List<Map<String, dynamic>> searchResults = [];
 
       return StatefulBuilder(
         builder: (context, setSheetState) {
+          Future<void> doSearch(String providerId) async {
+            setSheetState(() {
+              isSearching = true;
+              selectedProviderId = providerId;
+            });
+            final dur =
+                playerController.progressBarStatus.value.total.inSeconds;
+            final list = await SyncedLyricsService.searchProvider(
+              providerId,
+              titleController.text.trim(),
+              artistController.text.trim(),
+              durationSec: dur,
+              videoId: current?.id ?? "",
+            );
+            if (context.mounted) {
+              setSheetState(() {
+                searchResults = list;
+                isSearching = false;
+              });
+            }
+          }
+
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom + 16,
@@ -960,9 +983,9 @@ void showLyricsSearchSheet(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      "Search Lyrics Across Providers",
+                      "Search Lyrics by Provider",
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
@@ -974,6 +997,63 @@ void showLyricsSearchSheet(
                   ],
                 ),
                 const SizedBox(height: 10),
+                // Provider selection chips
+                SizedBox(
+                  height: 38,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ChoiceChip(
+                          label: const Text("All Providers"),
+                          selected: selectedProviderId == 'all',
+                          selectedColor: const Color(0xFFFFD54F),
+                          backgroundColor: Colors.white10,
+                          labelStyle: TextStyle(
+                            color: selectedProviderId == 'all'
+                                ? Colors.black
+                                : Colors.white70,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                          onSelected: (selected) {
+                            if (selected && !isSearching) {
+                              doSearch('all');
+                            }
+                          },
+                        ),
+                      ),
+                      ...allSources.map((source) {
+                        final isSel = selectedProviderId == source.id;
+                        final labelText =
+                            "${source.label}${source.wordSynced ? " 🍎" : ""}";
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: ChoiceChip(
+                            label: Text(labelText),
+                            selected: isSel,
+                            selectedColor: const Color(0xFFFFD54F),
+                            backgroundColor: Colors.white10,
+                            labelStyle: TextStyle(
+                              color: isSel ? Colors.black : Colors.white70,
+                              fontWeight: isSel
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              fontSize: 12,
+                            ),
+                            onSelected: (selected) {
+                              if (selected && !isSearching) {
+                                doSearch(source.id);
+                              }
+                            },
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   controller: titleController,
                   decoration: InputDecoration(
@@ -981,8 +1061,8 @@ void showLyricsSearchSheet(
                     labelStyle: const TextStyle(color: Colors.white70),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10)),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
                   ),
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
@@ -994,8 +1074,8 @@ void showLyricsSearchSheet(
                     labelStyle: const TextStyle(color: Colors.white70),
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10)),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
                   ),
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                 ),
@@ -1009,21 +1089,7 @@ void showLyricsSearchSheet(
                   ),
                   onPressed: isSearching
                       ? null
-                      : () async {
-                          setSheetState(() => isSearching = true);
-                          final dur = playerController
-                              .progressBarStatus.value.total.inSeconds;
-                          final list =
-                              await SyncedLyricsService.searchAllProviders(
-                            titleController.text.trim(),
-                            artistController.text.trim(),
-                            durationSec: dur,
-                          );
-                          setSheetState(() {
-                            searchResults = list;
-                            isSearching = false;
-                          });
-                        },
+                      : () => doSearch(selectedProviderId),
                   icon: isSearching
                       ? const SizedBox(
                           width: 16,
@@ -1032,13 +1098,16 @@ void showLyricsSearchSheet(
                               strokeWidth: 2, color: Colors.black),
                         )
                       : const Icon(Icons.search, size: 18),
-                  label:
-                      Text(isSearching ? "Searching..." : "Search Providers"),
+                  label: Text(isSearching
+                      ? "Searching..."
+                      : (selectedProviderId == 'all'
+                          ? "Search All Providers"
+                          : "Search Selected Provider")),
                 ),
                 const SizedBox(height: 12),
                 if (searchResults.isNotEmpty)
                   ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 250),
+                    constraints: const BoxConstraints(maxHeight: 260),
                     child: ListView.separated(
                       shrinkWrap: true,
                       itemCount: searchResults.length,
@@ -1116,12 +1185,15 @@ void showLyricsSearchSheet(
                 else if (!isSearching &&
                     searchResults.isEmpty &&
                     titleController.text.isNotEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
-                      "Search above to fetch lyrics from lrc.red, BetterLyrics, KuGou, LRCLIB & Netease.",
+                      selectedProviderId == 'all'
+                          ? "Select a provider above or search to fetch lyrics."
+                          : "No lyrics found from selected provider. Tap another provider above to try.",
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white38, fontSize: 12),
+                      style:
+                          const TextStyle(color: Colors.white38, fontSize: 12),
                     ),
                   ),
               ],

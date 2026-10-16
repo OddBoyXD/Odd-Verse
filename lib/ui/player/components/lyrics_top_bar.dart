@@ -100,28 +100,14 @@ class LyricsTopBar extends StatelessWidget {
                 );
               }),
 
-              // 15 Lyrics Sources priority dialog
-              IconButton(
-                tooltip: "Lyrics Sources (15 Providers)",
-                splashRadius: 20,
-                icon: const Icon(
-                  Icons.tune_rounded,
-                  color: Colors.white70,
-                  size: 20,
-                ),
-                onPressed: () {
-                  showLyricsSourcesDialog(context);
-                },
-              ),
-
               // Manual Lyrics search across providers
               IconButton(
                 tooltip: "Search Across Providers",
                 splashRadius: 20,
                 icon: const Icon(
                   Icons.search_rounded,
-                  color: Colors.white70,
-                  size: 20,
+                  color: Colors.white,
+                  size: 22,
                 ),
                 onPressed: () {
                   showLyricsSearchSheet(context, playerController);
