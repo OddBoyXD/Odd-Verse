@@ -1,4 +1,74 @@
+import 'package:dio/dio.dart';
+
 class IndicTransliteration {
+  static final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 4),
+      receiveTimeout: const Duration(seconds: 5),
+    ),
+  );
+  static final Map<String, String> _universalRomanizeCache = {};
+
+  static bool containsNonLatin(String text) {
+    for (int i = 0; i < text.length; i++) {
+      final code = text.codeUnitAt(i);
+      if (code > 0x024F && !((code >= 0x2000 && code <= 0x206F) || (code >= 0x2070 && code <= 0x209F))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /// Universal Romanization: Uses Google's dt=rm translation endpoint to convert
+  /// ANY non-Latin script (Hindi, Punjabi, Bengali, Tamil, Telugu, Malayalam,
+  /// Kannada, Gujarati, Odia, Urdu, Arabic, Japanese, Korean, Chinese, Russian)
+  /// into phonetic English / Latin script, with offline dictionary fallback.
+  static Future<String> romanizeUniversal(String text) async {
+    if (text.trim().isEmpty || !containsNonLatin(text)) return text;
+    if (_universalRomanizeCache.containsKey(text)) {
+      return _universalRomanizeCache[text]!;
+    }
+
+    try {
+      final res = await _dio.get(
+        'https://translate.googleapis.com/translate_a/single',
+        queryParameters: {
+          'client': 'dict-chrome-ex',
+          'sl': 'auto',
+          'tl': 'en',
+          'dt': 'rm',
+          'q': text,
+        },
+      );
+      if (res.statusCode == 200 && res.data != null && res.data is List) {
+        final root = res.data as List;
+        if (root.isNotEmpty && root[0] is List) {
+          final segments = root[0] as List;
+          final buffer = StringBuffer();
+          for (final seg in segments) {
+            if (seg is List && seg.length >= 4 && seg[3] != null) {
+              buffer.write(seg[3].toString());
+            } else if (seg is List && seg.length >= 3 && seg[2] != null) {
+              buffer.write(seg[2].toString());
+            } else if (seg is List && seg.isNotEmpty && seg[0] != null) {
+              buffer.write(seg[0].toString());
+            }
+          }
+          final romanized = buffer.toString().trim();
+          if (romanized.isNotEmpty) {
+            _universalRomanizeCache[text] = romanized;
+            return romanized;
+          }
+        }
+      }
+    } catch (_) {}
+
+    // Instant offline fallback for Indic scripts
+    final offline = transliterateLine(text);
+    _universalRomanizeCache[text] = offline;
+    return offline;
+  }
+
   // Check if a string contains any Indic Unicode script (Devanagari to Malayalam: 0x0900 - 0x0D7F)
   static bool containsIndic(String text) {
     for (int i = 0; i < text.length; i++) {
@@ -223,8 +293,16 @@ class IndicTransliteration {
   }
 
   static String transliterateLine(String line) {
+    if (_universalRomanizeCache.containsKey(line)) {
+      return _universalRomanizeCache[line]!;
+    }
     var text = sanitizeBrokenCombiningMarks(line);
-    if (!containsIndic(text)) return text;
+    if (!containsIndic(text)) {
+      if (containsNonLatin(text)) {
+        romanizeUniversal(text);
+      }
+      return text;
+    }
 
     final runes = text.runes.toList();
     final buffer = StringBuffer();
@@ -546,5 +624,30 @@ class IndicTransliteration {
     }
 
     return processed.join('\n');
+  }
+
+  static Future<void> prefetchRomanization(String lyrics) async {
+    if (lyrics.isEmpty) return;
+    try {
+      final lines = lyrics.split('\n');
+      final targets = <String>[];
+      for (final raw in lines) {
+        final clean = raw
+            .replaceAll(RegExp(r'\[\d{2}:\d{2}\.\d{2,3}\]'), '')
+            .replaceAll(RegExp(r'<.*?>'), '')
+            .trim();
+        if (clean.isNotEmpty &&
+            containsNonLatin(clean) &&
+            !_universalRomanizeCache.containsKey(clean)) {
+          targets.add(clean);
+        }
+      }
+      if (targets.isEmpty) return;
+      for (int i = 0; i < targets.length; i += 6) {
+        final chunk = targets.sublist(
+            i, (i + 6 < targets.length) ? i + 6 : targets.length);
+        await Future.wait(chunk.map((t) => romanizeUniversal(t)));
+      }
+    } catch (_) {}
   }
 }

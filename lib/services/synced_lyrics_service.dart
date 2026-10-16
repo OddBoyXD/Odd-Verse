@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:harmonymusic/models/lyrics_source_model.dart';
 import 'package:harmonymusic/services/music_service.dart';
 import 'package:harmonymusic/utils/helper.dart';
 import 'package:hive/hive.dart';
@@ -272,6 +273,280 @@ class SyncedLyricsService {
     return null;
   }
 
+  static Future<Map<String, dynamic>?> _fetchFromBiniLyrics(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final query =
+          cleanArtist.isNotEmpty ? '$cleanTitle $cleanArtist' : cleanTitle;
+      final url =
+          'https://lyrics-api.binimum.org/search?q=${Uri.encodeComponent(query)}';
+      final res = (await _dio.get(url)).data;
+      if (res != null && res is Map && res['ttml'] != null) {
+        final lrc = _convertTtmlToEnhancedLrc(res['ttml'].toString());
+        if (lrc != null && lrc.trim().isNotEmpty) {
+          final plain = lrc.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+          return {
+            "synced": lrc.trim(),
+            "plainLyrics": plain,
+            "provider": "bini_lyrics",
+            "wordSynced": true,
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromBetterLyricsPortato(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final url =
+          'https://lyrics-api.boidu.dev/getPortatoLyrics?s=${Uri.encodeComponent(cleanTitle)}&a=${Uri.encodeComponent(cleanArtist)}${durationSec > 0 ? '&d=$durationSec' : ''}';
+      final res = (await _dio.get(url)).data;
+      if (res != null && res is Map && res['ttml'] != null) {
+        final lrc = _convertTtmlToEnhancedLrc(res['ttml'].toString());
+        if (lrc != null && lrc.trim().isNotEmpty) {
+          final plain = lrc.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+          return {
+            "synced": lrc.trim(),
+            "plainLyrics": plain,
+            "provider": "better_lyrics_portato",
+            "wordSynced": true,
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromPaxSenix(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final url =
+          'https://lyrics.paxsenix.org/apple-music/lyrics?title=${Uri.encodeComponent(cleanTitle)}&artist=${Uri.encodeComponent(cleanArtist)}';
+      final res = (await _dio.get(url)).data;
+      if (res != null &&
+          res is Map &&
+          (res['ttml'] != null || res['lyrics'] != null)) {
+        final raw = (res['ttml'] ?? res['lyrics']).toString();
+        final lrc = raw.contains('<p') ? _convertTtmlToEnhancedLrc(raw) : raw;
+        if (lrc != null && lrc.trim().isNotEmpty) {
+          final plain = lrc.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+          return {
+            "synced": lrc.trim(),
+            "plainLyrics": plain,
+            "provider": "paxsenix",
+            "wordSynced": lrc.contains('<') && lrc.contains('>'),
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromPaxSenixSpotify(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final url =
+          'https://lyrics.paxsenix.org/spotify/lyrics?title=${Uri.encodeComponent(cleanTitle)}&artist=${Uri.encodeComponent(cleanArtist)}';
+      final res = (await _dio.get(url)).data;
+      if (res != null && res is Map && res['lyrics'] != null) {
+        final raw = res['lyrics'].toString();
+        if (raw.trim().isNotEmpty) {
+          final plain = raw.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+          return {
+            "synced": raw.trim(),
+            "plainLyrics": plain,
+            "provider": "paxsenix_spotify",
+            "wordSynced": false,
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromPaxSenixMusixmatch(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final url =
+          'https://lyrics.paxsenix.org/musixmatch/lyrics?title=${Uri.encodeComponent(cleanTitle)}&artist=${Uri.encodeComponent(cleanArtist)}';
+      final res = (await _dio.get(url)).data;
+      if (res != null && res is Map && res['lyrics'] != null) {
+        final raw = res['lyrics'].toString();
+        if (raw.trim().isNotEmpty) {
+          final plain = raw.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+          return {
+            "synced": raw.trim(),
+            "plainLyrics": plain,
+            "provider": "paxsenix_musixmatch",
+            "wordSynced": raw.contains('<') && raw.contains('>'),
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromLyricsPlus(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    final mirrors = [
+      'https://lyricsplus.prjktla.my.id',
+      'https://lyricsplus.atomix.one',
+    ];
+    for (final mirror in mirrors) {
+      try {
+        final url =
+            '$mirror/v1/lyrics?title=${Uri.encodeComponent(cleanTitle)}&artist=${Uri.encodeComponent(cleanArtist)}';
+        final res = (await _dio.get(url)).data;
+        if (res != null && res is Map && res['lyrics'] != null) {
+          final raw = res['lyrics'].toString();
+          if (raw.trim().isNotEmpty) {
+            final plain = raw.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+            return {
+              "synced": raw.trim(),
+              "plainLyrics": plain,
+              "provider": "lyrics_plus",
+              "wordSynced": raw.contains('<') && raw.contains('>'),
+            };
+          }
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromUnison(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final url =
+          'https://unison-api.vercel.app/lyrics?title=${Uri.encodeComponent(cleanTitle)}&artist=${Uri.encodeComponent(cleanArtist)}';
+      final res = (await _dio.get(url)).data;
+      if (res != null && res is Map && res['lyrics'] != null) {
+        final raw = res['lyrics'].toString();
+        if (raw.trim().isNotEmpty) {
+          final plain = raw.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+          return {
+            "synced": raw.trim(),
+            "plainLyrics": plain,
+            "provider": "unison",
+            "wordSynced": raw.contains('<') && raw.contains('>'),
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromMusixmatch(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final url =
+          'https://apic-desktop.musixmatch.com/ws/1.1/macro.subtitles.get?format=json&q_track=${Uri.encodeComponent(cleanTitle)}&q_artist=${Uri.encodeComponent(cleanArtist)}&user_language=en&app_id=web-desktop-app-v1.0';
+      final res = (await _dio.get(url)).data;
+      if (res != null && res is Map) {
+        final body = res['message']?['body']?['macro_calls'];
+        if (body is Map) {
+          final subtitles = body['track.subtitles.get']?['message']?['body']
+              ?['subtitle_list'];
+          if (subtitles is List && subtitles.isNotEmpty) {
+            final subBody =
+                subtitles[0]?['subtitle']?['subtitle_body']?.toString();
+            if (subBody != null && subBody.trim().isNotEmpty) {
+              final plain =
+                  subBody.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+              return {
+                "synced": subBody.trim(),
+                "plainLyrics": plain,
+                "provider": "musixmatch",
+                "wordSynced": false,
+              };
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromGenius(
+      String cleanTitle, String cleanArtist) async {
+    try {
+      final q =
+          cleanArtist.isNotEmpty ? '$cleanTitle $cleanArtist' : cleanTitle;
+      final url =
+          'https://genius.com/api/search/multi?q=${Uri.encodeComponent(q)}';
+      final res = (await _dio.get(url)).data;
+      if (res != null && res is Map && res['response']?['sections'] is List) {
+        final sections = res['response']['sections'] as List;
+        for (final sec in sections) {
+          if (sec is Map && sec['type'] == 'song' && sec['hits'] is List) {
+            final hits = sec['hits'] as List;
+            if (hits.isNotEmpty) {
+              final songPath = hits[0]?['result']?['path']?.toString();
+              if (songPath != null && songPath.isNotEmpty) {
+                final pageRes =
+                    (await _dio.get('https://genius.com$songPath')).data;
+                if (pageRes != null && pageRes is String) {
+                  final containerRegex = RegExp(
+                      r'<div[^>]*data-lyrics-container="true"[^>]*>(.*?)</div>',
+                      dotAll: true);
+                  final matches = containerRegex.allMatches(pageRes);
+                  if (matches.isNotEmpty) {
+                    final buffer = StringBuffer();
+                    for (final m in matches) {
+                      var chunk = m.group(1) ?? '';
+                      chunk = chunk
+                          .replaceAll('<br/>', '\n')
+                          .replaceAll(RegExp(r'<[^>]*>'), '');
+                      buffer.writeln(chunk);
+                    }
+                    final plain = buffer.toString().trim();
+                    if (plain.isNotEmpty) {
+                      return {
+                        "synced": "",
+                        "plainLyrics": plain,
+                        "provider": "genius",
+                        "wordSynced": false,
+                      };
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromYouTubeMusic(
+      String videoId) async {
+    try {
+      if (Get.isRegistered<MusicServices>()) {
+        final musicServices = Get.find<MusicServices>();
+        final related = await musicServices.getWatchPlaylist(
+          videoId: videoId,
+          onlyRelated: true,
+        );
+        final lyricsId = related['lyrics'];
+        if (lyricsId != null) {
+          final ytLyrics = await musicServices.getLyrics(lyricsId);
+          if (ytLyrics != null && ytLyrics.toString().trim().isNotEmpty) {
+            return {
+              "synced": "",
+              "plainLyrics": ytLyrics.toString().trim(),
+              "provider": "ytmusic",
+              "wordSynced": false,
+            };
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   static String? _convertTtmlToEnhancedLrc(String ttml) {
     try {
       final pRegex =
@@ -477,66 +752,92 @@ class SyncedLyricsService {
     return null;
   }
 
+  static Future<Map<String, dynamic>?> _dispatchProvider(
+      String providerId,
+      String cleanTitle,
+      String cleanArtist,
+      int dur,
+      String videoId,
+      {Future<Map<String, dynamic>?>? ytCaptionsFuture}) {
+    switch (providerId) {
+      case 'lrc_red':
+        return _fetchFromLrcRed(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'bini_lyrics':
+        return _fetchFromBiniLyrics(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'better_lyrics':
+        return _fetchFromBetterLyrics(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'better_lyrics_portato':
+        return _fetchFromBetterLyricsPortato(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'paxsenix':
+        return _fetchFromPaxSenix(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'paxsenix_spotify':
+        return _fetchFromPaxSenixSpotify(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'paxsenix_musixmatch':
+        return _fetchFromPaxSenixMusixmatch(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'lyrics_plus':
+        return _fetchFromLyricsPlus(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'unison':
+        return _fetchFromUnison(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'youtube_captions':
+        return (ytCaptionsFuture ?? _fetchFromYouTubeCaptions(videoId))
+            .catchError((_) => null);
+      case 'ytmusic':
+        return _fetchFromYouTubeMusic(videoId).catchError((_) => null);
+      case 'kugou':
+        return _fetchFromKuGou(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'lrclib':
+        return _fetchFromLrclib(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'musixmatch':
+        return _fetchFromMusixmatch(cleanTitle, cleanArtist, dur)
+            .catchError((_) => null);
+      case 'genius':
+        return _fetchFromGenius(cleanTitle, cleanArtist)
+            .catchError((_) => null);
+      default:
+        return Future.value(null);
+    }
+  }
+
   /// Search across all providers simultaneously for manual lyrics search
   static Future<List<Map<String, dynamic>>> searchAllProviders(
-      String title, String artist, {int durationSec = 0}) async {
+      String title, String artist,
+      {int durationSec = 0}) async {
     final cleanTitle = cleanTrackTitle(title, artist: artist);
     final cleanArtist = cleanArtistName(artist);
     final results = <Map<String, dynamic>>[];
+    final enabledSources =
+        LyricsSourceInfo.loadSavedSources().where((s) => s.enabled).toList();
 
-    await Future.wait([
-      _fetchFromLrcRed(cleanTitle, cleanArtist, durationSec).then((res) {
-        if (res != null) {
-          results.add({
-            ...res,
-            'title': cleanTitle,
-            'artist': cleanArtist,
-            'sourceName': 'lrc.red (Apple Music TTML)',
-          });
-        }
-      }),
-      _fetchFromBetterLyrics(cleanTitle, cleanArtist, durationSec).then((res) {
-        if (res != null) {
-          results.add({
-            ...res,
-            'title': cleanTitle,
-            'artist': cleanArtist,
-            'sourceName': 'BetterLyrics (Apple Music)',
-          });
-        }
-      }),
-      _fetchFromLrclib(cleanTitle, cleanArtist, durationSec).then((res) {
-        if (res != null) {
-          results.add({
-            ...res,
-            'title': cleanTitle,
-            'artist': cleanArtist,
-            'sourceName': 'LRCLIB',
-          });
-        }
-      }),
-      _fetchFromKuGou(cleanTitle, cleanArtist, durationSec).then((res) {
-        if (res != null) {
-          results.add({
-            ...res,
-            'title': cleanTitle,
-            'artist': cleanArtist,
-            'sourceName': 'KuGou',
-          });
-        }
-      }),
-      _fetchFromNetease(cleanTitle, cleanArtist).then((res) {
-        if (res != null) {
-          results.add({
-            ...res,
-            'title': cleanTitle,
-            'artist': cleanArtist,
-            'sourceName': 'Netease Cloud',
-          });
-        }
-      }),
-    ]);
+    final futures = enabledSources.map((src) async {
+      final res = await _dispatchProvider(
+          src.id, cleanTitle, cleanArtist, durationSec, "");
+      if (res != null &&
+          ((res['synced'] != null &&
+                  res['synced'].toString().trim().isNotEmpty) ||
+              (res['plainLyrics'] != null &&
+                  res['plainLyrics'].toString().trim().isNotEmpty))) {
+        results.add({
+          ...res,
+          'title': cleanTitle,
+          'artist': cleanArtist,
+          'sourceName':
+              '${src.label}${src.wordSynced ? " (Word-synced)" : ""}',
+        });
+      }
+    }).toList();
 
+    await Future.wait(futures);
     return results;
   }
 
@@ -764,29 +1065,39 @@ class SyncedLyricsService {
     // Concurrently discover the exact vocal onset from YouTube video captions
     final ytCaptionsFuture = _fetchFromYouTubeCaptions(song.id).catchError((_) => null);
 
-    // Parallel search across all providers automatically to find the best word-by-word or synced lyrics
-    final queries = <Future<Map<String, dynamic>?>>[
-      _fetchFromLrcRed(cleanTitle, cleanArtist, dur).catchError((_) => null),
-      _fetchFromBetterLyrics(cleanTitle, cleanArtist, dur).catchError((_) => null),
-      if (cleanArtist.isNotEmpty)
-        _fetchFromLrcRed(cleanTitle, '', dur).catchError((_) => null),
-      _fetchFromKuGou(cleanTitle, cleanArtist, dur).catchError((_) => null),
-      _fetchFromLrclib(cleanTitle, cleanArtist, dur).catchError((_) => null),
-      _fetchFromNetease(cleanTitle, cleanArtist).catchError((_) => null),
-    ];
+    final enabledSources =
+        LyricsSourceInfo.loadSavedSources().where((s) => s.enabled).toList();
 
-    final providerResponses = await Future.wait(queries);
+    // Parallel search across all enabled providers in user preference order
+    final Map<String, Map<String, dynamic>> providerResults = {};
+    final queries = enabledSources.map((source) async {
+      try {
+        final res = await _dispatchProvider(
+          source.id,
+          cleanTitle,
+          cleanArtist,
+          dur,
+          song.id,
+          ytCaptionsFuture: ytCaptionsFuture,
+        );
+        if (res != null) {
+          providerResults[source.id] = res;
+        }
+      } catch (_) {}
+    }).toList();
+
+    await Future.wait(queries);
     final ytVideoCaptions = await ytCaptionsFuture;
     final ytFirstVocalMs = (ytVideoCaptions != null && ytVideoCaptions['firstVocalMs'] is int)
         ? (ytVideoCaptions['firstVocalMs'] as int)
         : 0;
 
-    final candidates = providerResponses.whereType<Map<String, dynamic>>().toList();
-
-    // Priority 1: Word-by-word synced lyrics (Apple Music TTML via lrc.red, BetterLyrics, KuGou)
+    // Priority 1: Word-by-word synced lyrics in user provider preference order
     Map<String, dynamic>? bestLyrics;
-    for (final cand in candidates) {
-      if (cand['wordSynced'] == true &&
+    for (final src in enabledSources) {
+      final cand = providerResults[src.id];
+      if (cand != null &&
+          cand['wordSynced'] == true &&
           cand['synced'] != null &&
           cand['synced'].toString().trim().isNotEmpty) {
         bestLyrics = Map<String, dynamic>.from(cand);
@@ -794,10 +1105,12 @@ class SyncedLyricsService {
       }
     }
 
-    // Priority 2: Line-synced lyrics (LRCLIB, KuGou, Netease)
+    // Priority 2: Line-synced lyrics in user provider preference order
     if (bestLyrics == null) {
-      for (final cand in candidates) {
-        if (cand['synced'] != null &&
+      for (final src in enabledSources) {
+        final cand = providerResults[src.id];
+        if (cand != null &&
+            cand['synced'] != null &&
             cand['synced'].toString().trim().isNotEmpty) {
           bestLyrics = Map<String, dynamic>.from(cand);
           break;
@@ -814,9 +1127,13 @@ class SyncedLyricsService {
     }
 
     // Gather plain lyrics fallback from candidates if any
-    for (final cand in candidates) {
-      if (cand['plainLyrics'] != null && cand['plainLyrics'].toString().trim().isNotEmpty) {
+    for (final src in enabledSources) {
+      final cand = providerResults[src.id];
+      if (cand != null &&
+          cand['plainLyrics'] != null &&
+          cand['plainLyrics'].toString().trim().isNotEmpty) {
         fallbackPlain ??= cand['plainLyrics'].toString().trim();
+        break;
       }
     }
 

@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
 import 'package:harmonymusic/services/synced_lyrics_service.dart';
 import 'package:harmonymusic/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:harmonymusic/ui/widgets/snackbar.dart';
 import 'package:harmonymusic/utils/indic_transliteration.dart';
+import 'lyrics_sources_sheet.dart';
 
 import '../../widgets/loader.dart';
 import '../player_controller.dart';
@@ -245,6 +247,11 @@ class LyricsWidget extends StatelessWidget {
 
       final rawSynced =
           playerController.lyrics['synced']?.toString().trim() ?? '';
+      if (rawSynced.isNotEmpty) {
+        IndicTransliteration.prefetchRomanization(rawSynced);
+      } else if (rawPlain.isNotEmpty) {
+        IndicTransliteration.prefetchRomanization(rawPlain);
+      }
       final parsedSynced = _parseLrc(rawSynced, isRomanize, effectiveOffset,
           totalDuration: playerController.progressBarStatus.value.total);
 

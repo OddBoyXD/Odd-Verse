@@ -3,9 +3,11 @@ import 'package:get/get.dart';
 
 import '/ui/player/components/lyrics_widget.dart';
 import '/ui/player/player_controller.dart';
+import '../../screens/Settings/settings_screen_controller.dart';
 import '../../widgets/image_widget.dart';
 import '../../widgets/sleep_timer_bottom_sheet.dart';
 import '../../widgets/songinfo_bottom_sheet.dart';
+import 'lyrics_sources_sheet.dart';
 
 class AlbumArtNLyrics extends StatelessWidget {
   const AlbumArtNLyrics({super.key, required this.playerArtImageSize});
@@ -57,9 +59,6 @@ class AlbumArtNLyrics extends StatelessWidget {
                     ),
                   ).whenComplete(() => Get.delete<SongInfoController>());
                 },
-                onTap: () {
-                  playerController.showLyrics();
-                },
                 onHorizontalDragEnd: (DragEndDetails details) {
                   if (playerController.showLyricsflag.isTrue) return;
                   if (details.primaryVelocity! < 0) {
@@ -100,18 +99,66 @@ class AlbumArtNLyrics extends StatelessWidget {
                               vertical: playerArtImageSize / 4,
                             ),
                           ),
+                          // Pinned Top Controls Bar (Lyrics Sources, Universal Romanize toggle, Close)
                           Positioned(
-                            top: 8,
+                            top: 6,
+                            left: 8,
                             right: 8,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.close_rounded,
-                                color: Colors.white70,
-                                size: 24,
-                              ),
-                              onPressed: () {
-                                playerController.showLyrics();
-                              },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: "Lyrics Sources",
+                                      splashRadius: 20,
+                                      icon: const Icon(
+                                        Icons.tune_rounded,
+                                        color: Colors.white70,
+                                        size: 20,
+                                      ),
+                                      onPressed: () {
+                                        showLyricsSourcesDialog(context);
+                                      },
+                                    ),
+                                    Obx(() {
+                                      final isRoman = Get.isRegistered<SettingsScreenController>()
+                                          ? Get.find<SettingsScreenController>().romanizeLyricsEnabled.value
+                                          : false;
+                                      return IconButton(
+                                        tooltip: "Romanize / English",
+                                        splashRadius: 20,
+                                        icon: Icon(
+                                          Icons.translate_rounded,
+                                          color: isRoman
+                                              ? const Color(0xFFFFD54F)
+                                              : Colors.white54,
+                                          size: 20,
+                                        ),
+                                        onPressed: () {
+                                          if (Get.isRegistered<SettingsScreenController>()) {
+                                            final sc = Get.find<SettingsScreenController>();
+                                            sc.toggleRomanizeLyrics(!sc.romanizeLyricsEnabled.value);
+                                          }
+                                        },
+                                      );
+                                    }),
+                                  ],
+                                ),
+                                IconButton(
+                                  tooltip: "Close Lyrics",
+                                  splashRadius: 20,
+                                  icon: const Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white70,
+                                    size: 22,
+                                  ),
+                                  onPressed: () {
+                                    playerController.showLyrics();
+                                  },
+                                ),
+                              ],
                             ),
                           ),
                         ],

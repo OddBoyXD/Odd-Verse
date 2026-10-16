@@ -414,6 +414,27 @@ class PlayerControlWidget extends StatelessWidget {
                 }
               },
             ),
+
+            const SizedBox(width: 4),
+
+            // Dedicated Lyrics Action Button
+            Obx(() {
+              final isLyricsOpen = playerController.showLyricsflag.value;
+              return IconButton(
+                tooltip: "Lyrics",
+                splashRadius: 20,
+                icon: Icon(
+                  isLyricsOpen ? Icons.lyrics_rounded : Icons.lyrics_outlined,
+                  size: 22,
+                ),
+                color: isLyricsOpen
+                    ? const Color(0xFFFFD54F)
+                    : theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                onPressed: () {
+                  playerController.showLyrics();
+                },
+              );
+            }),
           ],
         ),
       ],
