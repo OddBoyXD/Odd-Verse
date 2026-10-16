@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:harmonymusic/models/lyrics_source_model.dart';
 import 'package:harmonymusic/ui/player/player_controller.dart';
+import 'package:hive/hive.dart';
 
 void showLyricsSourcesDialog(BuildContext context) {
   showModalBottomSheet(
@@ -267,13 +268,20 @@ class _LyricsSourcesSheetState extends State<LyricsSourcesSheet> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                onPressed: () {
+                onPressed: () async {
                   Navigator.pop(context);
                   // Trigger a fresh lyrics lookup using the newly arranged providers
                   if (Get.isRegistered<PlayerController>()) {
                     final pc = Get.find<PlayerController>();
                     if (pc.currentSong.value != null) {
-                      pc.fetchLyrics();
+                      try {
+                        if (Hive.isBoxOpen("lyrics")) {
+                          await Hive.box("lyrics")
+                              .delete(pc.currentSong.value!.id);
+                        }
+                      } catch (_) {}
+                      pc.lyrics.value = {"synced": "", "plainLyrics": ""};
+                      pc.fetchLyricsForCurrentSong();
                     }
                   }
                 },
