@@ -1269,12 +1269,12 @@ void showLyricsSearchSheet(
 
                           final fallbackTitle = titleController.text.trim().isNotEmpty
                               ? titleController.text.trim()
-                              : (current?.title.trim().isNotEmpty == true
-                                  ? SyncedLyricsService.cleanTrackTitle(current!.title, artist: current.artist)
+                              : ((current?.title != null && current!.title.trim().isNotEmpty)
+                                  ? SyncedLyricsService.cleanTrackTitle(current!.title, artist: current!.artist)
                                   : '');
                           final fallbackArtist = artistController.text.trim().isNotEmpty
                               ? artistController.text.trim()
-                              : (current?.artist.trim().isNotEmpty == true
+                              : ((current?.artist != null && current!.artist!.trim().isNotEmpty)
                                   ? SyncedLyricsService.cleanArtistName(current!.artist)
                                   : '');
 

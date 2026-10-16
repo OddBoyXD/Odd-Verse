@@ -545,7 +545,9 @@ class MusicServices extends getx.GetxService {
             'id': playlistId,
             'title': 'YouTube Music Mix',
             'playlistId': playlistId,
-            'thumbnails': tracks.isNotEmpty ? tracks.first.extras?['thumbnail'] : null,
+            'thumbnails': (tracks.isNotEmpty && tracks.first.extras != null)
+                ? tracks.first.extras!['thumbnail']
+                : null,
             'description': 'YouTube Music Mix',
             'tracks': tracks,
             'trackCount': tracks.length,
@@ -726,7 +728,9 @@ class MusicServices extends getx.GetxService {
           'title': 'Playlist',
           'playlistId': playlistId,
           'thumbnails':
-              tracks.isNotEmpty ? tracks.first.extras?['thumbnail'] : null,
+              (tracks.isNotEmpty && tracks.first.extras != null)
+                  ? tracks.first.extras!['thumbnail']
+                  : null,
           'description': '',
           'tracks': tracks,
           'trackCount': tracks.length,
