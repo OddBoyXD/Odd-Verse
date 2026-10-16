@@ -536,30 +536,7 @@ class _SweptLyricLineWidget extends StatelessWidget {
                 progress = 1.0;
               }
 
-              // BitChord & Apple Music Word Hover Physics (Rise, Swell & Glow):
-              double liftY = 0.0;
-              double scale = 1.0;
-              double glowIntensity = 0.0;
-
-              if (pos >= w.time && pos < wEndTime) {
-                // Actively being sung: rises up, swells slightly, and blooms
-                final bell = math.sin(progress * math.pi);
-                liftY = -3.2 * (0.35 + 0.65 * bell);
-                scale = 1.0 + 0.07 * (0.35 + 0.65 * bell);
-                glowIntensity = 0.35 + 0.65 * bell;
-              } else if (pos >= wEndTime) {
-                final msAfter = (pos - wEndTime).inMilliseconds;
-                if (msAfter < 180) {
-                  // Gracefully settle back down to the baseline
-                  final settle = (msAfter / 180.0).clamp(0.0, 1.0);
-                  final ease = 1.0 - (settle * settle);
-                  liftY = -3.2 * 0.35 * ease;
-                  scale = 1.0 + 0.025 * ease;
-                  glowIntensity = 0.35 * ease;
-                }
-              }
-
-              // Unsung: dimmed text sitting on the baseline
+              // Unsung: dimmed text
               if (progress <= 0.0) {
                 return Text(
                   w.text,
@@ -570,8 +547,8 @@ class _SweptLyricLineWidget extends StatelessWidget {
                 );
               }
 
-              // Fully sung and settled: radiant white text
-              if (progress >= 1.0 && liftY == 0.0) {
+              // Fully sung: radiant white text
+              if (progress >= 1.0) {
                 return Text(
                   w.text,
                   style: activeStyle.copyWith(
@@ -581,65 +558,29 @@ class _SweptLyricLineWidget extends StatelessWidget {
                 );
               }
 
-              // Word being sung or settling: gradient sweep with radiant glow
-              Widget wordText;
-              if (progress >= 1.0) {
-                wordText = Text(
+              // Currently singing: smooth letter-by-letter gradient sweep
+              return ShaderMask(
+                blendMode: BlendMode.srcIn,
+                shaderCallback: (bounds) {
+                  return LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    stops: [
+                      progress,
+                      (progress + 0.05).clamp(0.0, 1.0),
+                    ],
+                    colors: [
+                      Colors.white,
+                      Colors.white.withOpacity(0.40),
+                    ],
+                  ).createShader(bounds);
+                },
+                child: Text(
                   w.text,
                   style: activeStyle.copyWith(
                     color: Colors.white,
-                    shadows: glowIntensity > 0.05
-                        ? [
-                            Shadow(
-                              color: Color.fromRGBO(255, 255, 255,
-                                  (0.75 * glowIntensity).clamp(0.0, 1.0)),
-                              blurRadius: 10.0 * glowIntensity,
-                            ),
-                          ]
-                        : const [],
+                    shadows: const [],
                   ),
-                );
-              } else {
-                wordText = ShaderMask(
-                  blendMode: BlendMode.srcIn,
-                  shaderCallback: (bounds) {
-                    return LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      stops: [
-                        progress,
-                        (progress + 0.04).clamp(0.0, 1.0),
-                      ],
-                      colors: [
-                        Colors.white,
-                        Colors.white.withOpacity(0.40),
-                      ],
-                    ).createShader(bounds);
-                  },
-                  child: Text(
-                    w.text,
-                    style: activeStyle.copyWith(
-                      color: Colors.white,
-                      shadows: glowIntensity > 0.05
-                          ? [
-                              Shadow(
-                                color: Color.fromRGBO(255, 255, 255,
-                                    (0.75 * glowIntensity).clamp(0.0, 1.0)),
-                                blurRadius: 12.0 * glowIntensity,
-                              ),
-                            ]
-                          : const [],
-                    ),
-                  ),
-                );
-              }
-
-              return Transform.translate(
-                offset: Offset(0, liftY),
-                child: Transform.scale(
-                  scale: scale,
-                  alignment: Alignment.bottomCenter,
-                  child: wordText,
                 ),
               );
             }),
@@ -679,9 +620,6 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
   DateTime _lastReportedTime = DateTime.now();
   late final ValueNotifier<Duration> _animatedPosition;
   bool _wasPlaying = false;
-  Duration _lastAudioPosition = Duration.zero;
-  bool _audioHasStarted = false;
-  DateTime? _resumeRequestTime;
 
   @override
   void initState() {
@@ -693,9 +631,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
         widget.playerController.buttonState.value == PlayButtonState.playing;
     _lastReportedPosition = currentPos;
     _lastReportedTime = DateTime.now();
-    _lastAudioPosition = currentPos;
     _wasPlaying = isPlaying;
-    _audioHasStarted = isPlaying;
     _animatedPosition = ValueNotifier<Duration>(currentPos);
 
     _ticker = createTicker((elapsed) {
@@ -704,57 +640,31 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
       if (currentButtonState != PlayButtonState.playing) {
         if (_wasPlaying) {
           _wasPlaying = false;
-          _audioHasStarted = false;
         }
-        return;
-      }
-
-      // If button state just switched to playing
-      if (!_wasPlaying) {
-        _wasPlaying = true;
-        _audioHasStarted = false;
-        _resumeRequestTime = DateTime.now();
-        final currentPos =
-            widget.playerController.progressBarStatus.value.current;
-        _lastAudioPosition = currentPos;
-        _lastReportedPosition = currentPos;
-        _lastReportedTime = DateTime.now();
-        _animatedPosition.value = currentPos;
         return;
       }
 
       final currentPos =
           widget.playerController.progressBarStatus.value.current;
 
-      // Handle pause/play delay & buffering: do not advance ticker until audio actually starts moving!
-      if (!_audioHasStarted) {
-        final hasMoved = currentPos != _lastAudioPosition;
-        final hasTimedOut = _resumeRequestTime != null &&
-            DateTime.now().difference(_resumeRequestTime!) >
-                const Duration(milliseconds: 1200);
-
-        if (hasMoved || hasTimedOut) {
-          _audioHasStarted = true;
-          _lastAudioPosition = currentPos;
-          _lastReportedPosition = currentPos;
-          _lastReportedTime = DateTime.now();
-          _animatedPosition.value = currentPos;
-        } else {
-          // Keep strictly anchored to current audio position while waiting for audio pipeline to produce sound
-          _lastReportedPosition = currentPos;
-          _lastReportedTime = DateTime.now();
-          _animatedPosition.value = currentPos;
-          return;
-        }
+      if (!_wasPlaying) {
+        _wasPlaying = true;
+        _lastReportedPosition = currentPos;
+        _lastReportedTime = DateTime.now();
+        _animatedPosition.value = currentPos;
+        return;
       }
 
       final now = DateTime.now();
       final delta = now.difference(_lastReportedTime);
       final interpolated = _lastReportedPosition + delta;
 
-      _animatedPosition.value = interpolated;
+      // Keep position strictly monotonic during normal continuous playback
+      if (interpolated >= _animatedPosition.value) {
+        _animatedPosition.value = interpolated;
+      }
 
-      final activeIndex = _findActiveIndex(interpolated);
+      final activeIndex = _findActiveIndex(_animatedPosition.value);
       if (activeIndex != _lastActiveIndex) {
         _lastActiveIndex = activeIndex;
         if (mounted) setState(() {});
@@ -787,10 +697,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
       final curPos = widget.playerController.progressBarStatus.value.current;
       _lastReportedPosition = curPos;
       _lastReportedTime = DateTime.now();
-      _lastAudioPosition = curPos;
       _animatedPosition.value = curPos;
-      _audioHasStarted = false;
-      _resumeRequestTime = DateTime.now();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           final activeIndex = _findActiveIndex(curPos);
@@ -867,10 +774,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
 
       if (!isPlaying) {
         _wasPlaying = false;
-        _audioHasStarted = false;
         _lastReportedPosition = currentPos;
         _lastReportedTime = DateTime.now();
-        _lastAudioPosition = currentPos;
         _animatedPosition.value = currentPos;
         final activeIndex = _findActiveIndex(currentPos);
         if (activeIndex != _lastActiveIndex) {
@@ -882,26 +787,20 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
       } else {
         if (!_wasPlaying) {
           _wasPlaying = true;
-          _audioHasStarted = false;
-          _resumeRequestTime = DateTime.now();
-          _lastAudioPosition = currentPos;
           _lastReportedPosition = currentPos;
           _lastReportedTime = DateTime.now();
           _animatedPosition.value = currentPos;
         } else {
           final diffMs = (currentPos - _animatedPosition.value).inMilliseconds;
-          // Reconcile when user seeks (>400ms) or when audio position moves
-          if (diffMs.abs() > 400) {
+          // Reconcile when user seeks (>500ms jump) or when audio stream is ahead
+          if (diffMs.abs() > 500) {
             _lastReportedPosition = currentPos;
             _lastReportedTime = DateTime.now();
             _animatedPosition.value = currentPos;
-            _lastAudioPosition = currentPos;
-            _audioHasStarted = false;
-            _resumeRequestTime = DateTime.now();
-          } else if (currentPos > _lastReportedPosition) {
+          } else if (currentPos > _animatedPosition.value) {
             _lastReportedPosition = currentPos;
             _lastReportedTime = DateTime.now();
-            _lastAudioPosition = currentPos;
+            _animatedPosition.value = currentPos;
           }
         }
       }
@@ -916,168 +815,151 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
             vertical: verticalPad > 20.0 ? verticalPad : 40.0,
           );
 
-          return Listener(
-            onPointerDown: (_) {
-              _userInteracting = true;
-              _resumeTimer?.cancel();
+          return NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              if (notification is ScrollStartNotification ||
+                  notification is ScrollUpdateNotification) {
+                _userInteracting = true;
+                _resumeTimer?.cancel();
+              } else if (notification is ScrollEndNotification) {
+                _startResumeTimer();
+              }
+              return false;
             },
-            onPointerMove: (_) {
-              _userInteracting = true;
-              _resumeTimer?.cancel();
-            },
-            onPointerUp: (_) {
-              _startResumeTimer();
-            },
-            onPointerCancel: (_) {
-              _startResumeTimer();
-            },
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (notification) {
-                if (notification is ScrollStartNotification ||
-                    notification is ScrollUpdateNotification) {
-                  _userInteracting = true;
-                  _resumeTimer?.cancel();
-                } else if (notification is UserScrollNotification) {
-                  if (notification.direction != ScrollDirection.idle) {
-                    _userInteracting = true;
-                    _resumeTimer?.cancel();
-                  } else {
-                    _startResumeTimer();
-                  }
-                } else if (notification is ScrollEndNotification) {
-                  _startResumeTimer();
-                }
-                return false;
+            child: Listener(
+              behavior: HitTestBehavior.translucent,
+              onPointerDown: (_) {
+                _userInteracting = true;
+                _resumeTimer?.cancel();
+              },
+              onPointerMove: (_) {
+                _userInteracting = true;
+                _resumeTimer?.cancel();
+              },
+              onPointerUp: (_) {
+                _startResumeTimer();
+              },
+              onPointerCancel: (_) {
+                _startResumeTimer();
               },
               child: SingleChildScrollView(
-              key: _viewportKey,
-              controller: _scrollController,
-              physics: const BouncingScrollPhysics(),
-              padding: scrollPadding,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ...List.generate(widget.lyrics.length, (index) {
-                  final line = widget.lyrics[index];
-                  final isActive = index == activeIndex;
+                key: _viewportKey,
+                controller: _scrollController,
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: scrollPadding,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...List.generate(widget.lyrics.length, (index) {
+                      final line = widget.lyrics[index];
+                      final isActive = index == activeIndex;
 
-                  return RepaintBoundary(
-                    key: _itemKeys[index],
-                    child: Center(
-                      child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6.0),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
-                        splashColor: const Color(0x22FFFFFF),
-                        highlightColor: const Color(0x11FFFFFF),
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          widget.playerController.seek(line.time);
-                          _lastReportedPosition = line.time;
-                          _lastReportedTime = DateTime.now();
-                          _lastAudioPosition = line.time;
-                          _animatedPosition.value = line.time;
-                          _audioHasStarted = false;
-                          _resumeRequestTime = DateTime.now();
-                          _lastActiveIndex = index;
-                          _userInteracting = false;
-                          _resumeTimer?.cancel();
-                          if (mounted) setState(() {});
-                          _scrollToActive(index);
-                        },
-                        child: AnimatedScale(
-                          scale: isActive ? 1.05 : 0.95,
-                          duration: const Duration(milliseconds: 350),
-                          curve: Curves.easeOutCubic,
-                          child: AnimatedOpacity(
-                            opacity: isActive ? 1.0 : 0.38,
-                            duration: const Duration(milliseconds: 350),
-                            curve: Curves.easeOutCubic,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16.0,
-                                vertical: 8.0,
+                      return RepaintBoundary(
+                        key: _itemKeys[index],
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6.0),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              splashColor: const Color(0x22FFFFFF),
+                              highlightColor: const Color(0x11FFFFFF),
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                widget.playerController.seek(line.time);
+                                _lastReportedPosition = line.time;
+                                _lastReportedTime = DateTime.now();
+                                _animatedPosition.value = line.time;
+                                _lastActiveIndex = index;
+                                _userInteracting = false;
+                                _resumeTimer?.cancel();
+                                if (mounted) setState(() {});
+                                _scrollToActive(index);
+                              },
+                              child: AnimatedScale(
+                                scale: isActive ? 1.05 : 0.95,
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeOutCubic,
+                                child: AnimatedOpacity(
+                                  opacity: isActive ? 1.0 : 0.38,
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeOutCubic,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16.0,
+                                      vertical: 8.0,
+                                    ),
+                                    child: line.isInstrumental
+                                        ? _InstrumentalLineWidget(
+                                            isActive: isActive,
+                                            line: line,
+                                            animatedPosition: _animatedPosition,
+                                          )
+                                        : (isActive && line.words.isNotEmpty)
+                                            ? _SweptLyricLineWidget(
+                                                line: line,
+                                                animatedPosition:
+                                                    _animatedPosition,
+                                                isActive: isActive,
+                                                activeStyle: const TextStyle(
+                                                  fontSize: 20.0,
+                                                  fontWeight: FontWeight.w700,
+                                                  letterSpacing: 0.2,
+                                                  height: 1.5,
+                                                  color: Colors.white,
+                                                ),
+                                              )
+                                            : Text(
+                                                line.words.isNotEmpty
+                                                    ? line.words
+                                                        .map((w) => w.text)
+                                                        .join()
+                                                    : line.text,
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontSize: 20.0,
+                                                  fontWeight: FontWeight.w700,
+                                                  letterSpacing: 0.2,
+                                                  height: 1.5,
+                                                  color: Colors.white,
+                                                  shadows: const [],
+                                                ),
+                                              ),
+                                  ),
+                                ),
                               ),
-                              child: line.isInstrumental
-                                  ? _InstrumentalLineWidget(
-                                      isActive: isActive,
-                                      line: line,
-                                      animatedPosition: _animatedPosition,
-                                    )
-                                  : (isActive && line.words.isNotEmpty)
-                                      ? _SweptLyricLineWidget(
-                                          line: line,
-                                          animatedPosition: _animatedPosition,
-                                          isActive: isActive,
-                                          activeStyle: const TextStyle(
-                                            fontSize: 20.0,
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 0.2,
-                                            height: 1.5,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : Text(
-                                          line.words.isNotEmpty
-                                              ? line.words
-                                                  .map((w) => w.text)
-                                                  .join()
-                                              : line.text,
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 20.0,
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 0.2,
-                                            height: 1.5,
-                                            color: Colors.white,
-                                            shadows: isActive
-                                                ? const [
-                                                    Shadow(
-                                                      color: Color(0x99FFFFFF),
-                                                      blurRadius: 16.0,
-                                                    ),
-                                                    Shadow(
-                                                      color: Color(0x44FFFFFF),
-                                                      blurRadius: 24.0,
-                                                    ),
-                                                  ]
-                                                : const [],
-                                          ),
-                                        ),
                             ),
+                          ),
+                        ),
+                      );
+                    }),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 28.0, bottom: 20.0),
+                      child: Center(
+                        child: TextButton.icon(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white54,
+                          ),
+                          onPressed: () => showLyricsSearchSheet(
+                              context, widget.playerController),
+                          icon: const Icon(Icons.search, size: 16),
+                          label: const Text(
+                            "Wrong lyrics? Search Providers",
+                            style: TextStyle(fontSize: 12),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-                }),
-                Padding(
-                  padding: const EdgeInsets.only(top: 28.0, bottom: 20.0),
-                  child: Center(
-                    child: TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white54,
-                      ),
-                      onPressed: () => showLyricsSearchSheet(
-                          context, widget.playerController),
-                      icon: const Icon(Icons.search, size: 16),
-                      label: const Text(
-                        "Wrong lyrics? Search Providers",
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
+          );
+        },
       );
-    },
-  );
-});
-}
+    });
+  }
 }
 
 void showLyricsSearchSheet(

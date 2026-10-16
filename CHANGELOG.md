@@ -2,6 +2,17 @@
 
 ### [v1.0.3] - Latest Release
 
+### 💫 Zero-Stutter 120 FPS Word-by-Word Animation & Unrestricted 3s Auto-Center Scrolling
+- **Eliminated Word-by-Word Stuck/Jittery Animation**:
+  - Removed the blocking 1200ms audio output timeout gate that trapped the ticker during position stream updates.
+  - Replaced CPU-bound Gaussian blur shadows and transform matrices with pure GPU-accelerated `ShaderMask` sweep gradients, ensuring locked 120 FPS frame rates without main thread starvation.
+  - Enforced strictly monotonic forward timeline progression: player progress updates lagging behind interpolated time are ignored without backward jump stutter.
+- **Unrestricted Manual Lyrics Scrolling with AlwaysScrollable Physics**:
+  - Upgraded scroll physics to `AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics())`, ensuring vertical drag gestures are always recognized and accepted across all screen sizes.
+  - Implemented decoupled touch gesture recognition via `NotificationListener` and `Listener(behavior: HitTestBehavior.translucent)`: user touches and flings instantly suspend programmatic auto-scrolling.
+  - Added seamless 3-second idle auto-centering: exactly 3 seconds after touch release and scroll completion, the viewport smoothly glides back to center on the active lyric line (`alignment: 0.5`).
+
+
 ### 💫 BitChord Kinetic Word Hover Animation & Unrestricted Smooth Scrolling
 - **BitChord & Apple Music Word Hover Physics (Rise, Swell & Glow)**: Added kinetic hover physics to `_SweptLyricLineWidget`. As each word and syllable is sung, it gracefully rises upward (`liftY = -3.2px`), swells in scale (`1.07x`), and radiates an ethereal soft white glow, easing smoothly back to the baseline over 180ms upon completion.
 - **Buttery 120 FPS Continuous Fluidity**: Removed artificial step clamping in the interpolation ticker. Visual clock progress now glides continuously with the device refresh rate (120 FPS / 90 FPS / 60 FPS) while maintaining audio output confirmation gates for zero play/pause delay desync.
