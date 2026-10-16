@@ -14,33 +14,40 @@ class LyricsTopBar extends StatelessWidget {
     final settingsController = Get.find<SettingsScreenController>();
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-      margin: const EdgeInsets.only(bottom: 6.0),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.35),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.08),
-          width: 0.8,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Close / Minimize Lyrics Button
-          IconButton(
-            tooltip: "Close Lyrics",
-            splashRadius: 20,
-            icon: const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-            onPressed: () {
-              playerController.showLyrics();
-            },
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onVerticalDragEnd: (details) {
+        if ((details.primaryVelocity ?? 0) > 150) {
+          playerController.showLyricsflag.value = false;
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+        margin: const EdgeInsets.only(bottom: 6.0),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.35),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: Colors.white.withOpacity(0.08),
+            width: 0.8,
           ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Close / Minimize Lyrics Button
+            IconButton(
+              tooltip: "Close Lyrics",
+              splashRadius: 20,
+              icon: const Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Colors.white,
+                size: 28,
+              ),
+              onPressed: () {
+                playerController.showLyricsflag.value = false;
+              },
+            ),
 
           // Center: Synced / Plain mode toggle
           Obx(() {

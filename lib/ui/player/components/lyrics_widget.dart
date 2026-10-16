@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:harmonymusic/models/lyrics_source_model.dart';
 import 'package:harmonymusic/services/synced_lyrics_service.dart';
@@ -648,8 +649,10 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
         final activeIndex = _findActiveIndex(interpolated);
         if (activeIndex != _lastActiveIndex) {
           _lastActiveIndex = activeIndex;
-          _scrollToActive(activeIndex);
           if (mounted) setState(() {});
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _scrollToActive(activeIndex);
+          });
         }
       }
     });
@@ -660,7 +663,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
         final activeIndex = _findActiveIndex(currentPos);
         if (activeIndex >= 0) {
           _lastActiveIndex = activeIndex;
-          _scrollToActive(activeIndex);
+          _scrollToActive(activeIndex, jump: true);
         }
       }
     });
@@ -674,6 +677,17 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
       _lastActiveIndex = -1;
       _userInteracting = false;
       _resumeTimer?.cancel();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final curPos = widget.playerController.progressBarStatus.value.current;
+          final activeIndex = _findActiveIndex(curPos);
+          if (activeIndex >= 0) {
+            _lastActiveIndex = activeIndex;
+            _scrollToActive(activeIndex, jump: true);
+            setState(() {});
+          }
+        }
+      });
     }
   }
 
@@ -693,47 +707,61 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
     super.dispose();
   }
 
-  void _scrollToActive(int index) {
+  void _scrollToActive(int index, {bool jump = false}) {
     if (_userInteracting || index < 0 || index >= _itemKeys.length) return;
     if (!_scrollController.hasClients) return;
 
     final itemContext = _itemKeys[index].currentContext;
     final viewportContext = _viewportKey.currentContext;
 
-    if (itemContext != null && viewportContext != null) {
-      final itemBox = itemContext.findRenderObject() as RenderBox?;
-      final viewportBox = viewportContext.findRenderObject() as RenderBox?;
+    if (itemContext == null || viewportContext == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToActive(index, jump: jump);
+      });
+      return;
+    }
 
-      if (itemBox != null &&
-          viewportBox != null &&
-          itemBox.hasSize &&
-          viewportBox.hasSize) {
-        final itemOffset =
-            itemBox.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
-        final currentScrollOffset = _scrollController.offset;
-        final viewportHeight = viewportBox.size.height;
-        final itemHeight = itemBox.size.height;
+    final itemBox = itemContext.findRenderObject() as RenderBox?;
+    final viewportBox = viewportContext.findRenderObject() as RenderBox?;
 
-        final targetOffset = currentScrollOffset +
-            itemOffset -
-            (viewportHeight / 2) +
-            (itemHeight / 2);
-        final maxScroll = _scrollController.position.maxScrollExtent;
-        final minScroll = _scrollController.position.minScrollExtent;
-        final clampedOffset = targetOffset.clamp(minScroll, maxScroll);
+    if (itemBox == null ||
+        viewportBox == null ||
+        !itemBox.hasSize ||
+        !viewportBox.hasSize) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _scrollToActive(index, jump: jump);
+      });
+      return;
+    }
 
-        _scrollController.animateTo(
-          clampedOffset,
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeOutCubic,
-        );
-      }
+    final itemOffset =
+        itemBox.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
+    final currentScrollOffset = _scrollController.offset;
+    final viewportHeight = viewportBox.size.height;
+    final itemHeight = itemBox.size.height;
+
+    final targetOffset = currentScrollOffset +
+        itemOffset -
+        (viewportHeight / 2) +
+        (itemHeight / 2);
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final minScroll = _scrollController.position.minScrollExtent;
+    final clampedOffset = targetOffset.clamp(minScroll, maxScroll);
+
+    if (jump) {
+      _scrollController.jumpTo(clampedOffset);
+    } else {
+      _scrollController.animateTo(
+        clampedOffset,
+        duration: const Duration(milliseconds: 320),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
   void _startResumeTimer() {
     _resumeTimer?.cancel();
-    _resumeTimer = Timer(const Duration(milliseconds: 1500), () {
+    _resumeTimer = Timer(const Duration(seconds: 3), () {
       if (mounted) {
         setState(() {
           _userInteracting = false;
@@ -789,6 +817,16 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                   notification.dragDetails != null) {
                 _userInteracting = true;
                 _resumeTimer?.cancel();
+              } else if (notification is ScrollUpdateNotification) {
+                if (_scrollController.position.pixels <= 0 &&
+                    notification.scrollDelta != null &&
+                    notification.scrollDelta! < -14) {
+                  widget.playerController.showLyricsflag.value = false;
+                }
+              } else if (notification is OverscrollNotification) {
+                if (notification.overscroll < -10) {
+                  widget.playerController.showLyricsflag.value = false;
+                }
               } else if (notification is ScrollEndNotification &&
                   _userInteracting) {
                 _startResumeTimer();
@@ -817,12 +855,15 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                         splashColor: const Color(0x22FFFFFF),
                         highlightColor: const Color(0x11FFFFFF),
                         onTap: () {
+                          HapticFeedback.selectionClick();
                           widget.playerController.seek(line.time);
                           _lastReportedPosition = line.time;
                           _lastReportedTime = DateTime.now();
                           _animatedPosition.value = line.time;
+                          _lastActiveIndex = index;
                           _userInteracting = false;
                           _resumeTimer?.cancel();
+                          if (mounted) setState(() {});
                           _scrollToActive(index);
                         },
                         child: AnimatedScale(
