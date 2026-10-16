@@ -123,11 +123,11 @@ class StandardPlayer extends StatelessWidget {
                           padding: const EdgeInsets.only(bottom: 90.0, top: 40),
                           child: Center(
                             child: isLyrics
-                                ? const Column(
+                                ? Column(
                                     children: [
-                                      LyricsTopBar(),
+                                      const LyricsTopBar(),
                                       Expanded(
-                                        child: LyricsWidget(
+                                        child: const LyricsWidget(
                                           padding: EdgeInsets.symmetric(
                                               horizontal: 16, vertical: 16),
                                         ),
@@ -164,15 +164,15 @@ class StandardPlayer extends StatelessWidget {
                           height: Get.mediaQuery.padding.top + 60,
                         ),
                         // BitChord Top Header Toolbar
-                        const ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: 500),
-                          child: LyricsTopBar(),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 500),
+                          child: const LyricsTopBar(),
                         ),
                         // BitChord Full-Height Lyrics Screen
-                        const Expanded(
+                        Expanded(
                           child: ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: 500),
-                            child: LyricsWidget(
+                            constraints: const BoxConstraints(maxWidth: 500),
+                            child: const LyricsWidget(
                               padding: EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 24),
                             ),
