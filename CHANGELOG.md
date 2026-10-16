@@ -2,6 +2,12 @@
 
 ### [v1.0.3] - Latest Release
 
+### 💫 Apple Music & BitChord Silky Line Transition & Glitch-Free Lyrics Engine
+- **Eliminated Yellow Box Flash & 0ms De-mount**: Completely removed the hardcoded amber container highlight (`Color(0x18FFD54F)`) with zero-millisecond collapse that caused an abrupt yellow flash/blip during line changes.
+- **Pure Radiant White Typography**: Replaced harsh yellow active text with pure Apple Music & BitChord radiant white (`Colors.white`) accompanied by an ethereal soft white bloom (`Color(0x99FFFFFF)`), perfectly harmonized on blurred artwork.
+- **Zero-Reflow Scale & Opacity Switching**: Replaced layout-thrashing `AnimatedDefaultTextStyle` font-size resizing (which previously shrank from 21px to 16px causing line-wrapping jumps) with a GPU matrix `AnimatedScale(scale: isActive ? 1.05 : 0.95)` and `AnimatedOpacity(opacity: isActive ? 1.0 : 0.38)` over 350ms cubic easing (`Curves.easeOutCubic`), preserving unified font size (`20.0px`) for 100% stutter-free 120 FPS transitions.
+- **Instrumental Countdown & Letter Sweep Parity**: Refined the letter-by-letter gradient sweep and clock-driven instrumental dots to radiant white bloom, creating a visually seamless line-switching flow matching BitChord and Apple Music.
+
 ### 💫 Apple Music & BitChord Silky Letter Sweep, Clock-Driven Instrumental Countdown, Swipe-Down Full-Screen Lyrics & Clean YTM Home Feed
 - **Silky Letter-by-Letter Gradient Sweep (`_SweptLyricLineWidget`)**: Replaced abrupt per-word binary jumps with a smooth horizontal `ShaderMask` gradient sweep that dynamically highlights each character and syllable from left to right as the artist sings, delivering true 1:1 Apple Music & BitChord fluidity.
 - **Clock-Driven Instrumental Break Countdown (`_InstrumentalLineWidget`)**: Replaced the previous erratic pulsing animation with BitChord's steady playback clock (`(pos - line.time) / span`). Three dots progressively fill from left to right in glowing radiant gold (`#FFD54F`), providing a clean visual countdown bar without any flickering or raster overhead.
