@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -509,82 +511,142 @@ class _SweptLyricLineWidget extends StatelessWidget {
       child: ValueListenableBuilder<Duration>(
         valueListenable: animatedPosition,
         builder: (context, pos, _) {
-        return Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: List.generate(line.words.length, (k) {
-            final w = line.words[k];
-            Duration wEndTime;
-            if (k + 1 < line.words.length) {
-              wEndTime = line.words[k + 1].time;
-            } else {
-              wEndTime = line.endTime;
-            }
+          return Wrap(
+            alignment: WrapAlignment.center,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: List.generate(line.words.length, (k) {
+              final w = line.words[k];
+              Duration wEndTime;
+              if (k + 1 < line.words.length) {
+                wEndTime = line.words[k + 1].time;
+              } else {
+                wEndTime = line.endTime;
+              }
 
-            final wDurationMs = (wEndTime - w.time).inMilliseconds;
-            double progress = 0.0;
-            if (pos >= wEndTime) {
-              progress = 1.0;
-            } else if (pos < w.time) {
-              progress = 0.0;
-            } else if (wDurationMs > 0) {
-              progress = ((pos - w.time).inMilliseconds / wDurationMs).clamp(0.0, 1.0);
-            } else {
-              progress = 1.0;
-            }
+              final wDurationMs = (wEndTime - w.time).inMilliseconds;
+              double progress = 0.0;
+              if (pos >= wEndTime) {
+                progress = 1.0;
+              } else if (pos < w.time) {
+                progress = 0.0;
+              } else if (wDurationMs > 0) {
+                progress =
+                    ((pos - w.time).inMilliseconds / wDurationMs).clamp(0.0, 1.0);
+              } else {
+                progress = 1.0;
+              }
 
-            // Unsung: dimmed text
-            if (progress <= 0.0) {
-              return Text(
-                w.text,
-                style: activeStyle.copyWith(
-                  color: Colors.white.withOpacity(0.40),
-                  shadows: const [],
+              // BitChord & Apple Music Word Hover Physics (Rise, Swell & Glow):
+              double liftY = 0.0;
+              double scale = 1.0;
+              double glowIntensity = 0.0;
+
+              if (pos >= w.time && pos < wEndTime) {
+                // Actively being sung: rises up, swells slightly, and blooms
+                final bell = math.sin(progress * math.pi);
+                liftY = -3.2 * (0.35 + 0.65 * bell);
+                scale = 1.0 + 0.07 * (0.35 + 0.65 * bell);
+                glowIntensity = 0.35 + 0.65 * bell;
+              } else if (pos >= wEndTime) {
+                final msAfter = (pos - wEndTime).inMilliseconds;
+                if (msAfter < 180) {
+                  // Gracefully settle back down to the baseline
+                  final settle = (msAfter / 180.0).clamp(0.0, 1.0);
+                  final ease = 1.0 - (settle * settle);
+                  liftY = -3.2 * 0.35 * ease;
+                  scale = 1.0 + 0.025 * ease;
+                  glowIntensity = 0.35 * ease;
+                }
+              }
+
+              // Unsung: dimmed text sitting on the baseline
+              if (progress <= 0.0) {
+                return Text(
+                  w.text,
+                  style: activeStyle.copyWith(
+                    color: Colors.white.withOpacity(0.40),
+                    shadows: const [],
+                  ),
+                );
+              }
+
+              // Fully sung and settled: radiant white text
+              if (progress >= 1.0 && liftY == 0.0) {
+                return Text(
+                  w.text,
+                  style: activeStyle.copyWith(
+                    color: Colors.white,
+                    shadows: const [],
+                  ),
+                );
+              }
+
+              // Word being sung or settling: gradient sweep with radiant glow
+              Widget wordText;
+              if (progress >= 1.0) {
+                wordText = Text(
+                  w.text,
+                  style: activeStyle.copyWith(
+                    color: Colors.white,
+                    shadows: glowIntensity > 0.05
+                        ? [
+                            Shadow(
+                              color: Color.fromRGBO(255, 255, 255,
+                                  (0.75 * glowIntensity).clamp(0.0, 1.0)),
+                              blurRadius: 10.0 * glowIntensity,
+                            ),
+                          ]
+                        : const [],
+                  ),
+                );
+              } else {
+                wordText = ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: (bounds) {
+                    return LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      stops: [
+                        progress,
+                        (progress + 0.04).clamp(0.0, 1.0),
+                      ],
+                      colors: [
+                        Colors.white,
+                        Colors.white.withOpacity(0.40),
+                      ],
+                    ).createShader(bounds);
+                  },
+                  child: Text(
+                    w.text,
+                    style: activeStyle.copyWith(
+                      color: Colors.white,
+                      shadows: glowIntensity > 0.05
+                          ? [
+                              Shadow(
+                                color: Color.fromRGBO(255, 255, 255,
+                                    (0.75 * glowIntensity).clamp(0.0, 1.0)),
+                                blurRadius: 12.0 * glowIntensity,
+                              ),
+                            ]
+                          : const [],
+                    ),
+                  ),
+                );
+              }
+
+              return Transform.translate(
+                offset: Offset(0, liftY),
+                child: Transform.scale(
+                  scale: scale,
+                  alignment: Alignment.bottomCenter,
+                  child: wordText,
                 ),
               );
-            }
-
-            // Fully sung: radiant white text
-            if (progress >= 1.0) {
-              return Text(
-                w.text,
-                style: activeStyle.copyWith(
-                  color: Colors.white,
-                  shadows: const [],
-                ),
-              );
-            }
-
-            // Currently singing: smooth letter-by-letter gradient sweep
-            return ShaderMask(
-              blendMode: BlendMode.srcIn,
-              shaderCallback: (bounds) {
-                return LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  stops: [
-                    progress,
-                    (progress + 0.05).clamp(0.0, 1.0),
-                  ],
-                  colors: [
-                    Colors.white,
-                    Colors.white.withOpacity(0.40),
-                  ],
-                ).createShader(bounds);
-              },
-              child: Text(
-                w.text,
-                style: activeStyle.copyWith(
-                  color: Colors.white,
-                  shadows: const [],
-                ),
-              ),
-            );
-          }),
-        );
-      },
-    ),
-  );
+            }),
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -688,17 +750,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
 
       final now = DateTime.now();
       final delta = now.difference(_lastReportedTime);
-      var interpolated = _lastReportedPosition + delta;
-
-      // Protect against drifting ahead of real audio during buffer stalls / delays
-      final maxForward = currentPos + const Duration(milliseconds: 80);
-      if (interpolated > maxForward) {
-        interpolated = maxForward;
-      }
-      // Protect against lagging behind real audio
-      if (interpolated < currentPos) {
-        interpolated = currentPos;
-      }
+      final interpolated = _lastReportedPosition + delta;
 
       _animatedPosition.value = interpolated;
 
@@ -787,9 +839,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
     _resumeTimer?.cancel();
     _resumeTimer = Timer(const Duration(seconds: 3), () {
       if (mounted) {
-        setState(() {
-          _userInteracting = false;
-        });
+        _userInteracting = false;
         _scrollToActive(_lastActiveIndex);
       }
     });
@@ -840,8 +890,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
           _animatedPosition.value = currentPos;
         } else {
           final diffMs = (currentPos - _animatedPosition.value).inMilliseconds;
-          // Reconcile when user seeks (>180ms) or when audio position moves
-          if (diffMs.abs() > 180) {
+          // Reconcile when user seeks (>400ms) or when audio position moves
+          if (diffMs.abs() > 400) {
             _lastReportedPosition = currentPos;
             _lastReportedTime = DateTime.now();
             _animatedPosition.value = currentPos;
@@ -866,19 +916,40 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
             vertical: verticalPad > 20.0 ? verticalPad : 40.0,
           );
 
-          return NotificationListener<ScrollNotification>(
-            onNotification: (notification) {
-              if (notification is ScrollStartNotification &&
-                  notification.dragDetails != null) {
-                _userInteracting = true;
-                _resumeTimer?.cancel();
-              } else if (notification is ScrollEndNotification &&
-                  _userInteracting) {
-                _startResumeTimer();
-              }
-              return false;
+          return Listener(
+            onPointerDown: (_) {
+              _userInteracting = true;
+              _resumeTimer?.cancel();
             },
-            child: SingleChildScrollView(
+            onPointerMove: (_) {
+              _userInteracting = true;
+              _resumeTimer?.cancel();
+            },
+            onPointerUp: (_) {
+              _startResumeTimer();
+            },
+            onPointerCancel: (_) {
+              _startResumeTimer();
+            },
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification is ScrollStartNotification ||
+                    notification is ScrollUpdateNotification) {
+                  _userInteracting = true;
+                  _resumeTimer?.cancel();
+                } else if (notification is UserScrollNotification) {
+                  if (notification.direction != ScrollDirection.idle) {
+                    _userInteracting = true;
+                    _resumeTimer?.cancel();
+                  } else {
+                    _startResumeTimer();
+                  }
+                } else if (notification is ScrollEndNotification) {
+                  _startResumeTimer();
+                }
+                return false;
+              },
+              child: SingleChildScrollView(
               key: _viewportKey,
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
@@ -1001,10 +1072,11 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
               ],
             ),
           ),
-        );
-      },
-    );
-  });
+        ),
+      );
+    },
+  );
+});
 }
 }
 

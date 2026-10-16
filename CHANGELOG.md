@@ -2,6 +2,12 @@
 
 ### [v1.0.3] - Latest Release
 
+### 💫 BitChord Kinetic Word Hover Animation & Unrestricted Smooth Scrolling
+- **BitChord & Apple Music Word Hover Physics (Rise, Swell & Glow)**: Added kinetic hover physics to `_SweptLyricLineWidget`. As each word and syllable is sung, it gracefully rises upward (`liftY = -3.2px`), swells in scale (`1.07x`), and radiates an ethereal soft white glow, easing smoothly back to the baseline over 180ms upon completion.
+- **Buttery 120 FPS Continuous Fluidity**: Removed artificial step clamping in the interpolation ticker. Visual clock progress now glides continuously with the device refresh rate (120 FPS / 90 FPS / 60 FPS) while maintaining audio output confirmation gates for zero play/pause delay desync.
+- **Unrestricted Manual Scrolling with Pointer Listener**: Wrapped the lyrics scroll view with pointer touch listeners (`onPointerDown`, `onPointerMove`, `onPointerUp`) and nested scroll notifications. User manual scrolling can no longer be hijacked by active line updates during playback.
+- **3-Second Idle Auto-Center Glide**: After 3 full seconds of user inactivity, the viewport smoothly glides back to center on the active singing line.
+
 ### ⏱️ Lyrics Audio Desync & Buffering Sync Protection
 - **Eliminated Pause/Play & Buffer Audio Drift**: Resolved the issue where lyrics ran ahead of audio when unpausing, playing, or when the audio player experienced buffer delays.
 - **Audio Output Confirmation Gate**: Added state tracking (`_audioHasStarted`) that holds interpolated lyrics position strictly anchored to the audio position upon unpause or song start until audio frames actually begin moving through the audio pipeline.
