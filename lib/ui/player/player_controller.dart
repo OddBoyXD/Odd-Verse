@@ -994,6 +994,22 @@ class PlayerController extends GetxController
     }
   }
 
+  Future<void> manualSetLyrics(Map<String, dynamic> customLyrics) async {
+    final song = currentSong.value;
+    if (song == null) return;
+    lyrics.value = customLyrics;
+    if (customLyrics["synced"] == null ||
+        customLyrics["synced"].toString().trim().isEmpty) {
+      lyricsMode.value = 1;
+    } else {
+      lyricsMode.value = 0;
+    }
+    final box = Hive.isBoxOpen("lyrics")
+        ? Hive.box("lyrics")
+        : await Hive.openBox("lyrics");
+    await box.put(song.id, customLyrics);
+  }
+
   void changeLyricsMode(int? val) {
     Hive.box("AppPrefs").put("lyricsMode", val);
     lyricsMode.value = val!;

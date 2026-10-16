@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:harmonymusic/services/synced_lyrics_service.dart';
 import 'package:harmonymusic/ui/screens/Settings/settings_screen_controller.dart';
+import 'package:harmonymusic/ui/widgets/snackbar.dart';
 import 'package:harmonymusic/utils/indic_transliteration.dart';
 
 import '../../widgets/loader.dart';
@@ -149,6 +151,15 @@ class LyricsWidget extends StatelessWidget {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                const SizedBox(height: 12),
+                TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: const Color(0xFFFFD54F),
+                  ),
+                  onPressed: () => showLyricsSearchSheet(context, playerController),
+                  icon: const Icon(Icons.search, size: 18),
+                  label: const Text("Search Lyrics Providers"),
+                ),
               ],
             ),
           );
@@ -196,20 +207,33 @@ class LyricsWidget extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              if (displayPlain.isNotEmpty && displayPlain != "NA")
-                Padding(
-                  padding: const EdgeInsets.only(top: 12.0),
-                  child: TextButton.icon(
+              const SizedBox(height: 12),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton.icon(
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFFFFD54F),
                     ),
-                    onPressed: () {
-                      playerController.changeLyricsMode(1);
-                    },
-                    icon: const Icon(Icons.text_snippet_outlined, size: 18),
-                    label: Text("plain".tr),
+                    onPressed: () => showLyricsSearchSheet(context, playerController),
+                    icon: const Icon(Icons.search, size: 18),
+                    label: const Text("Search Providers"),
                   ),
-                ),
+                  if (displayPlain.isNotEmpty && displayPlain != "NA") ...[
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                      ),
+                      onPressed: () {
+                        playerController.changeLyricsMode(1);
+                      },
+                      icon: const Icon(Icons.text_snippet_outlined, size: 18),
+                      label: Text("plain".tr),
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
         );
@@ -494,11 +518,242 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
                     ),
                   );
                 }),
-              ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 28.0, bottom: 20.0),
+                  child: Center(
+                    child: TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white54,
+                      ),
+                      onPressed: () => showLyricsSearchSheet(
+                          context, widget.playerController),
+                      icon: const Icon(Icons.search, size: 16),
+                      label: const Text(
+                        "Wrong lyrics? Search Providers",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },
       );
     });
   }
+}
+
+void showLyricsSearchSheet(
+    BuildContext context, PlayerController playerController) {
+  final current = playerController.currentSong.value;
+  final titleController = TextEditingController(
+      text: current != null
+          ? SyncedLyricsService.cleanTrackTitle(current.title,
+              artist: current.artist)
+          : "");
+  final artistController = TextEditingController(
+      text: current != null
+          ? SyncedLyricsService.cleanArtistName(current.artist)
+          : "");
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: const Color(0xFF181818),
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) {
+      bool isSearching = false;
+      List<Map<String, dynamic>> searchResults = [];
+
+      return StatefulBuilder(
+        builder: (context, setSheetState) {
+          return Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              left: 16,
+              right: 16,
+              top: 16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Search Lyrics Across Providers",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white70),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: titleController,
+                  decoration: InputDecoration(
+                    labelText: "Track Title",
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: artistController,
+                  decoration: InputDecoration(
+                    labelText: "Artist Name",
+                    labelStyle: const TextStyle(color: Colors.white70),
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFD54F),
+                    foregroundColor: Colors.black,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: isSearching
+                      ? null
+                      : () async {
+                          setSheetState(() => isSearching = true);
+                          final dur = playerController
+                              .progressBarStatus.value.total.inSeconds;
+                          final list =
+                              await SyncedLyricsService.searchAllProviders(
+                            titleController.text.trim(),
+                            artistController.text.trim(),
+                            durationSec: dur,
+                          );
+                          setSheetState(() {
+                            searchResults = list;
+                            isSearching = false;
+                          });
+                        },
+                  icon: isSearching
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.black),
+                        )
+                      : const Icon(Icons.search, size: 18),
+                  label:
+                      Text(isSearching ? "Searching..." : "Search Providers"),
+                ),
+                const SizedBox(height: 12),
+                if (searchResults.isNotEmpty)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 250),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: searchResults.length,
+                      separatorBuilder: (_, __) =>
+                          const Divider(color: Colors.white12),
+                      itemBuilder: (context, index) {
+                        final item = searchResults[index];
+                        final isWord = item['wordSynced'] == true;
+                        final sourceName = item['sourceName'] ??
+                            item['provider'] ??
+                            'Source';
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            "${item['title']} - ${item['artist']}",
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isWord
+                                      ? const Color(0x33FFD54F)
+                                      : Colors.white12,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  isWord
+                                      ? "Apple Word-Synced 🍎"
+                                      : "Line-Synced",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: isWord
+                                        ? const Color(0xFFFFD54F)
+                                        : Colors.white70,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  sourceName,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                      fontSize: 11, color: Colors.white54),
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: const Icon(Icons.check_circle_outline,
+                              color: Color(0xFFFFD54F), size: 20),
+                          onTap: () async {
+                            await playerController.manualSetLyrics(item);
+                            if (context.mounted) {
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                snackbar(
+                                  Get.context!,
+                                  "Applied lyrics from $sourceName!",
+                                  size: SanckBarSize.MEDIUM,
+                                ),
+                              );
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  )
+                else if (!isSearching &&
+                    searchResults.isEmpty &&
+                    titleController.text.isNotEmpty)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      "Search above to fetch lyrics from lrc.red, BetterLyrics, KuGou, LRCLIB & Netease.",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.white38, fontSize: 12),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      );
+    },
+  );
 }

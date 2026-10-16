@@ -356,21 +356,112 @@ class MusicServices extends getx.GetxService {
     return x;
   }
 
-  Future<void> recordPlayback(String videoId) async {
+  String _generateCpn() {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
+    final rand = Random();
+    return List.generate(16, (index) => chars[rand.nextInt(chars.length)]).join();
+  }
+
+  Future<void> recordPlayback(String videoId, {int watchedSeconds = 10}) async {
     try {
-      if (getx.Get.isRegistered<YtmAuthService>() &&
-          getx.Get.find<YtmAuthService>().isLoggedIn.value) {
-        final data = Map.from(_context);
-        data['videoId'] = videoId;
-        data['playbackContext'] = {
-          'contentPlaybackContext': {
-            'signatureTimestamp': getDatestamp() - 1,
-            'autoPlay': false,
-          }
-        };
-        await _sendRequest('playback/record_playback', data);
-        printINFO("Playback reported to YouTube Music for $videoId");
+      if (!getx.Get.isRegistered<YtmAuthService>() ||
+          !getx.Get.find<YtmAuthService>().isLoggedIn.value) {
+        return;
       }
+      final ytmAuth = getx.Get.find<YtmAuthService>();
+      final authHeaders = ytmAuth.getAuthHeaders(videoId: videoId);
+      if (authHeaders.isEmpty) return;
+
+      final sts = getDatestamp() - 1;
+      final playerPayload = Map<String, dynamic>.from(_context);
+      playerPayload['videoId'] = videoId;
+      playerPayload['contentCheckOk'] = true;
+      playerPayload['racyCheckOk'] = true;
+      playerPayload['playbackContext'] = {
+        'contentPlaybackContext': {
+          'html5Preference': 'HTML5_PREF_WANTS',
+          'referer': 'https://music.youtube.com/watch?v=$videoId',
+          'signatureTimestamp': sts,
+        }
+      };
+
+      // 1. Fetch player response with session cookies to extract playbackTracking URLs
+      final playerRes = await _sendRequest('player', playerPayload);
+      final tracking = playerRes.data != null && playerRes.data is Map
+          ? playerRes.data['playbackTracking']
+          : null;
+      final cpn = _generateCpn();
+
+      if (tracking != null && tracking is Map) {
+        final playbackBaseUrl =
+            tracking['videostatsPlaybackUrl']?['baseUrl']?.toString();
+        final watchtimeBaseUrl =
+            tracking['videostatsWatchtimeUrl']?['baseUrl']?.toString();
+        final atrBaseUrl = tracking['atrUrl']?['baseUrl']?.toString();
+
+        final baseParams = {
+          'ver': '2',
+          'c': 'WEB_REMIX',
+          'cver': '1.20260524.14.00',
+          'cpn': cpn,
+          'cplayer': 'UNIPLAYER',
+          'cbr': 'Chrome',
+          'cos': 'Windows',
+        };
+
+        // 2. Playback start ping
+        if (playbackBaseUrl != null && playbackBaseUrl.isNotEmpty) {
+          final uri = Uri.parse(playbackBaseUrl).replace(
+            queryParameters: {
+              ...Uri.parse(playbackBaseUrl).queryParameters,
+              ...baseParams,
+            },
+          );
+          await dio.get(uri.toString(), options: Options(headers: authHeaders));
+        }
+
+        // 3. Watchtime ping (registers listened duration so it counts in YouTube Music history & taste profile)
+        if (watchtimeBaseUrl != null && watchtimeBaseUrl.isNotEmpty) {
+          final watchParams = {
+            ...baseParams,
+            'st': '0',
+            'et': watchedSeconds.toString(),
+            'cmt': watchedSeconds.toString(),
+            'state': 'playing',
+          };
+          final uri = Uri.parse(watchtimeBaseUrl).replace(
+            queryParameters: {
+              ...Uri.parse(watchtimeBaseUrl).queryParameters,
+              ...watchParams,
+            },
+          );
+          await dio.get(uri.toString(), options: Options(headers: authHeaders));
+        }
+
+        // 4. ATR ping
+        if (atrBaseUrl != null && atrBaseUrl.isNotEmpty) {
+          final uri = Uri.parse(atrBaseUrl).replace(
+            queryParameters: {
+              ...Uri.parse(atrBaseUrl).queryParameters,
+              'cpn': cpn,
+            },
+          );
+          await dio.get(uri.toString(), options: Options(headers: authHeaders));
+        }
+        printINFO("YouTube Music Playback & History synced for $videoId (cpn: $cpn)");
+      }
+
+      // 5. Fallback record_playback call
+      final recordData = Map<String, dynamic>.from(_context);
+      recordData['videoId'] = videoId;
+      recordData['playbackContext'] = {
+        'contentPlaybackContext': {
+          'signatureTimestamp': sts,
+          'autoPlay': false,
+        }
+      };
+      await _sendRequest('playback/record_playback', recordData);
     } catch (e) {
       printINFO("Playback report note: $e");
     }

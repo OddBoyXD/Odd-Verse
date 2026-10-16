@@ -30,8 +30,6 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
   void _initWebView() {
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setUserAgent(
-          "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
       ..setNavigationDelegate(
         NavigationDelegate(
           onProgress: (int progress) {
@@ -97,6 +95,78 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
     } catch (_) {}
   }
 
+  void _showPasteCookieDialog() {
+    final textController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Paste YouTube Cookies"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Paste your exported YouTube Music cookies (Header, Netscape, or JSON format):",
+              style: TextStyle(fontSize: 13, color: Colors.white70),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: textController,
+              maxLines: 5,
+              decoration: InputDecoration(
+                hintText: "SAPISID=...; __Secure-3PAPISID=...; SID=...",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.all(10),
+              ),
+              style: const TextStyle(fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final raw = textController.text.trim();
+              if (raw.isNotEmpty) {
+                final authService = Get.find<YtmAuthService>();
+                final ok = await authService.setCookies(raw);
+                if (ok && mounted) {
+                  Navigator.pop(ctx);
+                  Navigator.of(context).pop(true);
+                  if (Get.isRegistered<HomeScreenController>()) {
+                    Get.find<HomeScreenController>()
+                        .loadContentFromNetwork(silent: true);
+                  }
+                  ScaffoldMessenger.of(Get.context!).showSnackBar(
+                    snackbar(
+                      Get.context!,
+                      "Connected to YouTube Music successfully!",
+                      size: SanckBarSize.BIG,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(ctx).showSnackBar(
+                    snackbar(
+                      ctx,
+                      "Invalid cookies. Ensure SAPISID or SID is present.",
+                      size: SanckBarSize.MEDIUM,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text("Save & Connect"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,6 +176,11 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.paste_rounded),
+            tooltip: "Paste Cookies",
+            onPressed: _showPasteCookieDialog,
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: "Reload",

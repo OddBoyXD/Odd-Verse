@@ -2,18 +2,26 @@
 
 ## [v1.0.3] - Latest Release
 
-### 🍎 Apple-Style Word-by-Word Synced Lyrics & Flowing Golden Glow (BitChord Parity)
-- **Word-by-Word Millisecond Timing**: Integrated `lrc.red` enhanced TTML/LRC provider directly into the synced lyrics resolution pipeline. Millisecond word-level timing tags (`<mm:ss.xx>word`) are dynamically parsed and structured into `LyricWord` tokens.
-- **Word-by-Word Radiant Golden Illumination**: Active lines now render in high-fidelity `Text.rich` spans. Words illuminate in glowing radiant gold (`0xFFFFD54F` with double-layer warm bloom shadows) exactly as they are vocalized, while upcoming words remain cleanly dimmed at 50% opacity, delivering identical Apple Music / BitChord visual elegance with zero extra GPU shaders and negligible CPU overhead.
-- **Vocal-Onset Word Alignment**: Auto-aligns word timestamps with YouTube audio when intro delays or sponsor segments are detected, ensuring word illumination matches the singer's exact voice on any video or upload.
-- **Zero Performance & Memory Overhead**: Implemented completely without high-memory animation controllers or GPU shader passes, keeping playback butter-smooth and maintaining 100% full compatibility with Lite Mode.
+### 🍎 Multi-Provider Synced Lyrics & Search Engine (BitChord Full Parity)
+- **All Top Lyrics Providers Integrated**: Combined the industry's most comprehensive provider chain:
+  - **`lrc.red`**: Apple Music TTML syllable timings by recording/ISRC (Tier 0 word-synced).
+  - **`BetterLyrics`**: Apple Music word-synced TTML mirror with zero-key instant lookup (Tier 0.5 word-synced).
+  - **`KuGou`**: Massive catalog coverage across international, English, Hindi, and Asian music via KuGou mobile endpoints.
+  - **`LRCLIB`**: High-availability line-synced catalog with exact duration verification.
+  - **`Netease Cloud`**: Global cloud music synced database.
+  - **`YouTube Captions`**: Millisecond-accurate video subtitle matching for live versions, unofficial uploads, and remixes.
+- **Search Across Providers (Manual Picker)**: Added a sleek "Search Lyrics Across Providers" bottom sheet in the player. Users can search by track title/artist, view matches categorized by provider (`Apple Word-Synced 🍎`, `KuGou`, `LRCLIB`), and apply any result instantly to the current song with 1 tap.
+- **Word-by-Word Radiant Golden Illumination**: Active lines render in high-fidelity `Text.rich` spans. Words illuminate in glowing radiant gold (`0xFFFFD54F` with double-layer warm bloom shadows) exactly as vocalized, with 50% dimmed upcoming words and zero GPU shader overhead.
+
+### 🎧 Full YouTube Music Listening History Sync
+- **Official Playback Tracking Pipeline**: Replaced basic endpoint calls with YouTube Music's official `playbackTracking` protocol. Extracts `videostatsPlaybackUrl`, `videostatsWatchtimeUrl`, and `atrUrl` using authorized player sessions with client playback nonce (`cpn`).
+- **Guaranteed History Updates**: Sends authenticated playback start and watchtime duration pings directly to `s.youtube.com`, ensuring all played tracks immediately register in your official YouTube Music account history and feed into your recommendation profile.
+
+### 👤 YouTube Music Profile & Account Display
+- **Live Account Profile Banner**: Displays your signed-in Google account name, email, and high-resolution profile avatar directly on the Home feed header and Settings page with a dedicated "Connected" indicator.
+- **Security Block Bypass & Cookie Importer**: Removed custom webview user-agent to resolve Google's "Couldn't sign you in - This browser or app may not be secure" screen, and added a quick "Paste Cookies" dialog in the login screen for instant 1-second sign-in from exported browser cookies.
 
 ### 🎵 Enhanced YouTube Music Shelves & Mixes
-- **Personalized Mix & Radio Parsing**: Enhanced `nav_parser.dart` to decode `navigation_watch_playlist_id`, turning custom mixes (My Supermix, My Mix 1–6, Mood Mixes, Discover Mix) into rich `Playlist` objects.
-- **Carousel & Strapline Header Extraction**: Added fallback shelf title extraction from `strapline` and `musicHeaderRenderer`, ensuring all dynamic personalized shelves from YouTube Music InnerTube feed populate properly.
-
-### 🔐 Seamless YouTube Music Login
-- **Official Google Music Login Template**: Configured `ltmpl=music` login template parameter in `ytm_login_screen.dart`, ensuring Google authentication completes smoothly without browser security blocks.
 
 ### ⚡ Lite Mode (Save Battery & RAM)
 - **Zero Transition Overhead**: Repurposed transition animation toggle to "Lite Mode (Save Battery & RAM)". Enabling Lite Mode turns off page transitions for instant zero-lag screen swapping.

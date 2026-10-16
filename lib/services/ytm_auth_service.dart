@@ -191,14 +191,8 @@ class YtmAuthService extends GetxService {
   Future<void> fetchAccountInfo() async {
     try {
       final dio = Dio();
-      final headers = {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'accept': '*/*',
-        'cookie': cookies ?? '',
-        'origin': _domain,
-      };
-      final auth = getSapisidHash();
-      if (auth != null) headers['authorization'] = auth;
+      final headers = getAuthHeaders();
+      if (headers.isEmpty) return;
 
       final res = await dio.post(
         "$_domain/youtubei/v1/account/account_menu?prettyPrint=false",

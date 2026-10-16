@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:audio_service/audio_service.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
@@ -247,6 +248,298 @@ class SyncedLyricsService {
     return null;
   }
 
+  static Future<Map<String, dynamic>?> _fetchFromBetterLyrics(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final url =
+          'https://lyrics-api.boidu.dev/getLyrics?s=${Uri.encodeComponent(cleanTitle)}&a=${Uri.encodeComponent(cleanArtist)}${durationSec > 0 ? '&d=$durationSec' : ''}';
+      final response = (await _dio.get(url)).data;
+      if (response != null && response is Map && response['ttml'] != null) {
+        final ttml = response['ttml'].toString();
+        final lrc = _convertTtmlToEnhancedLrc(ttml);
+        if (lrc != null && lrc.trim().isNotEmpty) {
+          final plain = lrc.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+          printINFO("Word-Synced Apple Lyrics found via BetterLyrics for $cleanTitle");
+          return {
+            "synced": lrc.trim(),
+            "plainLyrics": plain,
+            "provider": "betterlyrics",
+            "wordSynced": true,
+          };
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static String? _convertTtmlToEnhancedLrc(String ttml) {
+    try {
+      final pRegex =
+          RegExp(r'<p\s+[^>]*begin="([^"]+)"[^>]*>(.*?)</p>', dotAll: true);
+      final spanRegex = RegExp(
+          r'<span\s+[^>]*begin="([^"]+)"[^>]*>(.*?)</span>',
+          dotAll: true);
+      final pMatches = pRegex.allMatches(ttml);
+      if (pMatches.isEmpty) return null;
+
+      final buffer = StringBuffer();
+      for (final p in pMatches) {
+        final lineBeginSec = _parseSeconds(p.group(1)!);
+        final lineLrcTime = _formatLrcTime(lineBeginSec);
+        final innerContent = p.group(2)!;
+        final spanMatches = spanRegex.allMatches(innerContent);
+
+        if (spanMatches.isNotEmpty) {
+          final lineWords = StringBuffer();
+          for (final sp in spanMatches) {
+            final wordBeginSec = _parseSeconds(sp.group(1)!);
+            final wordLrcTime = _formatLrcTime(wordBeginSec);
+            final wordText =
+                sp.group(2)!.replaceAll(RegExp(r'<[^>]*>'), '');
+            lineWords.write('<$wordLrcTime>$wordText');
+          }
+          buffer.writeln('[$lineLrcTime]$lineWords');
+        } else {
+          final cleanPText =
+              innerContent.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+          if (cleanPText.isNotEmpty) {
+            buffer.writeln('[$lineLrcTime]$cleanPText');
+          }
+        }
+      }
+      final result = buffer.toString().trim();
+      return result.isNotEmpty ? result : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static double _parseSeconds(String timeStr) {
+    if (timeStr.contains(':')) {
+      final parts = timeStr.split(':');
+      if (parts.length == 2) {
+        return (double.tryParse(parts[0]) ?? 0) * 60 +
+            (double.tryParse(parts[1]) ?? 0);
+      } else if (parts.length == 3) {
+        return (double.tryParse(parts[0]) ?? 0) * 3600 +
+            (double.tryParse(parts[1]) ?? 0) * 60 +
+            (double.tryParse(parts[2]) ?? 0);
+      }
+    }
+    return double.tryParse(timeStr) ?? 0.0;
+  }
+
+  static String _formatLrcTime(double seconds) {
+    final int min = (seconds ~/ 60);
+    final int sec = (seconds % 60).toInt();
+    final int ms =
+        ((seconds - (min * 60 + sec)) * 100).toInt().clamp(0, 99);
+    return '${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}.${ms.toString().padLeft(2, '0')}';
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromKuGou(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    try {
+      final query =
+          cleanArtist.isNotEmpty ? '$cleanTitle $cleanArtist' : cleanTitle;
+      final songSearchUrl =
+          'https://mobileservice.kugou.com/api/v3/search/song?version=9108&plat=0&pagesize=8&showtype=0&keyword=${Uri.encodeComponent(query)}';
+      final songRes = (await _dio.get(songSearchUrl)).data;
+      String? hash;
+      if (songRes != null &&
+          songRes is Map &&
+          songRes['data']?['info'] is List) {
+        final infoList = songRes['data']['info'] as List;
+        if (infoList.isNotEmpty) {
+          Map? bestSong;
+          int minDiff = 9999;
+          for (final item in infoList) {
+            if (item is Map) {
+              final dur = (item['duration'] is num)
+                  ? (item['duration'] as num).toInt()
+                  : 0;
+              final diff =
+                  durationSec > 0 && dur > 0 ? (dur - durationSec).abs() : 0;
+              if (diff < minDiff && diff < 30) {
+                minDiff = diff;
+                bestSong = item;
+              }
+            }
+          }
+          bestSong ??= infoList.first as Map;
+          hash = bestSong['hash']?.toString();
+        }
+      }
+
+      final lyricSearchUrl = hash != null && hash.isNotEmpty
+          ? 'https://lyrics.kugou.com/search?ver=1&man=yes&client=pc&hash=$hash'
+          : 'https://lyrics.kugou.com/search?ver=1&man=yes&client=pc&keyword=${Uri.encodeComponent(query)}';
+      final lyricRes = (await _dio.get(lyricSearchUrl)).data;
+      if (lyricRes != null &&
+          lyricRes is Map &&
+          lyricRes['candidates'] is List) {
+        final candidates = lyricRes['candidates'] as List;
+        if (candidates.isNotEmpty) {
+          final first = candidates.first as Map;
+          final id = first['id']?.toString();
+          final accesskey = first['accesskey']?.toString();
+          if (id != null && accesskey != null) {
+            final downloadUrl =
+                'https://lyrics.kugou.com/download?ver=1&client=pc&id=$id&accesskey=$accesskey&fmt=lrc&charset=utf8';
+            final downRes = (await _dio.get(downloadUrl)).data;
+            if (downRes != null &&
+                downRes is Map &&
+                downRes['content'] != null) {
+              final b64 = downRes['content'].toString();
+              final decoded = utf8.decode(base64.decode(b64));
+              if (decoded.trim().isNotEmpty) {
+                final plain =
+                    decoded.replaceAll(RegExp(r'\[.*?\]|<.*?>'), '').trim();
+                printINFO("Synced Lyrics found via KuGou for $cleanTitle");
+                return {
+                  "synced": decoded.trim(),
+                  "plainLyrics": plain,
+                  "provider": "kugou",
+                  "wordSynced":
+                      decoded.contains('<') && decoded.contains('>'),
+                };
+              }
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  static Future<Map<String, dynamic>?> _fetchFromLrclib(
+      String cleanTitle, String cleanArtist, int durationSec) async {
+    // 1. Exact lookup
+    if (cleanArtist.isNotEmpty && cleanTitle.isNotEmpty) {
+      try {
+        final url =
+            'https://lrclib.net/api/get?artist_name=${Uri.encodeComponent(cleanArtist)}&track_name=${Uri.encodeComponent(cleanTitle)}&duration=$durationSec';
+        final response = (await _dio.get(url)).data;
+        if (response != null && response is Map) {
+          if (_isStrictMatch(response, cleanTitle, cleanArtist, durationSec)) {
+            final synced = response["syncedLyrics"]?.toString();
+            final plain = response["plainLyrics"]?.toString() ?? "";
+            if (synced != null && synced.trim().isNotEmpty) {
+              return {
+                "synced": synced,
+                "plainLyrics": plain,
+                "provider": "lrclib",
+                "wordSynced": false,
+              };
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 2. Search fallback
+    if (cleanTitle.isNotEmpty) {
+      try {
+        final searchUrl = cleanArtist.isNotEmpty
+            ? 'https://lrclib.net/api/search?track_name=${Uri.encodeComponent(cleanTitle)}&artist_name=${Uri.encodeComponent(cleanArtist)}'
+            : 'https://lrclib.net/api/search?track_name=${Uri.encodeComponent(cleanTitle)}';
+        final response = (await _dio.get(searchUrl)).data;
+        if (response != null && response is List && response.isNotEmpty) {
+          Map? bestMatch;
+          int minDurDiff = 999999;
+          for (final item in response) {
+            if (item is Map &&
+                _isStrictMatch(item, cleanTitle, cleanArtist, durationSec)) {
+              final synced = item["syncedLyrics"]?.toString();
+              if (synced != null && synced.trim().isNotEmpty) {
+                final itemDur = (item["duration"] is num)
+                    ? (item["duration"] as num).toInt()
+                    : 0;
+                final diff = (itemDur - durationSec).abs();
+                if (diff < minDurDiff) {
+                  minDurDiff = diff;
+                  bestMatch = item;
+                }
+              }
+            }
+          }
+          if (bestMatch != null) {
+            return {
+              "synced": bestMatch["syncedLyrics"].toString(),
+              "plainLyrics": bestMatch["plainLyrics"]?.toString() ?? "",
+              "provider": "lrclib",
+              "wordSynced": false,
+            };
+          }
+        }
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  /// Search across all providers simultaneously for manual lyrics search
+  static Future<List<Map<String, dynamic>>> searchAllProviders(
+      String title, String artist, {int durationSec = 0}) async {
+    final cleanTitle = cleanTrackTitle(title, artist: artist);
+    final cleanArtist = cleanArtistName(artist);
+    final results = <Map<String, dynamic>>[];
+
+    await Future.wait([
+      _fetchFromLrcRed(cleanTitle, cleanArtist, durationSec).then((res) {
+        if (res != null) {
+          results.add({
+            ...res,
+            'title': cleanTitle,
+            'artist': cleanArtist,
+            'sourceName': 'lrc.red (Apple Music TTML)',
+          });
+        }
+      }),
+      _fetchFromBetterLyrics(cleanTitle, cleanArtist, durationSec).then((res) {
+        if (res != null) {
+          results.add({
+            ...res,
+            'title': cleanTitle,
+            'artist': cleanArtist,
+            'sourceName': 'BetterLyrics (Apple Music)',
+          });
+        }
+      }),
+      _fetchFromLrclib(cleanTitle, cleanArtist, durationSec).then((res) {
+        if (res != null) {
+          results.add({
+            ...res,
+            'title': cleanTitle,
+            'artist': cleanArtist,
+            'sourceName': 'LRCLIB',
+          });
+        }
+      }),
+      _fetchFromKuGou(cleanTitle, cleanArtist, durationSec).then((res) {
+        if (res != null) {
+          results.add({
+            ...res,
+            'title': cleanTitle,
+            'artist': cleanArtist,
+            'sourceName': 'KuGou',
+          });
+        }
+      }),
+      _fetchFromNetease(cleanTitle, cleanArtist).then((res) {
+        if (res != null) {
+          results.add({
+            ...res,
+            'title': cleanTitle,
+            'artist': cleanArtist,
+            'sourceName': 'Netease Cloud',
+          });
+        }
+      }),
+    ]);
+
+    return results;
+  }
+
   static String _normalize(String input) {
     return input
         .toLowerCase()
@@ -461,6 +754,27 @@ class SyncedLyricsService {
       }
     } catch (_) {}
 
+    // Tier 0.5: BetterLyrics (Apple Music TTML / Word-by-word mirror)
+    try {
+      final betterLyricsRes =
+          await _fetchFromBetterLyrics(cleanTitle, cleanArtist, dur);
+      if (betterLyricsRes != null) {
+        String synced = betterLyricsRes["synced"] as String;
+        if (ytFirstVocalMs > 0) {
+          synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+        }
+        final lyricsData = {
+          "synced": synced,
+          "plainLyrics": betterLyricsRes["plainLyrics"] ?? "",
+          "provider": "betterlyrics",
+          "wordSynced": true,
+          "captionAligned": ytFirstVocalMs > 0,
+        };
+        await lyricsBox.put(song.id, lyricsData);
+        return lyricsData;
+      }
+    } catch (_) {}
+
     // 2. Tier 1: LRCLIB Exact Lookup
     if (cleanArtist.isNotEmpty && cleanTitle.isNotEmpty) {
       try {
@@ -597,7 +911,32 @@ class SyncedLyricsService {
       return ytVideoCaptions;
     }
 
-    // 6. Tier 5: Netease Cloud Music Synced Database
+    // 6. Tier 5: KuGou Synced Lyrics Database
+    if (cleanTitle.isNotEmpty) {
+      try {
+        final kugouLyrics =
+            await _fetchFromKuGou(cleanTitle, cleanArtist, dur);
+        if (kugouLyrics != null &&
+            kugouLyrics['synced'] != null &&
+            kugouLyrics['synced'].toString().trim().isNotEmpty) {
+          String? synced = kugouLyrics['synced']?.toString();
+          if (synced != null && ytFirstVocalMs > 0) {
+            synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+          }
+          final lyricsData = {
+            "synced": synced,
+            "plainLyrics": kugouLyrics['plainLyrics'] ?? "",
+            "provider": "kugou",
+            "wordSynced": kugouLyrics['wordSynced'] == true,
+            "captionAligned": ytFirstVocalMs > 0,
+          };
+          await lyricsBox.put(song.id, lyricsData);
+          return lyricsData;
+        }
+      } catch (_) {}
+    }
+
+    // 7. Tier 6: Netease Cloud Music Synced Database
     if (cleanTitle.isNotEmpty) {
       try {
         final neteaseLyrics = await _fetchFromNetease(cleanTitle, cleanArtist);
