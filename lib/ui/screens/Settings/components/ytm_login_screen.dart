@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -17,9 +18,45 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
   bool _isLoading = true;
   double _progress = 0;
   bool _loginCaptured = false;
+  bool _isOnMusicOrigin = false;
+  String? _detectedUserName;
+  String? _detectedUserAvatar;
 
   static const String _loginUrl =
       "https://accounts.google.com/ServiceLogin?ltmpl=music&service=youtube&passive=true&continue=https%3A%2F%2Fmusic.youtube.com%2F";
+
+  static const String _probeScript = r'''
+(function () {
+  try {
+    var cookie = document.cookie || '';
+    var get = function (k) {
+      if (window.ytcfg && window.ytcfg.get) {
+        var v = window.ytcfg.get(k);
+        return (v === undefined || v === null) ? '' : String(v);
+      }
+      return '';
+    };
+    var name = get('USER_NAME');
+    var avatar = get('USER_AVATAR');
+    var loggedIn = get('LOGGED_IN');
+    if (!name) {
+      var el = document.querySelector('button.ytmusic-settings-button img, yt-img-shadow#avatar img, button#avatar-btn img');
+      if (el) {
+        if (el.alt) name = el.alt;
+        if (el.src) avatar = el.src;
+      }
+    }
+    return JSON.stringify({
+      cookie: cookie,
+      loggedIn: loggedIn,
+      name: name,
+      avatar: avatar
+    });
+  } catch(e) {
+    return JSON.stringify({ cookie: document.cookie || '', loggedIn: 'false' });
+  }
+})()
+''';
 
   @override
   void initState() {
@@ -45,7 +82,7 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
                 _isLoading = true;
               });
             }
-            _checkCookies(url);
+            _handleUrlChange(url);
           },
           onPageFinished: (String url) async {
             if (mounted) {
@@ -53,7 +90,7 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
                 _isLoading = false;
               });
             }
-            _checkCookies(url);
+            _handleUrlChange(url);
           },
           onNavigationRequest: (NavigationRequest request) {
             return NavigationDecision.navigate;
@@ -63,36 +100,87 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
       ..loadRequest(Uri.parse(_loginUrl));
   }
 
-  Future<void> _checkCookies(String currentUrl) async {
+  Future<void> _handleUrlChange(String url) async {
+    final isMusic = url.contains("music.youtube.com");
+    if (mounted && _isOnMusicOrigin != isMusic) {
+      setState(() {
+        _isOnMusicOrigin = isMusic;
+      });
+    }
+
+    if (isMusic && !_loginCaptured) {
+      await _probeSession(autoComplete: true);
+    }
+  }
+
+  Future<void> _probeSession({bool autoComplete = false}) async {
     if (_loginCaptured) return;
     try {
-      final cookieResult =
-          await _controller.runJavaScriptReturningResult("document.cookie");
-      final cookieStr = cookieResult.toString();
+      final rawResult =
+          await _controller.runJavaScriptReturningResult(_probeScript);
+      String resultStr = rawResult.toString().trim();
+      if (resultStr.startsWith('"') && resultStr.endsWith('"')) {
+        resultStr = jsonDecode(resultStr);
+      }
+      final parsed = jsonDecode(resultStr);
 
-      if (cookieStr.contains("SAPISID") ||
-          cookieStr.contains("__Secure-3PAPISID") ||
-          cookieStr.contains("LOGIN_INFO") ||
-          cookieStr.contains("SSID")) {
-        _loginCaptured = true;
-        final authService = Get.find<YtmAuthService>();
-        final success = await authService.setCookies(cookieStr);
+      if (parsed is Map) {
+        final cookieStr = parsed['cookie']?.toString() ?? '';
+        final name = parsed['name']?.toString();
+        final avatar = parsed['avatar']?.toString();
+        final loggedIn = parsed['loggedIn']?.toString() == 'true';
 
-        if (success && mounted) {
-          if (Get.isRegistered<HomeScreenController>()) {
-            Get.find<HomeScreenController>().loadContentFromNetwork(silent: true);
-          }
-          Navigator.of(context).pop(true);
-          ScaffoldMessenger.of(Get.context!).showSnackBar(
-            snackbar(
-              Get.context!,
-              "Connected to YouTube Music successfully!",
-              size: SanckBarSize.BIG,
-            ),
+        final hasApiSid = cookieStr.contains("SAPISID") ||
+            cookieStr.contains("__Secure-3PAPISID") ||
+            cookieStr.contains("__Secure-1PAPISID");
+
+        if (name != null && name.isNotEmpty && mounted) {
+          setState(() {
+            _detectedUserName = name;
+            _detectedUserAvatar = avatar;
+          });
+        }
+
+        if (hasApiSid && (loggedIn || !autoComplete)) {
+          await _completeLogin(
+            cookieStr,
+            name: name ?? _detectedUserName,
+            avatar: avatar ?? _detectedUserAvatar,
           );
         }
       }
     } catch (_) {}
+  }
+
+  Future<void> _completeLogin(String cookieStr,
+      {String? name, String? avatar}) async {
+    if (_loginCaptured) return;
+    _loginCaptured = true;
+
+    final authService = Get.find<YtmAuthService>();
+    final success = await authService.setCookies(
+      cookieStr,
+      directName: name,
+      directAvatar: avatar,
+    );
+
+    if (success && mounted) {
+      if (Get.isRegistered<HomeScreenController>()) {
+        Get.find<HomeScreenController>().loadContentFromNetwork(silent: true);
+      }
+      Navigator.of(context).pop(true);
+      ScaffoldMessenger.of(Get.context!).showSnackBar(
+        snackbar(
+          Get.context!,
+          name != null && name.isNotEmpty
+              ? "Signed in as $name!"
+              : "Connected to YouTube Music successfully!",
+          size: SanckBarSize.BIG,
+        ),
+      );
+    } else {
+      _loginCaptured = false;
+    }
   }
 
   void _showPasteCookieDialog() {
@@ -186,25 +274,6 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
             tooltip: "Reload",
             onPressed: () => _controller.reload(),
           ),
-          IconButton(
-            icon: const Icon(Icons.check),
-            tooltip: "Check Login",
-            onPressed: () async {
-              final url = await _controller.currentUrl();
-              if (url != null) {
-                await _checkCookies(url);
-              }
-              if (!_loginCaptured && mounted) {
-                ScaffoldMessenger.of(Get.context!).showSnackBar(
-                  snackbar(
-                    Get.context!,
-                    "Please finish signing in on the page.",
-                    size: SanckBarSize.MEDIUM,
-                  ),
-                );
-              }
-            },
-          ),
         ],
         bottom: _isLoading
             ? PreferredSize(
@@ -216,7 +285,86 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
               )
             : null,
       ),
-      body: WebViewWidget(controller: _controller),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_isOnMusicOrigin)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 24,
+              child: Card(
+                elevation: 10,
+                color: const Color(0xFF1E1E1E),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: Color(0x33FF0000), width: 1.5),
+                ),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      if (_detectedUserAvatar != null &&
+                          _detectedUserAvatar!.isNotEmpty)
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundImage: NetworkImage(_detectedUserAvatar!),
+                        )
+                      else
+                        const Icon(Icons.check_circle,
+                            color: Colors.redAccent, size: 28),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              _detectedUserName != null &&
+                                      _detectedUserName!.isNotEmpty
+                                  ? _detectedUserName!
+                                  : "YouTube Music",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const Text(
+                              "Signed in • Ready to sync",
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 8),
+                        ),
+                        onPressed: () => _probeSession(autoComplete: false),
+                        child: const Text(
+                          "Confirm",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

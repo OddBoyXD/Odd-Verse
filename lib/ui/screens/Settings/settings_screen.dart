@@ -1028,9 +1028,210 @@ class SettingsScreen extends StatelessWidget {
                     physics: const BouncingScrollPhysics(),
                     padding: const EdgeInsets.only(bottom: 200, top: 8),
                     children: [
-              CustomExpansionTile(
-                title: "YouTube Music Account",
-                icon: Icons.account_circle,
+                      Obx(() {
+                        final ytmAuth = Get.find<YtmAuthService>();
+                        if (ytmAuth.isLoggedIn.value) {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF262626), Color(0xFF181818)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(0x33FF0000),
+                                width: 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Stack(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 26,
+                                      backgroundImage: ytmAuth
+                                              .userAvatar.value.isNotEmpty
+                                          ? NetworkImage(ytmAuth.userAvatar.value)
+                                          : null,
+                                      child: ytmAuth.userAvatar.value.isEmpty
+                                          ? const Icon(Icons.person, size: 28)
+                                          : null,
+                                    ),
+                                    Positioned(
+                                      right: 0,
+                                      bottom: 0,
+                                      child: Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: BoxDecoration(
+                                          color: Colors.greenAccent,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: Colors.black, width: 2),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        ytmAuth.userName.value.isNotEmpty
+                                            ? ytmAuth.userName.value
+                                            : "YouTube Music",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        ytmAuth.userEmail.value.isNotEmpty
+                                            ? ytmAuth.userEmail.value
+                                            : "Connected Account",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white.withOpacity(0.6),
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0x224CAF50),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                            child: const Text(
+                                              "Sync Active",
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.greenAccent,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            "History & Mixes",
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.white38),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    await ytmAuth.logout();
+                                    if (Get.isRegistered<HomeScreenController>()) {
+                                      Get.find<HomeScreenController>()
+                                          .loadContentFromNetwork(silent: true);
+                                    }
+                                    ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                      snackbar(
+                                        Get.context!,
+                                        "Logged out from YouTube Music",
+                                        size: SanckBarSize.MEDIUM,
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    "Logout",
+                                    style: TextStyle(color: Colors.redAccent),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E1E1E),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white10,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const CircleAvatar(
+                                  radius: 24,
+                                  backgroundColor: Color(0x33FF0000),
+                                  child: Icon(Icons.account_circle,
+                                      color: Colors.redAccent, size: 28),
+                                ),
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        "YouTube Music",
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        "Sign in to sync your history & playlists",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.white.withOpacity(0.6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.redAccent,
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 8),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const YtmLoginScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text("Sign In"),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      }),
+                      CustomExpansionTile(
+                        title: "YouTube Music Account & Cookies",
+                        icon: Icons.account_circle,
                 children: [
                   Obx(() {
                     final ytmAuth = Get.find<YtmAuthService>();

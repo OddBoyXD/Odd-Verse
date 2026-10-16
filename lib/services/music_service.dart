@@ -357,6 +357,39 @@ class MusicServices extends getx.GetxService {
     return x;
   }
 
+  static int? _cachedSignatureTimestamp;
+
+  Future<int> getSignatureTimestamp() async {
+    if (_cachedSignatureTimestamp != null) return _cachedSignatureTimestamp!;
+    try {
+      final homeRes = await dio.get(
+        "https://www.youtube.com",
+        options: Options(
+          headers: {
+            'user-agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+          },
+        ),
+      );
+      final playerMatch = RegExp(r'/s/player/[a-zA-Z0-9_/-]+/player_ias\.vflset/[a-zA-Z0-9_/-]+/base\.js').firstMatch(homeRes.data.toString()) ??
+          RegExp(r'/s/player/[a-zA-Z0-9_/-]+/base\.js').firstMatch(homeRes.data.toString());
+      if (playerMatch != null) {
+        final jsUrl = "https://www.youtube.com${playerMatch.group(0)}";
+        final jsRes = await dio.get(jsUrl);
+        final stsMatch = RegExp(r'signatureTimestamp:(\d+)').firstMatch(jsRes.data.toString());
+        if (stsMatch != null) {
+          final sts = int.parse(stsMatch.group(1)!);
+          _cachedSignatureTimestamp = sts;
+          printINFO("YouTube signatureTimestamp fetched: $sts");
+          return sts;
+        }
+      }
+    } catch (e) {
+      printINFO("Could not parse live signatureTimestamp, falling back: $e");
+    }
+    return getDatestamp() - 1;
+  }
+
   String _generateCpn() {
     const chars =
         'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
@@ -364,7 +397,7 @@ class MusicServices extends getx.GetxService {
     return List.generate(16, (index) => chars[rand.nextInt(chars.length)]).join();
   }
 
-  Future<void> recordPlayback(String videoId, {int watchedSeconds = 10}) async {
+  Future<void> recordPlayback(String videoId, {int watchedSeconds = 15}) async {
     try {
       if (!getx.Get.isRegistered<YtmAuthService>() ||
           !getx.Get.find<YtmAuthService>().isLoggedIn.value) {
@@ -374,7 +407,7 @@ class MusicServices extends getx.GetxService {
       final authHeaders = ytmAuth.getAuthHeaders(videoId: videoId);
       if (authHeaders.isEmpty) return;
 
-      final sts = getDatestamp() - 1;
+      final sts = await getSignatureTimestamp();
       final playerPayload = Map<String, dynamic>.from(_context);
       playerPayload['videoId'] = videoId;
       playerPayload['contentCheckOk'] = true;
@@ -393,6 +426,11 @@ class MusicServices extends getx.GetxService {
           ? playerRes.data['playbackTracking']
           : null;
       final cpn = _generateCpn();
+
+      final pingOptions = Options(
+        headers: authHeaders,
+        validateStatus: (status) => true,
+      );
 
       if (tracking != null && tracking is Map) {
         final playbackBaseUrl =
@@ -419,7 +457,7 @@ class MusicServices extends getx.GetxService {
               ...baseParams,
             },
           );
-          await dio.get(uri.toString(), options: Options(headers: authHeaders));
+          await dio.get(uri.toString(), options: pingOptions);
         }
 
         // 3. Watchtime ping (registers listened duration so it counts in YouTube Music history & taste profile)
@@ -437,7 +475,7 @@ class MusicServices extends getx.GetxService {
               ...watchParams,
             },
           );
-          await dio.get(uri.toString(), options: Options(headers: authHeaders));
+          await dio.get(uri.toString(), options: pingOptions);
         }
 
         // 4. ATR ping
@@ -448,9 +486,9 @@ class MusicServices extends getx.GetxService {
               'cpn': cpn,
             },
           );
-          await dio.get(uri.toString(), options: Options(headers: authHeaders));
+          await dio.get(uri.toString(), options: pingOptions);
         }
-        printINFO("YouTube Music Playback & History synced for $videoId (cpn: $cpn)");
+        printINFO("YouTube Music Playback & History synced for $videoId (cpn: $cpn, sts: $sts)");
       }
 
       // 5. Fallback record_playback call

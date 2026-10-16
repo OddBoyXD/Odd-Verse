@@ -17,7 +17,6 @@ import '../../widgets/quickpickswidget.dart';
 import '../../widgets/shimmer_widgets/home_shimmer.dart';
 import 'home_screen_controller.dart';
 import '../Settings/settings_screen.dart';
-import '../../../services/ytm_auth_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -197,76 +196,6 @@ class Body extends StatelessWidget {
                         final items = homeScreenController
                                 .isContentFetched.value
                             ? [
-                                Obx(() {
-                                  if (!Get.isRegistered<YtmAuthService>()) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  final ytmAuth = Get.find<YtmAuthService>();
-                                  if (!ytmAuth.isLoggedIn.value) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return Padding(
-                                    padding: const EdgeInsets.only(
-                                        bottom: 14.0, right: 16.0),
-                                    child: Row(
-                                      children: [
-                                        CircleAvatar(
-                                          radius: 14,
-                                          backgroundImage: ytmAuth.userAvatar
-                                                  .value.isNotEmpty
-                                              ? NetworkImage(
-                                                  ytmAuth.userAvatar.value)
-                                              : null,
-                                          child: ytmAuth
-                                                  .userAvatar.value.isEmpty
-                                              ? const Icon(Icons.person,
-                                                  size: 16)
-                                              : null,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            ytmAuth.userName.value.isNotEmpty
-                                                ? ytmAuth.userName.value
-                                                : "YouTube Music",
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white70,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 2),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0x33FF0000),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.check,
-                                                  size: 11,
-                                                  color: Colors.redAccent),
-                                              SizedBox(width: 3),
-                                              Text(
-                                                "Connected",
-                                                style: TextStyle(
-                                                    fontSize: 10,
-                                                    color: Colors.redAccent,
-                                                    fontWeight:
-                                                        FontWeight.bold),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }),
                                 if (homeScreenController
                                     .quickPicks.value.songList.isNotEmpty)
                                   Obx(() {

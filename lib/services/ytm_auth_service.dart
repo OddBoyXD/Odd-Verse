@@ -90,7 +90,8 @@ class YtmAuthService extends GetxService {
     return headers;
   }
 
-  Future<bool> setCookies(String rawCookies) async {
+  Future<bool> setCookies(String rawCookies,
+      {String? directName, String? directAvatar, String? directEmail}) async {
     try {
       String input = rawCookies.trim();
       if (input.isEmpty) return false;
@@ -175,17 +176,46 @@ class YtmAuthService extends GetxService {
       await box.put("ytm_is_logged_in", true);
       isLoggedIn.value = true;
 
-      // Attempt to fetch user account details from YouTube Music
+      if (directName != null && directName.isNotEmpty) {
+        userName.value = directName;
+        await box.put("ytm_user_name", directName);
+      }
+      if (directAvatar != null && directAvatar.isNotEmpty) {
+        userAvatar.value = directAvatar;
+        await box.put("ytm_user_avatar", directAvatar);
+      }
+      if (directEmail != null && directEmail.isNotEmpty) {
+        userEmail.value = directEmail;
+        await box.put("ytm_user_email", directEmail);
+      }
+
+      // Attempt to fetch full account details from YouTube Music
       await fetchAccountInfo();
       if (Get.isRegistered<HomeScreenController>()) {
         Get.find<HomeScreenController>().loadContentFromNetwork();
       }
-      printINFO("YouTube Music login successful!");
+      printINFO("YouTube Music login successful! (User: ${userName.value})");
       return true;
     } catch (e) {
       printERROR("Error setting YTM cookies: $e");
       return false;
     }
+  }
+
+  dynamic _findInJson(dynamic node, String key) {
+    if (node is Map) {
+      if (node.containsKey(key)) return node[key];
+      for (final val in node.values) {
+        final found = _findInJson(val, key);
+        if (found != null) return found;
+      }
+    } else if (node is List) {
+      for (final item in node) {
+        final found = _findInJson(item, key);
+        if (found != null) return found;
+      }
+    }
+    return null;
   }
 
   Future<void> fetchAccountInfo() async {
@@ -209,41 +239,39 @@ class YtmAuthService extends GetxService {
 
       if (res.statusCode == 200 && res.data != null) {
         final data = res.data;
-        // Search for account name and avatar thumbnail
-        final actions = data['actions'] as List?;
-        if (actions != null && actions.isNotEmpty) {
-          final accountSection = actions[0]['openPopupAction']?['popup']?['multiPageMenuRenderer']?['header']?['activeAccountHeaderRenderer'];
-          if (accountSection != null) {
-            final name = accountSection['accountName']?['runs']?[0]?['text'] ??
-                accountSection['accountName']?['simpleText'];
-            final email = accountSection['email']?['runs']?[0]?['text'] ??
-                accountSection['email']?['simpleText'];
-            final avatarList = accountSection['accountPhoto']?['thumbnails'] as List?;
-            final avatarUrl = avatarList != null && avatarList.isNotEmpty
-                ? avatarList.last['url']
-                : null;
+        final accountSection = _findInJson(data, 'activeAccountHeaderRenderer');
+        if (accountSection != null && accountSection is Map) {
+          final name = accountSection['accountName']?['runs']?[0]?['text'] ??
+              accountSection['accountName']?['simpleText'];
+          final email = accountSection['email']?['runs']?[0]?['text'] ??
+              accountSection['email']?['simpleText'] ??
+              accountSection['channelHandle']?['runs']?[0]?['text'] ??
+              accountSection['channelHandle']?['simpleText'];
+          final avatarList = accountSection['accountPhoto']?['thumbnails'] as List?;
+          final avatarUrl = avatarList != null && avatarList.isNotEmpty
+              ? avatarList.last['url']
+              : null;
 
-            final box = Hive.box("AppPrefs");
-            if (name != null) {
-              userName.value = name.toString();
-              await box.put("ytm_user_name", name.toString());
-            }
-            if (email != null) {
-              userEmail.value = email.toString();
-              await box.put("ytm_user_email", email.toString());
-            }
-            if (avatarUrl != null) {
-              userAvatar.value = avatarUrl.toString();
-              await box.put("ytm_user_avatar", avatarUrl.toString());
-            }
+          final box = Hive.box("AppPrefs");
+          if (name != null && name.toString().trim().isNotEmpty) {
+            userName.value = name.toString().trim();
+            await box.put("ytm_user_name", userName.value);
+          }
+          if (email != null && email.toString().trim().isNotEmpty) {
+            userEmail.value = email.toString().trim();
+            await box.put("ytm_user_email", email.toString().trim());
+          }
+          if (avatarUrl != null && avatarUrl.toString().trim().isNotEmpty) {
+            userAvatar.value = avatarUrl.toString().trim();
+            await box.put("ytm_user_avatar", userAvatar.value);
           }
         }
       }
     } catch (e) {
       printINFO("Account info lookup: $e");
-      if (userName.value.isEmpty) {
-        userName.value = "YouTube Account";
-      }
+    }
+    if (userName.value.isEmpty) {
+      userName.value = "YouTube Account";
     }
   }
 

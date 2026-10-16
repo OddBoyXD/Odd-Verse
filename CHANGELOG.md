@@ -13,13 +13,13 @@
 - **Search Across Providers (Manual Picker)**: Added a sleek "Search Lyrics Across Providers" bottom sheet in the player. Users can search by track title/artist, view matches categorized by provider (`Apple Word-Synced 🍎`, `KuGou`, `LRCLIB`), and apply any result instantly to the current song with 1 tap.
 - **Word-by-Word Radiant Golden Illumination**: Active lines render in high-fidelity `Text.rich` spans. Words illuminate in glowing radiant gold (`0xFFFFD54F` with double-layer warm bloom shadows) exactly as vocalized, with 50% dimmed upcoming words and zero GPU shader overhead.
 
-### 🎧 Full YouTube Music Listening History Sync
-- **Official Playback Tracking Pipeline**: Replaced basic endpoint calls with YouTube Music's official `playbackTracking` protocol. Extracts `videostatsPlaybackUrl`, `videostatsWatchtimeUrl`, and `atrUrl` using authorized player sessions with client playback nonce (`cpn`).
-- **Guaranteed History Updates**: Sends authenticated playback start and watchtime duration pings directly to `s.youtube.com`, ensuring all played tracks immediately register in your official YouTube Music account history and feed into your recommendation profile.
+### 🎧 Full YouTube Music Listening History Sync (Dynamic STS & BitChord Parity)
+- **Live Player Signature Timestamp (`sts`) Fetching**: Dynamically fetches and memoizes YouTube's exact live player JavaScript revision timestamp (`signatureTimestamp`), ensuring InnerTube `player` requests are never declined with unplayable status and 100% guarantee `playbackTracking` issuance.
+- **Robust Tracking Pipeline**: Sends playback start and duration pings directly to `videostatsPlaybackUrl`, `videostatsWatchtimeUrl`, and `atrUrl` with `validateStatus: true` and signed `SAPISIDHASH` headers.
 
-### 👤 YouTube Music Profile & Account Display
-- **Live Account Profile Banner**: Displays your signed-in Google account name, email, and high-resolution profile avatar directly on the Home feed header and Settings page with a dedicated "Connected" indicator.
-- **Security Block Bypass & Cookie Importer**: Removed custom webview user-agent to resolve Google's "Couldn't sign you in - This browser or app may not be secure" screen, and added a quick "Paste Cookies" dialog in the login screen for instant 1-second sign-in from exported browser cookies.
+### 👤 YouTube Music Profile & Account Section (Clean Home & Settings Parity)
+- **Dedicated Account Profile Card**: Relocated YouTube Music account display from the home feed into the **Settings -> Account** tab. Features a prominent, modern profile card showing the user's name, email/handle, avatar with live green status indicator, and active history/mix sync indicator.
+- **BitChord-Style Sign-In with Origin Detection**: Updated WebView login flow to mirror BitChord: ignores intermediate `accounts.google.com` tracking cookies so users never get kicked out early during 2FA/password entry, and automatically detects arrival on `music.youtube.com` with `window.ytcfg` probing and an interactive "Confirm Login" floating action bar.
 
 ### 🎵 Enhanced YouTube Music Shelves & Mixes
 
