@@ -19,7 +19,11 @@
 
 ### 👤 YouTube Music Profile & Account Section (Clean Home & Settings Parity)
 - **Dedicated Account Profile Card**: Relocated YouTube Music account display from the home feed into the **Settings -> Account** tab. Features a prominent, modern profile card showing the user's name, email/handle, avatar with live green status indicator, and active history/mix sync indicator.
-- **BitChord-Style Sign-In with Origin Detection**: Updated WebView login flow to mirror BitChord: ignores intermediate `accounts.google.com` tracking cookies so users never get kicked out early during 2FA/password entry, and automatically detects arrival on `music.youtube.com` with `window.ytcfg` probing and an interactive "Confirm Login" floating action bar.
+- **Native Android CookieManager Integration (BitChord Parity)**: Connected Android's native `android.webkit.CookieManager` via platform channels to extract the complete cookie jar (`HSID`, `SSID`, `LOGIN_INFO`, `SAPISID`, `__Secure-3PSID`) upon login, bypassing browser JavaScript `HttpOnly` restrictions and ensuring 100% genuine authorized YouTube Music sessions.
+- **Origin-Aware Sign-In**: WebView ignores intermediate `accounts.google.com` tracking cookies so users never get kicked out early during 2FA/password entry, and automatically detects arrival on `music.youtube.com` with `window.ytcfg` probing and an interactive "Confirm Login" floating action bar.
+
+### 🔍 Search Suggestions & Recommendations Engine (BitChord Parity)
+- **Recursive Suggestion Parser**: Upgraded search suggestion collector to recursively traverse InnerTube responses and extract all `searchSuggestionRenderer` queries regardless of section ordering or entity placement.
 
 ### 🎵 Enhanced YouTube Music Shelves & Mixes
 

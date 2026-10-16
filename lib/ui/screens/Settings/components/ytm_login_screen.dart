@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../services/ytm_auth_service.dart';
@@ -113,9 +114,22 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
     }
   }
 
+  Future<String?> _getNativeCookies() async {
+    try {
+      const channel = MethodChannel("com.oddverse.dc/media_store");
+      final cookies = await channel.invokeMethod<String>(
+          "getCookiesForUrl", {"url": "https://music.youtube.com"});
+      if (cookies != null && cookies.isNotEmpty) {
+        return cookies;
+      }
+    } catch (_) {}
+    return null;
+  }
+
   Future<void> _probeSession({bool autoComplete = false}) async {
     if (_loginCaptured) return;
     try {
+      final nativeCookies = await _getNativeCookies();
       final rawResult =
           await _controller.runJavaScriptReturningResult(_probeScript);
       String resultStr = rawResult.toString().trim();
@@ -125,14 +139,18 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
       final parsed = jsonDecode(resultStr);
 
       if (parsed is Map) {
-        final cookieStr = parsed['cookie']?.toString() ?? '';
+        final jsCookieStr = parsed['cookie']?.toString() ?? '';
+        final effectiveCookies =
+            (nativeCookies != null && nativeCookies.isNotEmpty)
+                ? nativeCookies
+                : jsCookieStr;
         final name = parsed['name']?.toString();
         final avatar = parsed['avatar']?.toString();
         final loggedIn = parsed['loggedIn']?.toString() == 'true';
 
-        final hasApiSid = cookieStr.contains("SAPISID") ||
-            cookieStr.contains("__Secure-3PAPISID") ||
-            cookieStr.contains("__Secure-1PAPISID");
+        final hasApiSid = effectiveCookies.contains("SAPISID") ||
+            effectiveCookies.contains("__Secure-3PAPISID") ||
+            effectiveCookies.contains("__Secure-1PAPISID");
 
         if (name != null && name.isNotEmpty && mounted) {
           setState(() {
@@ -143,7 +161,7 @@ class _YtmLoginScreenState extends State<YtmLoginScreen> {
 
         if (hasApiSid && (loggedIn || !autoComplete)) {
           await _completeLogin(
-            cookieStr,
+            effectiveCookies,
             name: name ?? _detectedUserName,
             avatar: avatar ?? _detectedUserAvatar,
           );

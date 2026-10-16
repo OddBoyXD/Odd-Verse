@@ -216,6 +216,24 @@ class MainActivity : AudioServiceActivity() {
                 } catch (e: Exception) {
                     result.error("REVERB_ERROR", e.message, null)
                 }
+            } else if (call.method == "getCookiesForUrl") {
+                val url = call.argument<String>("url") ?: "https://music.youtube.com"
+                try {
+                    val cookieManager = android.webkit.CookieManager.getInstance()
+                    cookieManager.flush()
+                    val cookies = cookieManager.getCookie(url)
+                    result.success(cookies)
+                } catch (e: Exception) {
+                    result.error("COOKIE_ERROR", e.message, null)
+                }
+            } else if (call.method == "clearWebCookies") {
+                try {
+                    val cookieManager = android.webkit.CookieManager.getInstance()
+                    cookieManager.removeAllCookies { result.success(true) }
+                    cookieManager.flush()
+                } catch (e: Exception) {
+                    result.error("COOKIE_ERROR", e.message, null)
+                }
             } else {
                 result.notImplemented()
             }

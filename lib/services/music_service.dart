@@ -683,23 +683,54 @@ class MusicServices extends getx.GetxService {
   }
 
   Future<List<String>> getSearchSuggestion(String queryStr) async {
-    final data = Map.from(_context);
-    data['input'] = queryStr;
-    final res = nav(
-            (await _sendRequest("music/get_search_suggestions", data)).data,
-            ['contents', 0, 'searchSuggestionsSectionRenderer', 'contents']) ??
-        [];
-    return res
-        .map<String?>((item) {
-          return (nav(item, [
-            'searchSuggestionRenderer',
-            'navigationEndpoint',
-            'searchEndpoint',
-            'query'
-          ])).toString();
-        })
-        .whereType<String>()
-        .toList();
+    try {
+      final data = Map.from(_context);
+      data['input'] = queryStr;
+      final raw =
+          (await _sendRequest("music/get_search_suggestions", data)).data;
+      final renderers = _collectRenderers(raw, 'searchSuggestionRenderer');
+      final suggestions = <String>[];
+      for (final r in renderers) {
+        if (r is Map) {
+          final q = nav(r, [
+                'navigationEndpoint',
+                'searchEndpoint',
+                'query'
+              ])?.toString() ??
+              nav(r, ['suggestion', 'runs'])
+                  ?.map((e) => e['text'])
+                  ?.join() ??
+              '';
+          final trimmed = q.trim();
+          if (trimmed.isNotEmpty && !suggestions.contains(trimmed)) {
+            suggestions.add(trimmed);
+          }
+        }
+      }
+      return suggestions;
+    } catch (_) {
+      return [];
+    }
+  }
+
+  List<dynamic> _collectRenderers(dynamic node, String key) {
+    final List<dynamic> out = [];
+    void walk(dynamic curr) {
+      if (curr is Map) {
+        if (curr.containsKey(key) && curr[key] is Map) {
+          out.add(curr[key]);
+        }
+        for (final val in curr.values) {
+          walk(val);
+        }
+      } else if (curr is List) {
+        for (final item in curr) {
+          walk(item);
+        }
+      }
+    }
+    walk(node);
+    return out;
   }
 
   ///Specially created for deep-links
