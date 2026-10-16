@@ -43,16 +43,31 @@ class Home extends StatelessWidget {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
+        // 1. If any modal bottom sheet (e.g. lyrics search sheet) or dialog is open, pop it first!
+        if (Navigator.of(context, rootNavigator: true).canPop()) {
+          Navigator.of(context, rootNavigator: true).pop();
+          return;
+        }
+        // 2. If queue panel is open, close queue panel
         if (playerController.queuePanelController.isAttached &&
             playerController.queuePanelController.isPanelOpen) {
           playerController.queuePanelController.close();
-        } else if (playerController.playerPanelController.isAttached &&
+          return;
+        }
+        // 3. If big player is open:
+        if (playerController.playerPanelController.isAttached &&
             playerController.playerPanelController.isPanelOpen) {
+          // If lyrics are showing, back button should dismiss lyrics to album art
+          if (playerController.showLyricsflag.isTrue) {
+            playerController.showLyricsflag.value = false;
+            return;
+          }
           if (playerController.queuePanelController.isAttached &&
               !playerController.queuePanelController.isPanelClosed) {
             playerController.queuePanelController.close();
           }
           playerController.playerPanelController.close();
+          return;
         } else {
           if (Get.nestedKey(ScreenNavigationSetup.id)!.currentState!.canPop()) {
             Get.nestedKey(ScreenNavigationSetup.id)!.currentState!.pop();

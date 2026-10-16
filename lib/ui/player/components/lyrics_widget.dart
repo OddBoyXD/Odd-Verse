@@ -1004,13 +1004,21 @@ void showLyricsSearchSheet(
             );
           }
 
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-              left: 16,
-              right: 16,
-              top: 12,
-            ),
+          final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+          final systemBottomPadding = MediaQuery.of(context).padding.bottom;
+          final effectiveBottomPadding = bottomInset > 0
+              ? (bottomInset + 16)
+              : (systemBottomPadding + 20);
+
+          return SafeArea(
+            top: false,
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: effectiveBottomPadding,
+                left: 16,
+                right: 16,
+                top: 12,
+              ),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Column(
@@ -1256,10 +1264,33 @@ void showLyricsSearchSheet(
                           final sourceName = item['sourceName'] ??
                               item['provider'] ??
                               'Source';
-                          final trackTitle =
-                              item['title']?.toString() ?? '';
-                          final trackArtist =
-                              item['artist']?.toString() ?? '';
+                          final rawTitle = item['title']?.toString().trim() ?? '';
+                          final rawArtist = item['artist']?.toString().trim() ?? '';
+
+                          final fallbackTitle = titleController.text.trim().isNotEmpty
+                              ? titleController.text.trim()
+                              : (current?.title.trim().isNotEmpty == true
+                                  ? SyncedLyricsService.cleanTrackTitle(current!.title, artist: current.artist)
+                                  : '');
+                          final fallbackArtist = artistController.text.trim().isNotEmpty
+                              ? artistController.text.trim()
+                              : (current?.artist.trim().isNotEmpty == true
+                                  ? SyncedLyricsService.cleanArtistName(current!.artist)
+                                  : '');
+
+                          final isGenericTitle = rawTitle.isEmpty || rawTitle.toLowerCase() == 'song';
+                          final displayTitle = isGenericTitle ? fallbackTitle : rawTitle;
+
+                          final isGenericArtist = rawArtist.isEmpty ||
+                              rawArtist.toLowerCase() == 'song' ||
+                              rawArtist.toLowerCase() == 'unknown' ||
+                              rawArtist.toLowerCase() == 'unknown artist';
+                          final displayArtist = isGenericArtist ? fallbackArtist : rawArtist;
+
+                          final titleDisplay = displayTitle.isNotEmpty
+                              ? (displayArtist.isNotEmpty ? "$displayTitle - $displayArtist" : displayTitle)
+                              : sourceName;
+
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             decoration: BoxDecoration(
@@ -1275,9 +1306,7 @@ void showLyricsSearchSheet(
                               contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 12, vertical: 4),
                               title: Text(
-                                trackTitle.isNotEmpty
-                                    ? "$trackTitle - $trackArtist"
-                                    : sourceName,
+                                titleDisplay,
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 13,
@@ -1369,9 +1398,10 @@ void showLyricsSearchSheet(
                 ],
               ),
             ),
-          );
-        },
-      );
-    },
-  );
+          ),
+        );
+      },
+    );
+  },
+);
 }

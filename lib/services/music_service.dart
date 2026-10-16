@@ -526,107 +526,236 @@ class MusicServices extends getx.GetxService {
       int limit = 3000,
       bool related = false,
       int suggestionsLimit = 0}) async {
-    String browseId = playlistId != null
-        ? (playlistId.startsWith("VL") ? playlistId : "VL$playlistId")
-        : albumId!;
-    if (albumId != null && albumId.contains("OLAK5uy")) {
-      browseId = await getAlbumBrowseId(browseId);
-    }
-    final data = Map.from(_context);
-    data['browseId'] = browseId;
-    final Map<String, dynamic> response =
-        (await _sendRequest('browse', data)).data;
     if (playlistId != null) {
-      final Map<String, dynamic> header =
-          nav(response, ['header', "musicDetailHeaderRenderer"]) ??
-              nav(response, [
-                'contents',
-                "twoColumnBrowseResultsRenderer",
-                'tabs',
-                0,
-                "tabRenderer",
-                "content",
-                "sectionListRenderer",
-                "contents",
-                0,
-                "musicResponsiveHeaderRenderer"
-              ]);
+      final cleanId = playlistId.startsWith("VL")
+          ? playlistId.substring(2)
+          : playlistId;
 
-      final Map<String, dynamic> results =
-          nav(response, musicPlaylistShelfRenderer) ??
-              nav(
-                response,
-                [
+      // 1. YouTube algorithmic / radio playlists (Mixes, "My Supermix", etc.)
+      if (cleanId.startsWith("RD")) {
+        try {
+          final watchContent = await getWatchPlaylist(
+            videoId: "",
+            playlistId: cleanId,
+            radio: true,
+            limit: limit,
+          );
+          final tracks = List<MediaItem>.from(watchContent['tracks'] ?? []);
+          return {
+            'id': playlistId,
+            'title': 'YouTube Music Mix',
+            'playlistId': playlistId,
+            'thumbnails': tracks.isNotEmpty ? tracks.first.extras?['thumbnail'] : null,
+            'description': 'YouTube Music Mix',
+            'tracks': tracks,
+            'trackCount': tracks.length,
+            'duration_seconds': sumTotalDuration({'tracks': tracks}),
+          };
+        } catch (e) {
+          printERROR("getWatchPlaylist error for mix $cleanId: $e");
+        }
+      }
+
+      // 2. Regular YouTube Music playlists
+      final browseId =
+          playlistId.startsWith("VL") ? playlistId : "VL$playlistId";
+      final data = Map.from(_context);
+      data['browseId'] = browseId;
+
+      try {
+        final Map<String, dynamic> response =
+            (await _sendRequest('browse', data)).data;
+
+        final Map<String, dynamic>? header =
+            nav(response, ['header', "musicDetailHeaderRenderer"]) ??
+                nav(response, [
                   'contents',
-                  "singleColumnBrowseResultsRenderer",
-                  "tabs",
+                  "twoColumnBrowseResultsRenderer",
+                  'tabs',
                   0,
                   "tabRenderer",
                   "content",
                   'sectionListRenderer',
                   'contents',
                   0,
-                  "musicPlaylistShelfRenderer"
-                ],
-              );
-      final Map<String, dynamic> playlist = {'id': results['playlistId']};
+                  "musicResponsiveHeaderRenderer"
+                ]);
 
-      playlist['title'] = nav(header, title_text);
-      playlist['thumbnails'] = nav(header, thumnail_cropped) ??
-          nav(header, [
-            "thumbnail",
-            "musicThumbnailRenderer",
-            "thumbnail",
-            "thumbnails"
-          ]);
-      playlist["description"] = nav(header, description);
-      final int runCount = header['subtitle']['runs'].length;
-      if (runCount > 1) {
-        playlist['author'] = {
-          'name': nav(header, subtitle2),
-          'id': nav(header, ['subtitle', 'runs', 2] + navigation_browse_id)
-        };
-        if (runCount == 5) {
-          playlist['year'] = nav(header, subtitle3);
+        final Map<String, dynamic>? results =
+            nav(response, musicPlaylistShelfRenderer) ??
+                nav(
+                  response,
+                  [
+                    'contents',
+                    "singleColumnBrowseResultsRenderer",
+                    "tabs",
+                    0,
+                    "tabRenderer",
+                    "content",
+                    'sectionListRenderer',
+                    'contents',
+                    0,
+                    "musicPlaylistShelfRenderer"
+                  ],
+                ) ??
+                nav(
+                  response,
+                  [
+                    'contents',
+                    "twoColumnBrowseResultsRenderer",
+                    "secondaryContents",
+                    'sectionListRenderer',
+                    'contents',
+                    0,
+                    "musicShelfRenderer"
+                  ],
+                ) ??
+                nav(
+                  response,
+                  [
+                    'contents',
+                    "singleColumnBrowseResultsRenderer",
+                    "tabs",
+                    0,
+                    "tabRenderer",
+                    "content",
+                    'sectionListRenderer',
+                    'contents',
+                    0,
+                    "musicShelfRenderer"
+                  ],
+                );
+
+        if (results != null && results['contents'] != null) {
+          final Map<String, dynamic> playlist = {
+            'id': results['playlistId'] ?? playlistId
+          };
+
+          playlist['title'] = header != null
+              ? (nav(header, title_text) ?? 'Playlist')
+              : 'Playlist';
+          playlist['thumbnails'] = header != null
+              ? (nav(header, thumnail_cropped) ??
+                  nav(header, [
+                    "thumbnail",
+                    "musicThumbnailRenderer",
+                    "thumbnail",
+                    "thumbnails"
+                  ]))
+              : null;
+          playlist["description"] =
+              header != null ? (nav(header, description) ?? '') : '';
+
+          if (header != null &&
+              header['subtitle'] != null &&
+              header['subtitle']['runs'] is List) {
+            final runs = header['subtitle']['runs'] as List;
+            if (runs.length > 1) {
+              playlist['author'] = {
+                'name': nav(header, subtitle2),
+                'id': nav(header, ['subtitle', 'runs', 2] + navigation_browse_id)
+              };
+              if (runs.length == 5) {
+                playlist['year'] = nav(header, subtitle3);
+              }
+            }
+          }
+
+          int songCount = 0;
+          if (header != null &&
+              header['secondSubtitle'] != null &&
+              header['secondSubtitle']['runs'] is List) {
+            final runs = header['secondSubtitle']['runs'] as List;
+            final int secondSubtitleRunCount = runs.length;
+            if (secondSubtitleRunCount > 0) {
+              try {
+                final String count = (((runs[secondSubtitleRunCount % 3]['text'])
+                                .split(' ')[0])
+                            .split(',') as List)
+                    .join();
+                songCount = int.tryParse(count) ?? 0;
+              } catch (_) {}
+            }
+            if (runs.length > 1) {
+              try {
+                playlist['duration'] =
+                    runs[(secondSubtitleRunCount % 3) + 2]['text'];
+              } catch (_) {}
+            }
+          }
+
+          final rawItems = results['contents'];
+          final parsedTracks =
+              rawItems is List ? parsePlaylistItems(rawItems) : [];
+          if (songCount <= 0) {
+            songCount = parsedTracks.length;
+          }
+          playlist['trackCount'] = songCount;
+          playlist['tracks'] = parsedTracks;
+
+          requestFuncCountinuation(cont) async =>
+              (await _sendRequest("browse", {...data, ...cont})).data;
+
+          if (songCount > parsedTracks.length && parsedTracks.isNotEmpty) {
+            try {
+              playlist['tracks'] = [
+                ...(playlist['tracks']),
+                ...(await getContinuationsPlaylist(
+                    results, limit, requestFuncCountinuation, (c) => parsePlaylistItems(c)))
+              ];
+            } catch (_) {}
+          }
+          playlist['duration_seconds'] = sumTotalDuration(playlist);
+          return playlist;
         }
+      } catch (e) {
+        printERROR("Browse endpoint failed for playlist $playlistId: $e");
       }
 
-      final int secondSubtitleRunCount =
-          header['secondSubtitle']['runs'].length;
-      final String count = (((header['secondSubtitle']['runs']
-                      [secondSubtitleRunCount % 3]['text'])
-                  .split(' ')[0])
-              .split(',') as List)
-          .join();
-      final int songCount = int.parse(count);
-      if (header['secondSubtitle']['runs'].length > 1) {
-        playlist['duration'] = header['secondSubtitle']['runs']
-            [(secondSubtitleRunCount % 3) + 2]['text'];
+      // 3. Fallback to watch playlist endpoint if browse endpoint fails
+      try {
+        final watchContent = await getWatchPlaylist(
+          videoId: "",
+          playlistId: cleanId,
+          radio: false,
+          limit: limit,
+        );
+        final tracks = List<MediaItem>.from(watchContent['tracks'] ?? []);
+        return {
+          'id': playlistId,
+          'title': 'Playlist',
+          'playlistId': playlistId,
+          'thumbnails':
+              tracks.isNotEmpty ? tracks.first.extras?['thumbnail'] : null,
+          'description': '',
+          'tracks': tracks,
+          'trackCount': tracks.length,
+          'duration_seconds': sumTotalDuration({'tracks': tracks}),
+        };
+      } catch (e) {
+        printERROR("Fallback getWatchPlaylist failed for playlist $cleanId: $e");
       }
-      playlist['trackCount'] = songCount;
 
-      // requestFunc(additionalParams) async => (await _sendRequest("browse", data,
-      //         additionalParams: additionalParams))
-      //     .data;
-
-      requestFuncCountinuation(cont) async =>
-          (await _sendRequest("browse", {...data, ...cont})).data;
-
-      if (songCount > 0) {
-        playlist['tracks'] = parsePlaylistItems(results['contents']);
-        limit = songCount;
-
-        List<dynamic> parseFunc(contents) => parsePlaylistItems(contents);
-
-        playlist['tracks'] = [
-          ...(playlist['tracks']),
-          ...(await getContinuationsPlaylist(
-              results, limit, requestFuncCountinuation, parseFunc))
-        ];
-      }
-      playlist['duration_seconds'] = sumTotalDuration(playlist);
-      return playlist;
+      return {
+        'id': playlistId,
+        'title': 'Playlist',
+        'playlistId': playlistId,
+        'thumbnails': null,
+        'description': '',
+        'tracks': <MediaItem>[],
+        'trackCount': 0,
+        'duration_seconds': 0,
+      };
     }
+
+    String browseId = albumId!;
+    if (albumId.contains("OLAK5uy")) {
+      browseId = await getAlbumBrowseId(browseId);
+    }
+    final data = Map.from(_context);
+    data['browseId'] = browseId;
+    final Map<String, dynamic> response =
+        (await _sendRequest('browse', data)).data;
 
     //album content
     final album = parseAlbumHeader(response);

@@ -61,6 +61,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   // var networkErrorPause = false;
   bool isSongLoading = true;
   final Set<String> _prebufferingSongIds = {};
+  int _playbackSessionId = 0;
 
   // list of shuffled queue songs ids
   List<String> shuffledQueue = [];
@@ -496,6 +497,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         final songIndex = extras!['index'];
         currentIndex = songIndex;
         final isNewUrlReq = extras['newUrl'] ?? false;
+        final int currentSession = ++_playbackSessionId;
         final currentSong = queue.value[currentIndex];
         final futureStreamInfo =
             checkNGetUrl(currentSong.id, generateNewUrl: isNewUrlReq);
@@ -509,17 +511,20 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
 
         mediaItem.add(currentSong);
         var streamInfo = await futureStreamInfo;
+        if (currentSession != _playbackSessionId) return;
+
         int retryCount = 0;
         while (!streamInfo.playable && retryCount < 2) {
-          if (songIndex != currentIndex) return;
+          if (songIndex != currentIndex || currentSession != _playbackSessionId) return;
           retryCount++;
           printINFO("Stream fetch failed. Retrying ($retryCount/2) for song: ${currentSong.title} (${currentSong.id})");
           await Future.delayed(const Duration(milliseconds: 600));
-          if (songIndex != currentIndex) return;
+          if (songIndex != currentIndex || currentSession != _playbackSessionId) return;
           streamInfo = await checkNGetUrl(currentSong.id, generateNewUrl: true);
+          if (currentSession != _playbackSessionId) return;
         }
 
-        if (songIndex != currentIndex) {
+        if (songIndex != currentIndex || currentSession != _playbackSessionId) {
           return;
         } else if (!streamInfo.playable) {
           currentSongUrl = null;
@@ -535,6 +540,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         playbackState
             .add(playbackState.value.copyWith(queueIndex: currentIndex));
         await _playList.add(_createAudioSource(currentSong));
+        if (currentSession != _playbackSessionId) return;
 
         isSongLoading = false;
         if (loudnessNormalizationEnabled && GetPlatform.isAndroid) {
@@ -560,6 +566,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
           try {
             await _player.seek(Duration.zero, index: 0);
           } catch (_) {}
+          if (currentSession != _playbackSessionId) return;
           await _player.play();
         }
         _prebufferUpcomingSongs();
@@ -598,6 +605,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         break;
 
       case 'setSourceNPlay':
+        final int currentSession = ++_playbackSessionId;
         final currMed = (extras!['mediaItem'] as MediaItem);
         final futureStreamInfo = checkNGetUrl(currMed.id);
         isSongLoading = true;
@@ -606,13 +614,19 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         mediaItem.add(currMed);
         queue.add([currMed]);
         var streamInfo = (await futureStreamInfo);
+        if (currentSession != _playbackSessionId) return;
+
         int retryCount = 0;
         while (!streamInfo.playable && retryCount < 2) {
           retryCount++;
           printINFO("setSourceNPlay failed. Retrying ($retryCount/2) for song: ${currMed.title} (${currMed.id})");
           await Future.delayed(const Duration(milliseconds: 600));
+          if (currentSession != _playbackSessionId) return;
           streamInfo = await checkNGetUrl(currMed.id, generateNewUrl: true);
+          if (currentSession != _playbackSessionId) return;
         }
+
+        if (currentSession != _playbackSessionId) return;
 
         if (!streamInfo.playable) {
           currentSongUrl = null;
@@ -625,6 +639,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         currentSongUrl = currMed.extras!['url'] = streamInfo.audio!.url;
 
         await _playList.add(_createAudioSource(currMed));
+        if (currentSession != _playbackSessionId) return;
         isSongLoading = false;
 
         // Normalize audio
@@ -635,6 +650,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
         try {
           await _player.seek(Duration.zero, index: 0);
         } catch (_) {}
+        if (currentSession != _playbackSessionId) return;
         await _player.play();
         _prebufferUpcomingSongs();
         break;

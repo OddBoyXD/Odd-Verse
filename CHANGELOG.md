@@ -2,6 +2,18 @@
 
 ### [v1.0.3] - Latest Release
 
+### 🛡️ Navigation Bar Safety, Back Button Hierarchy, All-Provider Word-Sync Priority & Playback Race Fix
+- **Navigation Bar SafeArea & Inset Padding**: Wrapped the lyrics search bottom sheet in `SafeArea(top: false)` and enforced `effectiveBottomPadding = bottomInset > 0 ? (bottomInset + 16) : (systemBottomPadding + 20)`, completely eliminating any overlap or collision with Android's system navigation bar (3-button or gesture pill).
+- **Hierarchical Android Back Button Dismissal**: Re-architected `PopScope` in `lib/ui/home.dart` to strictly respect navigation hierarchy:
+  1. If any modal bottom sheet or dialog is open (`Navigator.of(context, rootNavigator: true).canPop()`), closes the sheet first.
+  2. If the queue panel is open, closes the queue panel.
+  3. If viewing full-screen lyrics in the big player, back button smoothly returns to the album art view (`showLyricsflag.value = false`).
+  4. Only closes the big player panel when already on the album art screen.
+- **Concurrent All-Provider Word-by-Word Priority (A to Z)**: `SyncedLyricsService.getSyncedLyrics` now queries all enabled lyrics providers concurrently in parallel with `Future.wait`. Automatically detects and prioritizes Apple Music / TTML word-by-word synced lyrics (`wordSynced == true`), falling back to line-synced lyrics only if no provider offers word-by-word timestamps. Cached line-synced lyrics are seamlessly upgraded if a word-synced version exists.
+- **Fast Song Switching Audio Race Condition Fix**: Integrated monotonic session tracking (`_playbackSessionId`) in `AudioPlayerHandler` (`playByIndex` and `setSourceNPlay`). When users rapidly switch songs in search or playlists, in-flight audio stream resolutions from previous songs are instantly aborted, preventing old audio from glitching or playing over new tracks.
+- **YouTube Music Radio & Mix Playlists Unlocked on Home Screen**: Added native support for YouTube Music algorithmic and radio shelves (`RD...` / `RDAM...` / `RDCLAK...`) using `getWatchPlaylist`. Added comprehensive null-safety guards across headers, subtitles, and shelf renderers with automated watch-endpoint fallbacks, ensuring all YouTube Music home playlists open reliably.
+- **Sanitized Search Result Artist Names**: Cleaned lyrics search results so that generic fallback text (e.g. literal "Song" or "unknown") is automatically replaced with the song's actual artist name.
+
 ### 💎 BitChord Search Parity, Root Navigator Player Persistence & 120 FPS Lyrics
 - **Restored 120 FPS Active-Only Swept Mounting with Matched Typography**: Resolved the lag where all lines in the song were mounting `_SweptLyricLineWidget` and compiling hundreds of `ShaderMask` shaders per frame. Restored active-only sweeping (`isActive && line.words.isNotEmpty`) while matching inactive lines with identical joined word strings and constant `letterSpacing: 0.2`, delivering silky-smooth 120 FPS word-by-word animation with zero lag.
 - **Unrestricted Smooth User Scrolling**: Removed accidental overscroll dismissals from the lyrics scroll view so users can freely scroll up and down through the song's lyrics. Auto-centering safely pauses during user touch and resumes smoothly 3 seconds after scrolling finishes.
