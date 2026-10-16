@@ -44,7 +44,7 @@ class AlbumArtNLyrics extends StatelessWidget {
               GestureDetector(
                 onTap: () {
                   if (playerController.currentSong.value != null) {
-                    playerController.toggleLyrics(playerController.currentSong.value!);
+                    playerController.showLyrics();
                   }
                 },
                 onLongPress: () {
