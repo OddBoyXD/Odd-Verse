@@ -137,6 +137,12 @@ class ImageWidget extends StatelessWidget {
               localThumbFile,
               height: size,
               width: size,
+              cacheWidth: isPlayerArtImage
+                  ? 500
+                  : (size > 0 ? (size * 2).toInt().clamp(80, 280) : 160),
+              cacheHeight: isPlayerArtImage
+                  ? 500
+                  : (size > 0 ? (size * 2).toInt().clamp(80, 280) : 160),
               fit: BoxFit.cover,
               errorBuilder: (BuildContext context, Object error,
                   StackTrace? stackTrace) {
@@ -148,6 +154,12 @@ class ImageWidget extends StatelessWidget {
                   localArtFile,
                   height: size,
                   width: size,
+                  cacheWidth: isPlayerArtImage
+                      ? 500
+                      : (size > 0 ? (size * 2).toInt().clamp(80, 280) : 160),
+                  cacheHeight: isPlayerArtImage
+                      ? 500
+                      : (size > 0 ? (size * 2).toInt().clamp(80, 280) : 160),
                   fit: BoxFit.cover,
                   errorBuilder: (BuildContext context, Object error,
                       StackTrace? stackTrace) {

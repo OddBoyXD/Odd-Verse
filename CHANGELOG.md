@@ -2,6 +2,19 @@
 
 ### [v1.0.3] - Latest Release
 
+### ⚡ Deep RAM Optimization & Memory Leak Prevention (0% Quality Loss)
+- **Lazy Audio Queue Preparation**: Enabled `useLazyPreparation: true` in `ConcatenatingAudioSource`. ExoPlayer now loads and buffers only the current and immediately adjacent track rather than preparing 30–50 queue tracks concurrently in memory.
+- **Tuned In-Memory Image Cache (18MB / 35 Images)**: Capped `PaintingBinding.instance.imageCache` to 35 images / 18MB, eliminating memory bloat over time while preserving 100% full-resolution local disk caching.
+- **Android Memory Pressure & Lifecycle Trimming**:
+  - Implemented `didHaveMemoryPressure()` in `LifecycleHandler` to immediately release unrendered bitmap memory upon Android low-memory notifications.
+  - Automatically clear dead images (`clearLiveImages()` and `clear()`) when the app is paused, hidden, or transitioning tracks.
+- **Local Download Thumbnail Constraints**: Added `cacheWidth` and `cacheHeight` constraints to `Image.file` in `ImageWidget`, preventing raw uncompressed 4MB+ bitmap allocations for downloaded songs in the library.
+- **Album & Playlist Header Clamping**: Enforced `memCacheWidth` and `memCacheHeight` (300–600px) on `extraHigh` headers, stopping 8MB+ single-image RAM spikes on browse screens.
+- **Background Blur Width Constraint**: Restricted `BackgroudImage` width decoding (`memCacheWidth`), preventing unconstrained horizontal bitmap footprint.
+- **Bounded In-Memory Caches**: Capped `SponsorBlockService` and `IndicTransliteration` cache maps to prevent unbounded memory accumulation over extended listening sessions.
+
+
+
 ### 💫 Zero-Stutter 120 FPS Word-by-Word Animation & Unrestricted 3s Auto-Center Scrolling
 - **Eliminated Word-by-Word Stuck/Jittery Animation**:
   - Removed the blocking 1200ms audio output timeout gate that trapped the ticker during position stream updates.

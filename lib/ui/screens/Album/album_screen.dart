@@ -89,6 +89,8 @@ class AlbumScreen extends StatelessWidget {
                                 child: CachedNetworkImage(
                                   fadeInDuration: const Duration(milliseconds: 100),
                                   fadeOutDuration: const Duration(milliseconds: 100),
+                                  memCacheWidth: (size.width * 1.5).toInt().clamp(300, 600),
+                                  memCacheHeight: (size.width * 1.5).toInt().clamp(300, 600),
                                   imageUrl: Thumbnail(albumController
                                           .album.value.thumbnailUrl)
                                       .extraHigh,

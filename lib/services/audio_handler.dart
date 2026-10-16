@@ -67,7 +67,7 @@ class MyAudioHandler extends BaseAudioHandler with GetxServiceMixin {
   List<String> shuffledQueue = [];
 
   final _playList =
-      ConcatenatingAudioSource(children: [], useLazyPreparation: false);
+      ConcatenatingAudioSource(children: [], useLazyPreparation: true);
 
   MyAudioHandler() {
     if (GetPlatform.isWindows || GetPlatform.isLinux) {

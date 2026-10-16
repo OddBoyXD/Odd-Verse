@@ -25,8 +25,8 @@ import 'services/ytm_auth_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  PaintingBinding.instance.imageCache.maximumSize = 40;
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 20 * 1024 * 1024;
+  PaintingBinding.instance.imageCache.maximumSize = 35;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 18 * 1024 * 1024;
   await initHive();
   _setAppInitPrefs();
   startApplicationServices();
@@ -143,8 +143,15 @@ class LifecycleHandler extends WidgetsBindingObserver {
     } else if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       PaintingBinding.instance.imageCache.clearLiveImages();
+      PaintingBinding.instance.imageCache.clear();
     } else if (state == AppLifecycleState.detached) {
       await Get.find<AudioHandler>().customAction("saveSession");
     }
+  }
+
+  @override
+  void didHaveMemoryPressure() {
+    PaintingBinding.instance.imageCache.clear();
+    PaintingBinding.instance.imageCache.clearLiveImages();
   }
 }

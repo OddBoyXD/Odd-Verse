@@ -47,11 +47,13 @@ class BackgroudImage extends StatelessWidget {
                           return Image.file(
                             imgFile,
                             cacheHeight: cacheHeight,
+                            cacheWidth: cacheHeight != null ? (cacheHeight! * 16 ~/ 9) : 360,
                             fit: BoxFit.cover,
                           );
                         }
                         return CachedNetworkImage(
                           memCacheHeight: cacheHeight,
+                          memCacheWidth: cacheHeight != null ? (cacheHeight! * 16 ~/ 9) : 360,
                           fadeInDuration: const Duration(milliseconds: 100),
                           fadeOutDuration: const Duration(milliseconds: 100),
                           imageBuilder: (context, imageProvider) {
@@ -82,6 +84,7 @@ class BackgroudImage extends StatelessWidget {
                 /// else return image from network
                 : CachedNetworkImage(
                     memCacheHeight: cacheHeight,
+                    memCacheWidth: cacheHeight != null ? (cacheHeight! * 16 ~/ 9) : 360,
                     fadeInDuration: const Duration(milliseconds: 100),
                     fadeOutDuration: const Duration(milliseconds: 100),
                     imageBuilder: (context, imageProvider) {

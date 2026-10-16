@@ -79,6 +79,9 @@ class SponsorBlockService {
 
         // Sort segments chronologically
         segments.sort((a, b) => a.start.compareTo(b.start));
+        if (_cache.length > 50) {
+          _cache.remove(_cache.keys.first);
+        }
         _cache[videoId] = segments;
         if (segments.isNotEmpty) {
           printINFO(
@@ -89,6 +92,9 @@ class SponsorBlockService {
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         // No segments submitted for this video
+        if (_cache.length > 50) {
+          _cache.remove(_cache.keys.first);
+        }
         _cache[videoId] = [];
         return [];
       }

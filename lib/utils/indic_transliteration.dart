@@ -58,6 +58,9 @@ class IndicTransliteration {
           }
           final romanized = buffer.toString().trim();
           if (romanized.isNotEmpty) {
+            if (_universalRomanizeCache.length > 200) {
+              _universalRomanizeCache.remove(_universalRomanizeCache.keys.first);
+            }
             _universalRomanizeCache[text] = romanized;
             cacheVersion.value++;
             return romanized;

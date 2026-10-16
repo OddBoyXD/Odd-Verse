@@ -327,6 +327,7 @@ class PlayerController extends GetxController
         _newSongFlag = true;
         isCurrentSongBuffered.value = false;
         currentSong.value = mediaItem;
+        PaintingBinding.instance.imageCache.clearLiveImages();
         if (_trackedSongIdForFiveSec != mediaItem.id) {
           _trackedSongIdForFiveSec = mediaItem.id;
           _hasTriggeredFiveSecondRule = false;
