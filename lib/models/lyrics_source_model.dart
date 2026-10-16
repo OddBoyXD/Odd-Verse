@@ -6,6 +6,7 @@ class LyricsSourceInfo {
   final String detail;
   final bool wordSynced;
   bool enabled;
+  String? customEndpoint;
 
   LyricsSourceInfo({
     required this.id,
@@ -13,6 +14,7 @@ class LyricsSourceInfo {
     required this.detail,
     required this.wordSynced,
     this.enabled = true,
+    this.customEndpoint,
   });
 
   Map<String, dynamic> toJson() => {
@@ -21,6 +23,7 @@ class LyricsSourceInfo {
         'detail': detail,
         'wordSynced': wordSynced,
         'enabled': enabled,
+        'customEndpoint': customEndpoint,
       };
 
   factory LyricsSourceInfo.fromJson(Map<String, dynamic> json) =>
@@ -30,6 +33,7 @@ class LyricsSourceInfo {
         detail: json['detail']?.toString() ?? '',
         wordSynced: json['wordSynced'] == true,
         enabled: json['enabled'] != false,
+        customEndpoint: json['customEndpoint']?.toString(),
       );
 
   static List<LyricsSourceInfo> get defaultSources => [

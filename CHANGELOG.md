@@ -2,6 +2,14 @@
 
 ### [v1.0.3] - Latest Release
 
+### 💫 Apple Music & BitChord Silky Letter Sweep, Clock-Driven Instrumental Countdown, Swipe-Down Full-Screen Lyrics & Clean YTM Home Feed
+- **Silky Letter-by-Letter Gradient Sweep (`_SweptLyricLineWidget`)**: Replaced abrupt per-word binary jumps with a smooth horizontal `ShaderMask` gradient sweep that dynamically highlights each character and syllable from left to right as the artist sings, delivering true 1:1 Apple Music & BitChord fluidity.
+- **Clock-Driven Instrumental Break Countdown (`_InstrumentalLineWidget`)**: Replaced the previous erratic pulsing animation with BitChord's steady playback clock (`(pos - line.time) / span`). Three dots progressively fill from left to right in glowing radiant gold (`#FFD54F`), providing a clean visual countdown bar without any flickering or raster overhead.
+- **Full-Screen Lyrics with Pull-Down to Close**: Added a smooth vertical swipe-down drag gesture (`onVerticalDragEnd`) on the full-screen lyrics screen, allowing users to effortlessly dismiss lyrics and return to the album art big player. The queue panel remains directly underneath and accessible anytime.
+- **Pure Zero-Conflict YouTube Music Home Feed**: Hard-isolated the authenticated home feed. Bypasses and blocks all in-app chart/BOLI/recent-song injections (`changeDiscoverContent` guard + `middleContent` suppression) and filters out any "you might be interested in" shelves, ensuring 100% genuine YouTube Music shelves (*"Listen again"*, *"Speed dial"*, *"Quick picks"*).
+- **Customizable Provider Endpoints & Settings Integration**: Added an in-place edit dialog in the Lyrics Sources sheet allowing users to customize API mirror endpoints and tokens for all 15 BitChord providers, plus added direct access under **Settings -> Player -> Lyrics Sources & Priority**.
+
+
 ### 🎛️ Full-Screen BitChord Lyrics Screen (F2 Parity), Smooth Animated Scaling & Universal Romanization Across All Lines
 - **Full-Screen Immersive Lyrics Mode (BitChord F2 Parity)**: When lyrics are toggled, replaces the cramped 300px square box with a full-height `Expanded` lyrics view featuring `LyricsTopBar` (Mode switch, Romanize toggle, Sources dialog, and provider search). Provides over 500px of silky smooth scrolling space.
 - **Universal Romanization Applied Across All Lines**: Resolved an issue where only the active line was Romanized; now every line (`rawContent`, `LyricLine.text`, and `LyricLine.words`) is completely transliterated in both active and inactive states.

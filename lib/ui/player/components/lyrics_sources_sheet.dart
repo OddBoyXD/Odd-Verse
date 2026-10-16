@@ -52,6 +52,72 @@ class _LyricsSourcesSheetState extends State<LyricsSourcesSheet> {
     LyricsSourceInfo.saveSources(_sources);
   }
 
+  void _editSource(int index) {
+    final source = _sources[index];
+    final textController =
+        TextEditingController(text: source.customEndpoint ?? '');
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF222222),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Edit ${source.label}",
+          style: const TextStyle(
+              color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              source.detail,
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: textController,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              decoration: InputDecoration(
+                labelText: "Custom Endpoint / Mirror URL",
+                labelStyle:
+                    const TextStyle(color: Color(0xFFFFD54F), fontSize: 12),
+                hintText: "https://...",
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.30)),
+                filled: true,
+                fillColor: Colors.white.withOpacity(0.06),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child:
+                const Text("Cancel", style: TextStyle(color: Colors.white60)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFFD54F),
+              foregroundColor: Colors.black,
+            ),
+            onPressed: () {
+              setState(() {
+                final val = textController.text.trim();
+                _sources[index].customEndpoint = val.isNotEmpty ? val : null;
+              });
+              LyricsSourceInfo.saveSources(_sources);
+              Navigator.pop(context);
+            },
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -233,6 +299,22 @@ class _LyricsSourcesSheetState extends State<LyricsSourcesSheet> {
                               ),
                             ],
                           ),
+                        ),
+
+                        // Edit provider endpoint button
+                        IconButton(
+                          tooltip: "Edit Provider",
+                          splashRadius: 18,
+                          icon: Icon(
+                            source.customEndpoint != null
+                                ? Icons.edit_note_rounded
+                                : Icons.tune_rounded,
+                            size: 20,
+                            color: source.customEndpoint != null
+                                ? const Color(0xFFFFD54F)
+                                : Colors.white54,
+                          ),
+                          onPressed: () => _editSource(index),
                         ),
 
                         // Switch toggle

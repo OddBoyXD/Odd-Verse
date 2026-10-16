@@ -162,7 +162,12 @@ class HomeScreenController extends GetxController {
           }
         }
 
-        fixedContent.value = _setContentList(homeContentListMap);
+        final cleanYtmShelves = homeContentListMap.where((element) {
+          final t = (element['title'] ?? '').toString().toLowerCase();
+          return !t.contains("interested in") && !t.contains("you might like");
+        }).toList();
+
+        fixedContent.value = _setContentList(cleanYtmShelves);
         isContentFetched.value = true;
 
         cachedHomeScreenData(updateAll: true);
@@ -364,6 +369,14 @@ class HomeScreenController extends GetxController {
   }
 
   Future<void> changeDiscoverContent(dynamic val, {String? songId}) async {
+    bool isYtmLoggedIn = false;
+    if (Get.isRegistered<YtmAuthService>()) {
+      isYtmLoggedIn = Get.find<YtmAuthService>().isLoggedIn.value;
+    }
+    if (isYtmLoggedIn) {
+      return; // Never override YouTube Music home feed when authenticated
+    }
+
     QuickPicks? quickPicks_;
     if (val == 'QP') {
       final homeContentListMap = await _musicServices.getHome(limit: 3);

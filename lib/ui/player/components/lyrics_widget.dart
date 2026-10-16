@@ -383,36 +383,20 @@ class LyricsWidget extends StatelessWidget {
   }
 }
 
-class _InstrumentalLineWidget extends StatefulWidget {
+class _InstrumentalLineWidget extends StatelessWidget {
   final bool isActive;
-  const _InstrumentalLineWidget({required this.isActive});
+  final LyricLine line;
+  final ValueNotifier<Duration> animatedPosition;
 
-  @override
-  State<_InstrumentalLineWidget> createState() => _InstrumentalLineWidgetState();
-}
-
-class _InstrumentalLineWidgetState extends State<_InstrumentalLineWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-
-  @override
-  void initState() {
-    super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
-  }
+  const _InstrumentalLineWidget({
+    required this.isActive,
+    required this.line,
+    required this.animatedPosition,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.isActive) {
+    if (!isActive) {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -430,15 +414,20 @@ class _InstrumentalLineWidgetState extends State<_InstrumentalLineWidget>
       );
     }
 
-    return AnimatedBuilder(
-      animation: _animController,
-      builder: (context, child) {
-        final val = _animController.value;
+    return ValueListenableBuilder<Duration>(
+      valueListenable: animatedPosition,
+      builder: (context, pos, _) {
+        final totalSpanMs = (line.endTime - line.time).inMilliseconds;
+        final elapsedMs = (pos - line.time).inMilliseconds;
+        final through = totalSpanMs > 0
+            ? (elapsedMs / totalSpanMs).clamp(0.0, 1.0)
+            : 1.0;
+
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.music_note,
+              Icons.music_note_rounded,
               color: Color(0xFFFFD54F),
               size: 22,
               shadows: [
@@ -452,42 +441,153 @@ class _InstrumentalLineWidgetState extends State<_InstrumentalLineWidget>
                 ),
               ],
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             for (int i = 0; i < 3; i++) ...[
-              if (i > 0) const SizedBox(width: 8),
+              if (i > 0) const SizedBox(width: 10),
               Builder(
                 builder: (context) {
-                  final dotProgress = ((val * 3) - i).clamp(0.0, 1.0);
-                  final pulse = dotProgress == 0.0 || dotProgress == 1.0
-                      ? 0.0
-                      : (dotProgress * (1.0 - dotProgress) * 4);
-                  final scale = 0.8 + 0.45 * pulse;
-                  return Transform.scale(
-                    scale: scale,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: Color.lerp(
-                          const Color(0x88FFD54F),
-                          const Color(0xFFFFD54F),
-                          pulse,
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xCCFFD54F).withOpacity(0.3 + 0.7 * pulse),
-                            blurRadius: 6.0 + 8.0 * pulse,
-                            spreadRadius: 1.0 + 2.0 * pulse,
-                          ),
-                        ],
-                      ),
+                  final dotProgress = (through * 3.0 - i).clamp(0.0, 1.0);
+                  final isLit = dotProgress >= 1.0;
+                  final isFilling = dotProgress > 0.0 && dotProgress < 1.0;
+
+                  return Container(
+                    width: isFilling ? 10 : 8,
+                    height: isFilling ? 10 : 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isLit
+                          ? const Color(0xFFFFD54F)
+                          : isFilling
+                              ? Color.lerp(
+                                  const Color(0x66FFD54F),
+                                  const Color(0xFFFFD54F),
+                                  dotProgress,
+                                )
+                              : Colors.white.withOpacity(0.25),
+                      boxShadow: (isLit || isFilling)
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xCCFFD54F).withOpacity(
+                                    isLit ? 0.7 : 0.4 * dotProgress),
+                                blurRadius: isLit ? 10.0 : 6.0,
+                                spreadRadius: isLit ? 2.0 : 1.0,
+                              ),
+                            ]
+                          : const [],
                     ),
                   );
                 },
               ),
             ],
           ],
+        );
+      },
+    );
+  }
+}
+
+class _SweptLyricLineWidget extends StatelessWidget {
+  final LyricLine line;
+  final ValueNotifier<Duration> animatedPosition;
+  final TextStyle activeStyle;
+
+  const _SweptLyricLineWidget({
+    required this.line,
+    required this.animatedPosition,
+    required this.activeStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<Duration>(
+      valueListenable: animatedPosition,
+      builder: (context, pos, _) {
+        return Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: List.generate(line.words.length, (k) {
+            final w = line.words[k];
+            Duration wEndTime;
+            if (k + 1 < line.words.length) {
+              wEndTime = line.words[k + 1].time;
+            } else {
+              wEndTime = line.endTime;
+            }
+
+            final wDurationMs = (wEndTime - w.time).inMilliseconds;
+            double progress = 0.0;
+            if (pos >= wEndTime) {
+              progress = 1.0;
+            } else if (pos < w.time) {
+              progress = 0.0;
+            } else if (wDurationMs > 0) {
+              progress = ((pos - w.time).inMilliseconds / wDurationMs).clamp(0.0, 1.0);
+            } else {
+              progress = 1.0;
+            }
+
+            // Unsung: dimmed text
+            if (progress <= 0.0) {
+              return Text(
+                w.text,
+                style: activeStyle.copyWith(
+                  color: Colors.white.withOpacity(0.40),
+                  shadows: const [],
+                ),
+              );
+            }
+
+            // Fully sung: radiant gold text
+            if (progress >= 1.0) {
+              return Text(
+                w.text,
+                style: activeStyle.copyWith(
+                  color: const Color(0xFFFFD54F),
+                  shadows: const [
+                    Shadow(
+                      color: Color(0xCCFFD54F),
+                      blurRadius: 14.0,
+                    ),
+                    Shadow(
+                      color: Color(0x55FFA000),
+                      blurRadius: 24.0,
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Currently singing: smooth letter-by-letter gradient sweep
+            return ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  stops: [
+                    progress,
+                    (progress + 0.08).clamp(0.0, 1.0),
+                  ],
+                  colors: const [
+                    Color(0xFFFFD54F),
+                    Color(0x66FFFFFF),
+                  ],
+                ).createShader(bounds);
+              },
+              child: Text(
+                w.text,
+                style: activeStyle.copyWith(
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      color: const Color(0xCCFFD54F).withOpacity(progress),
+                      blurRadius: 12.0 * progress,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
         );
       },
     );
@@ -545,6 +645,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
         if (activeIndex != _lastActiveIndex) {
           _lastActiveIndex = activeIndex;
           _scrollToActive(activeIndex);
+          if (mounted) setState(() {});
         }
       }
     });
@@ -739,78 +840,57 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: line.isInstrumental
-                              ? _InstrumentalLineWidget(isActive: isActive)
-                              : AnimatedDefaultTextStyle(
-                                  duration: const Duration(milliseconds: 240),
-                                  curve: Curves.easeOutCubic,
-                                  style: TextStyle(
-                                    color: isActive
-                                        ? const Color(0xFFFFD54F)
-                                        : Colors.white.withOpacity(0.38),
-                                    fontSize: isActive ? 21.0 : 16.0,
-                                    fontWeight:
-                                        isActive ? FontWeight.w800 : FontWeight.w500,
-                                    letterSpacing: isActive ? 0.2 : 0.0,
-                                    height: 1.5,
-                                    shadows: (isActive && line.words.isEmpty)
-                                        ? const [
-                                            Shadow(
-                                              color: Color(0xCCFFD54F),
-                                              blurRadius: 14.0,
-                                            ),
-                                            Shadow(
-                                              color: Color(0x55FFA000),
-                                              blurRadius: 24.0,
-                                            ),
-                                          ]
-                                        : const [],
-                                  ),
-                                  child: (isActive && line.words.isNotEmpty)
-                                      ? ValueListenableBuilder<Duration>(
-                                          valueListenable: _animatedPosition,
-                                          builder: (context, pos, _) {
-                                            return Text.rich(
-                                              TextSpan(
-                                                children: line.words.map((w) {
-                                                  final isSung = pos >= w.time;
-                                                  return TextSpan(
-                                                    text: w.text,
-                                                    style: TextStyle(
-                                                      color: isSung
-                                                          ? const Color(0xFFFFD54F)
-                                                          : Colors.white.withOpacity(0.50),
-                                                      fontWeight: isSung
-                                                          ? FontWeight.w800
-                                                          : FontWeight.w600,
-                                                      shadows: isSung
-                                                          ? const [
-                                                              Shadow(
-                                                                color: Color(0xCCFFD54F),
-                                                                blurRadius: 14.0,
-                                                              ),
-                                                              Shadow(
-                                                                color: Color(0x55FFA000),
-                                                                blurRadius: 24.0,
-                                                              ),
-                                                            ]
-                                                          : const [],
-                                                    ),
-                                                  );
-                                                }).toList(),
-                                              ),
-                                              textAlign: TextAlign.center,
-                                            );
-                                          },
-                                        )
-                                      : Text(
-                                          line.words.isNotEmpty
-                                              ? line.words
-                                                  .map((w) => w.text)
-                                                  .join()
-                                              : line.text,
-                                          textAlign: TextAlign.center,
-                                        ),
-                                ),
+                              ? _InstrumentalLineWidget(
+                                  isActive: isActive,
+                                  line: line,
+                                  animatedPosition: _animatedPosition,
+                                )
+                              : (isActive && line.words.isNotEmpty)
+                                  ? _SweptLyricLineWidget(
+                                      line: line,
+                                      animatedPosition: _animatedPosition,
+                                      activeStyle: const TextStyle(
+                                        fontSize: 21.0,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.2,
+                                        height: 1.5,
+                                      ),
+                                    )
+                                  : AnimatedDefaultTextStyle(
+                                      duration: const Duration(milliseconds: 240),
+                                      curve: Curves.easeOutCubic,
+                                      style: TextStyle(
+                                        color: isActive
+                                            ? const Color(0xFFFFD54F)
+                                            : Colors.white.withOpacity(0.38),
+                                        fontSize: isActive ? 21.0 : 16.0,
+                                        fontWeight: isActive
+                                            ? FontWeight.w800
+                                            : FontWeight.w500,
+                                        letterSpacing: isActive ? 0.2 : 0.0,
+                                        height: 1.5,
+                                        shadows: isActive
+                                            ? const [
+                                                Shadow(
+                                                  color: Color(0xCCFFD54F),
+                                                  blurRadius: 14.0,
+                                                ),
+                                                Shadow(
+                                                  color: Color(0x55FFA000),
+                                                  blurRadius: 24.0,
+                                                ),
+                                              ]
+                                            : const [],
+                                      ),
+                                      child: Text(
+                                        line.words.isNotEmpty
+                                            ? line.words
+                                                .map((w) => w.text)
+                                                .join()
+                                            : line.text,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
                         ),
                       ),
                       ),

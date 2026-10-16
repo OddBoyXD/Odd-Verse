@@ -948,7 +948,9 @@ class PlayerController extends GetxController
     } catch (_) {}
 
     try {
-      if (Get.isRegistered<HomeScreenController>()) {
+      final isYtmLoggedIn = Get.isRegistered<YtmAuthService>() &&
+          Get.find<YtmAuthService>().isLoggedIn.value;
+      if (!isYtmLoggedIn && Get.isRegistered<HomeScreenController>()) {
         final homeController = Get.find<HomeScreenController>();
         final type = Hive.box("AppPrefs").get("discoverContentType") ?? "QP";
         if (type == "BOLI") {

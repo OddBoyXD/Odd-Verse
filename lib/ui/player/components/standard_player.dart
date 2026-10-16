@@ -158,36 +158,44 @@ class StandardPlayer extends StatelessWidget {
               Obx(() {
                   final isLyrics = playerController.showLyricsflag.value;
                   if (isLyrics) {
-                    return Column(
-                      children: [
-                        SizedBox(
-                          height: Get.mediaQuery.padding.top + 60,
-                        ),
-                        // BitChord Top Header Toolbar
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 500),
-                          child: const LyricsTopBar(),
-                        ),
-                        // BitChord Full-Height Lyrics Screen
-                        Expanded(
-                          child: ConstrainedBox(
+                    return GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onVerticalDragEnd: (details) {
+                        if ((details.primaryVelocity ?? 0) > 300) {
+                          playerController.showLyrics();
+                        }
+                      },
+                      child: Column(
+                        children: [
+                          SizedBox(
+                            height: Get.mediaQuery.padding.top + 60,
+                          ),
+                          // BitChord Top Header Toolbar
+                          ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 500),
-                            child: const LyricsWidget(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 24),
+                            child: const LyricsTopBar(),
+                          ),
+                          // BitChord Full-Height Lyrics Screen
+                          Expanded(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 500),
+                              child: const LyricsWidget(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 24),
+                              ),
                             ),
                           ),
-                        ),
-                        // Player Controls Container
-                        Padding(
-                          padding: EdgeInsets.only(
-                              bottom: 80 + Get.mediaQuery.padding.bottom),
-                          child: Container(
-                            constraints: const BoxConstraints(maxWidth: 500),
-                            child: const PlayerControlWidget(),
+                          // Player Controls Container
+                          Padding(
+                            padding: EdgeInsets.only(
+                                bottom: 80 + Get.mediaQuery.padding.bottom),
+                            child: Container(
+                              constraints: const BoxConstraints(maxWidth: 500),
+                              child: const PlayerControlWidget(),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     );
                   }
 

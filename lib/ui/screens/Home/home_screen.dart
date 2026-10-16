@@ -193,7 +193,8 @@ class Body extends StatelessWidget {
                       )
                     : Obx(() {
                         // dispose all detachached scroll controllers
-                        homeScreenController.disposeDetachedScrollControllers();
+                        final isYtm = Get.isRegistered<YtmAuthService>() &&
+                            Get.find<YtmAuthService>().isLoggedIn.value;
                         final items = homeScreenController
                                 .isContentFetched.value
                             ? [
@@ -208,9 +209,10 @@ class Body extends StatelessWidget {
                                             homeScreenController.quickPicks.value,
                                         scrollController: scrollController);
                                   }),
-                                ...getWidgetList(
-                                    homeScreenController.middleContent,
-                                    homeScreenController),
+                                if (!isYtm)
+                                  ...getWidgetList(
+                                      homeScreenController.middleContent,
+                                      homeScreenController),
                                 ...getWidgetList(
                                     homeScreenController.fixedContent,
                                     homeScreenController)

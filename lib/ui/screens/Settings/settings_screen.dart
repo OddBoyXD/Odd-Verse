@@ -22,6 +22,7 @@ import 'components/custom_expansion_tile.dart';
 import 'components/ytm_login_screen.dart';
 import 'settings_screen_controller.dart';
 import '../Home/home_screen_controller.dart';
+import '../player/components/lyrics_sources_sheet.dart';
 import 'package:flutter/services.dart';
 import '../../../../services/ytm_auth_service.dart';
 import '../../widgets/cache_dialogs.dart';
@@ -514,6 +515,18 @@ class SettingsScreen extends StatelessWidget {
                         onChanged: settingsController.toggleRomanizeLyrics,
                       ),
                     ),
+                  ),
+                  ListTile(
+                    contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                    title: const Text("Lyrics Sources & Priority"),
+                    subtitle: Text(
+                      "Reorder priority, edit custom endpoints, and toggle 15 lyrics providers (lrc.red, BetterLyrics, KuGou, etc.)",
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    trailing: const Icon(Icons.tune_rounded, size: 20),
+                    onTap: () {
+                      showLyricsSourcesDialog(context);
+                    },
                   ),
                   ListTile(
                     contentPadding: const EdgeInsets.only(left: 5, right: 10),
