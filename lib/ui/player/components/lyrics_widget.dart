@@ -418,7 +418,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
               padding: scrollPadding,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: List.generate(widget.lyrics.length, (index) {
+                children: [
+                  ...List.generate(widget.lyrics.length, (index) {
                   final line = widget.lyrics[index];
                   final isActive = index == activeIndex;
 
