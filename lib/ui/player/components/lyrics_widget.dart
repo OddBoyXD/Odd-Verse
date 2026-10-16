@@ -616,6 +616,10 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
   Duration _lastReportedPosition = Duration.zero;
   DateTime _lastReportedTime = DateTime.now();
   late final ValueNotifier<Duration> _animatedPosition;
+  bool _wasPlaying = false;
+  Duration _lastAudioPosition = Duration.zero;
+  bool _audioHasStarted = false;
+  DateTime? _resumeRequestTime;
 
   @override
   void initState() {
@@ -623,26 +627,88 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
     _initKeys();
     final currentPos =
         widget.playerController.progressBarStatus.value.current;
+    final isPlaying =
+        widget.playerController.buttonState.value == PlayButtonState.playing;
     _lastReportedPosition = currentPos;
     _lastReportedTime = DateTime.now();
+    _lastAudioPosition = currentPos;
+    _wasPlaying = isPlaying;
+    _audioHasStarted = isPlaying;
     _animatedPosition = ValueNotifier<Duration>(currentPos);
 
     _ticker = createTicker((elapsed) {
       if (!mounted) return;
-      if (widget.playerController.buttonState.value == PlayButtonState.playing) {
-        final now = DateTime.now();
-        final delta = now.difference(_lastReportedTime);
-        final interpolated = _lastReportedPosition + delta;
-        _animatedPosition.value = interpolated;
-
-        final activeIndex = _findActiveIndex(interpolated);
-        if (activeIndex != _lastActiveIndex) {
-          _lastActiveIndex = activeIndex;
-          if (mounted) setState(() {});
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _scrollToActive(activeIndex);
-          });
+      final currentButtonState = widget.playerController.buttonState.value;
+      if (currentButtonState != PlayButtonState.playing) {
+        if (_wasPlaying) {
+          _wasPlaying = false;
+          _audioHasStarted = false;
         }
+        return;
+      }
+
+      // If button state just switched to playing
+      if (!_wasPlaying) {
+        _wasPlaying = true;
+        _audioHasStarted = false;
+        _resumeRequestTime = DateTime.now();
+        final currentPos =
+            widget.playerController.progressBarStatus.value.current;
+        _lastAudioPosition = currentPos;
+        _lastReportedPosition = currentPos;
+        _lastReportedTime = DateTime.now();
+        _animatedPosition.value = currentPos;
+        return;
+      }
+
+      final currentPos =
+          widget.playerController.progressBarStatus.value.current;
+
+      // Handle pause/play delay & buffering: do not advance ticker until audio actually starts moving!
+      if (!_audioHasStarted) {
+        final hasMoved = currentPos != _lastAudioPosition;
+        final hasTimedOut = _resumeRequestTime != null &&
+            DateTime.now().difference(_resumeRequestTime!) >
+                const Duration(milliseconds: 1200);
+
+        if (hasMoved || hasTimedOut) {
+          _audioHasStarted = true;
+          _lastAudioPosition = currentPos;
+          _lastReportedPosition = currentPos;
+          _lastReportedTime = DateTime.now();
+          _animatedPosition.value = currentPos;
+        } else {
+          // Keep strictly anchored to current audio position while waiting for audio pipeline to produce sound
+          _lastReportedPosition = currentPos;
+          _lastReportedTime = DateTime.now();
+          _animatedPosition.value = currentPos;
+          return;
+        }
+      }
+
+      final now = DateTime.now();
+      final delta = now.difference(_lastReportedTime);
+      var interpolated = _lastReportedPosition + delta;
+
+      // Protect against drifting ahead of real audio during buffer stalls / delays
+      final maxForward = currentPos + const Duration(milliseconds: 80);
+      if (interpolated > maxForward) {
+        interpolated = maxForward;
+      }
+      // Protect against lagging behind real audio
+      if (interpolated < currentPos) {
+        interpolated = currentPos;
+      }
+
+      _animatedPosition.value = interpolated;
+
+      final activeIndex = _findActiveIndex(interpolated);
+      if (activeIndex != _lastActiveIndex) {
+        _lastActiveIndex = activeIndex;
+        if (mounted) setState(() {});
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _scrollToActive(activeIndex);
+        });
       }
     });
     _ticker?.start();
@@ -666,9 +732,15 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
       _lastActiveIndex = -1;
       _userInteracting = false;
       _resumeTimer?.cancel();
+      final curPos = widget.playerController.progressBarStatus.value.current;
+      _lastReportedPosition = curPos;
+      _lastReportedTime = DateTime.now();
+      _lastAudioPosition = curPos;
+      _animatedPosition.value = curPos;
+      _audioHasStarted = false;
+      _resumeRequestTime = DateTime.now();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          final curPos = widget.playerController.progressBarStatus.value.current;
           final activeIndex = _findActiveIndex(curPos);
           if (activeIndex >= 0) {
             _lastActiveIndex = activeIndex;
@@ -744,8 +816,11 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
           widget.playerController.buttonState.value == PlayButtonState.playing;
 
       if (!isPlaying) {
+        _wasPlaying = false;
+        _audioHasStarted = false;
         _lastReportedPosition = currentPos;
         _lastReportedTime = DateTime.now();
+        _lastAudioPosition = currentPos;
         _animatedPosition.value = currentPos;
         final activeIndex = _findActiveIndex(currentPos);
         if (activeIndex != _lastActiveIndex) {
@@ -755,11 +830,29 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
           });
         }
       } else {
-        // Prevent backward stutter: reconcile only when seeking (>400ms) or when audio time genuinely leads
-        final diffMs = (currentPos - _animatedPosition.value).inMilliseconds;
-        if (diffMs.abs() > 400 || currentPos > _animatedPosition.value) {
+        if (!_wasPlaying) {
+          _wasPlaying = true;
+          _audioHasStarted = false;
+          _resumeRequestTime = DateTime.now();
+          _lastAudioPosition = currentPos;
           _lastReportedPosition = currentPos;
           _lastReportedTime = DateTime.now();
+          _animatedPosition.value = currentPos;
+        } else {
+          final diffMs = (currentPos - _animatedPosition.value).inMilliseconds;
+          // Reconcile when user seeks (>180ms) or when audio position moves
+          if (diffMs.abs() > 180) {
+            _lastReportedPosition = currentPos;
+            _lastReportedTime = DateTime.now();
+            _animatedPosition.value = currentPos;
+            _lastAudioPosition = currentPos;
+            _audioHasStarted = false;
+            _resumeRequestTime = DateTime.now();
+          } else if (currentPos > _lastReportedPosition) {
+            _lastReportedPosition = currentPos;
+            _lastReportedTime = DateTime.now();
+            _lastAudioPosition = currentPos;
+          }
         }
       }
       final activeIndex = _findActiveIndex(_animatedPosition.value);
@@ -811,7 +904,10 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                           widget.playerController.seek(line.time);
                           _lastReportedPosition = line.time;
                           _lastReportedTime = DateTime.now();
+                          _lastAudioPosition = line.time;
                           _animatedPosition.value = line.time;
+                          _audioHasStarted = false;
+                          _resumeRequestTime = DateTime.now();
                           _lastActiveIndex = index;
                           _userInteracting = false;
                           _resumeTimer?.cancel();

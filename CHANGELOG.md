@@ -2,6 +2,12 @@
 
 ### [v1.0.3] - Latest Release
 
+### ⏱️ Lyrics Audio Desync & Buffering Sync Protection
+- **Eliminated Pause/Play & Buffer Audio Drift**: Resolved the issue where lyrics ran ahead of audio when unpausing, playing, or when the audio player experienced buffer delays.
+- **Audio Output Confirmation Gate**: Added state tracking (`_audioHasStarted`) that holds interpolated lyrics position strictly anchored to the audio position upon unpause or song start until audio frames actually begin moving through the audio pipeline.
+- **Strict Drift Boundary Clamping**: Clamped the real-time interpolation ticker so that visual progress can never drift more than 80ms ahead of genuine audio player position updates during network jitter or decoder stalls, while preventing backward lag.
+- **Responsive Seek Reconciliation**: Updated seek threshold detection to 180ms with immediate timeline re-anchoring when users scrub the progress bar or tap to seek lyrics lines.
+
 ### ❤️ YouTube Music Favorite & Rating Cloud Synchronization
 - **Real-Time Favorite & Unfavorite Cloud Sync**: When favoriting a song in Odd Verse, the app automatically dispatches an authenticated `POST /like/like` request to YouTube Music, adding it to your YouTube Music "Liked Music" (`LM`) cloud playlist. When unfavoriting, it dispatches `POST /like/removelike` to immediately remove the like rating from your Google account.
 - **One-Tap Liked Music Cloud Import**: Added a dedicated "Sync Liked Songs from YouTube Music" action tile in Settings > Account, allowing instant bulk synchronization of all previously liked tracks from your YouTube Music library into Odd Verse favorites.
