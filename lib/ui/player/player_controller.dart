@@ -529,17 +529,24 @@ class PlayerController extends GetxController
     try {
       final lastSong = currentQueue.last;
       printINFO(
-          "Safe Infinite Radio: Fetching similar tracks for ${lastSong.title} (${lastSong.id})...");
+          "Safe Infinite Radio: Fetching continuous tracks from YouTube Music for ${lastSong.title} (${lastSong.id})...");
       final content = await _musicServices.getWatchPlaylist(
         videoId: lastSong.id,
         radio: true,
         limit: 20,
+        additionalParamsNext: radioContinuationParam,
       );
+      radioContinuationParam = content['additionalParamsForNext'];
       final tracks = List<MediaItem>.from(content['tracks'] ?? []);
       if (tracks.isNotEmpty) {
-        await enqueueSongList(tracks);
-        printINFO(
-            "Safe Infinite Radio: Appended ${tracks.length} tracks to queue.");
+        final existingIds = currentQueue.map((e) => e.id).toSet();
+        final newTracks =
+            tracks.where((t) => !existingIds.contains(t.id)).toList();
+        if (newTracks.isNotEmpty) {
+          await enqueueSongList(newTracks);
+          printINFO(
+              "Safe Infinite Radio: Appended ${newTracks.length} tracks to queue directly from YouTube Music.");
+        }
       }
     } catch (e) {
       printERROR("Safe Infinite Radio error: $e");

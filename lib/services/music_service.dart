@@ -122,7 +122,9 @@ class MusicServices extends getx.GetxService {
       if (getx.Get.isRegistered<YtmAuthService>()) {
         final ytmAuth = getx.Get.find<YtmAuthService>();
         if (ytmAuth.isLoggedIn.value) {
-          final authHeaders = ytmAuth.getAuthHeaders();
+          final videoId = (payload['videoId'] ?? '').toString();
+          final authHeaders = ytmAuth.getAuthHeaders(
+              videoId: videoId.isNotEmpty ? videoId : null);
           if (authHeaders.isNotEmpty) {
             effectiveHeaders.addAll(authHeaders);
           }
@@ -151,7 +153,7 @@ class MusicServices extends getx.GetxService {
   }
 
   // Future<List<Map<String, dynamic>>>
-  Future<dynamic> getHome({int limit = 4}) async {
+  Future<dynamic> getHome({int limit = 20}) async {
     final data = Map.from(_context);
     data["browseId"] = "FEmusic_home";
     final response = await _sendRequest("browse", data);
@@ -170,10 +172,13 @@ class MusicServices extends getx.GetxService {
       }
 
       parseFunc(contents) => parseMixedContent(contents);
-      final x = (await getContinuations(sectionList, 'sectionListContinuation',
-          limit - home.length, requestFunc, parseFunc));
-      // inspect(x);
-      home.addAll([...x]);
+      final remaining = limit - home.length;
+      if (remaining > 0) {
+        final x = (await getContinuations(sectionList, 'sectionListContinuation',
+            remaining, requestFunc, parseFunc));
+        // inspect(x);
+        home.addAll([...x]);
+      }
     }
 
     return home;

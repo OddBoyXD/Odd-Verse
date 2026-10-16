@@ -612,16 +612,52 @@ class SyncedLyricsService {
       '',
     );
 
-    // 6. Remove trailing feat. / ft.
+    // 6. Remove (Prod. by ...), (Produced by ...)
+    clean = clean.replaceAll(
+      RegExp(
+        r'\s*[\(\[\{]\s*(?:prod\.|produced\s+by)\s+[^\)\]\}]+[\)\]\}]',
+        caseSensitive: false,
+      ),
+      '',
+    );
+
+    // 7. Remove version tags like (Bonus Track), (Deluxe Edition), (Acoustic Version)
+    clean = clean.replaceAll(
+      RegExp(
+        r'\s*[\(\[\{]\s*(?:bonus\s*track|deluxe(?:\s*edition)?|anniversary(?:\s*edition)?|acoustic(?:\s*version)?|radio\s*edit)\s*[\)\]\}]',
+        caseSensitive: false,
+      ),
+      '',
+    );
+
+    // 8. Remove trailing - Official Video / Music Video / Lyric Video / Remastered / etc. without parentheses
+    clean = clean.replaceAll(
+      RegExp(
+        r'\s*-\s*(?:official\s*(?:video|audio|music\s*video|lyric\s*video)?|music\s*video|lyric\s*video|visualizer|hd|4k|remastered|lyrics?).*$',
+        caseSensitive: false,
+      ),
+      '',
+    );
+
+    // 9. Remove trailing metadata keywords at the end of title
+    clean = clean.replaceAll(
+      RegExp(
+        r'\s+(?:official\s*(?:video|audio|music\s*video|lyric\s*video)|music\s*video|lyric\s*video|visualizer)\s*$',
+        caseSensitive: false,
+      ),
+      '',
+    );
+
+    // 10. Remove trailing feat. / ft.
     clean = clean.replaceAll(
       RegExp(r'\s*(?:feat\.|ft\.|featuring)\s+.*$', caseSensitive: false),
       '',
     );
 
-    // 7. Remove hashtags and promotional markers
+    // 11. Remove hashtags and promotional markers
     clean = clean.replaceAll(RegExp(r'#\w+'), '');
 
-    // 8. Remove trailing dashes/punctuation
+    // 12. Remove trailing dashes/punctuation
     clean = clean.replaceAll(RegExp(r'[\s\-_|:]+$'), '').trim();
     return clean.isEmpty ? title.trim() : clean;
   }
@@ -634,6 +670,7 @@ class SyncedLyricsService {
         clean.replaceAll(RegExp(r'\s*-\s*Topic$', caseSensitive: false), '');
     clean = clean.replaceAll(RegExp(r'\s*VEVO$', caseSensitive: false), '');
     clean = clean.replaceAll(RegExp(r'\s*Official$', caseSensitive: false), '');
+    clean = clean.replaceAll(RegExp(r'\s*Channel$', caseSensitive: false), '');
     // Take primary artist before comma, &, x, X, feat, ft
     clean = clean.split(',')[0].split('&')[0].split(
       RegExp(r'\s+[xX]\s+'),
@@ -810,10 +847,67 @@ class SyncedLyricsService {
     // 3. Tier 2: LRCLIB Search with Track & Artist (tolerating duration variance)
     if (cleanTitle.isNotEmpty) {
       try {
-        final searchUrl = cleanArtist.isNotEmpty
-            ? 'https://lrclib.net/api/search?track_name=${Uri.encodeComponent(cleanTitle)}&artist_name=${Uri.encodeComponent(cleanArtist)}'
-            : 'https://lrclib.net/api/search?track_name=${Uri.encodeComponent(cleanTitle)}';
-        final response = (await _dio.get(searchUrl)).data;
+        final searchUrls = [
+          if (cleanArtist.isNotEmpty)
+            'https://lrclib.net/api/search?track_name=${Uri.encodeComponent(cleanTitle)}&artist_name=${Uri.encodeComponent(cleanArtist)}',
+          'https://lrclib.net/api/search?track_name=${Uri.encodeComponent(cleanTitle)}',
+        ];
+        for (final searchUrl in searchUrls) {
+          final response = (await _dio.get(searchUrl)).data;
+          if (response != null && response is List && response.isNotEmpty) {
+            Map? bestMatch;
+            int minDurDiff = 999999;
+            for (final item in response) {
+              if (item is Map &&
+                  _isStrictMatch(item, cleanTitle, cleanArtist, dur)) {
+                final synced = item["syncedLyrics"]?.toString();
+                if (synced != null && synced.trim().isNotEmpty) {
+                  final itemDur = (item["duration"] is num)
+                      ? (item["duration"] as num).toInt()
+                      : 0;
+                  final diff = (itemDur - dur).abs();
+                  if (diff < minDurDiff) {
+                    minDurDiff = diff;
+                    bestMatch = item;
+                  }
+                } else if (fallbackPlain == null &&
+                    item["plainLyrics"] != null &&
+                    item["plainLyrics"].toString().trim().isNotEmpty) {
+                  fallbackPlain = item["plainLyrics"].toString();
+                }
+              }
+            }
+            if (bestMatch != null) {
+              String? synced = bestMatch["syncedLyrics"]?.toString();
+              if (synced != null && ytFirstVocalMs > 0) {
+                synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+              }
+              printINFO(
+                  "Synced Lyrics found via LRCLIB track search for $cleanTitle");
+              final lyricsData = {
+                "synced": synced,
+                "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
+                "provider": "lrclib",
+                "captionAligned": ytFirstVocalMs > 0,
+              };
+              await lyricsBox.put(song.id, lyricsData);
+              return lyricsData;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    // 4. Tier 3: LRCLIB General Query Search with Cleaned Title & Artist
+    try {
+      final queries = [
+        if (cleanArtist.isNotEmpty) '$cleanTitle $cleanArtist'.trim(),
+        cleanTitle,
+      ];
+      for (final qText in queries) {
+        final q = Uri.encodeComponent(qText);
+        final qUrl = 'https://lrclib.net/api/search?q=$q';
+        final response = (await _dio.get(qUrl)).data;
         if (response != null && response is List && response.isNotEmpty) {
           Map? bestMatch;
           int minDurDiff = 999999;
@@ -842,7 +936,8 @@ class SyncedLyricsService {
             if (synced != null && ytFirstVocalMs > 0) {
               synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
             }
-            printINFO("Synced Lyrics found via LRCLIB track search for $cleanTitle");
+            printINFO(
+                "Synced Lyrics found via LRCLIB general search for $cleanTitle");
             final lyricsData = {
               "synced": synced,
               "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
@@ -852,52 +947,6 @@ class SyncedLyricsService {
             await lyricsBox.put(song.id, lyricsData);
             return lyricsData;
           }
-        }
-      } catch (_) {}
-    }
-
-    // 4. Tier 3: LRCLIB General Query Search with Cleaned Title & Artist
-    try {
-      final q = Uri.encodeComponent('$cleanTitle $cleanArtist'.trim());
-      final qUrl = 'https://lrclib.net/api/search?q=$q';
-      final response = (await _dio.get(qUrl)).data;
-      if (response != null && response is List && response.isNotEmpty) {
-        Map? bestMatch;
-        int minDurDiff = 999999;
-        for (final item in response) {
-          if (item is Map &&
-              _isStrictMatch(item, cleanTitle, cleanArtist, dur)) {
-            final synced = item["syncedLyrics"]?.toString();
-            if (synced != null && synced.trim().isNotEmpty) {
-              final itemDur = (item["duration"] is num)
-                  ? (item["duration"] as num).toInt()
-                  : 0;
-              final diff = (itemDur - dur).abs();
-              if (diff < minDurDiff) {
-                minDurDiff = diff;
-                bestMatch = item;
-              }
-            } else if (fallbackPlain == null &&
-                item["plainLyrics"] != null &&
-                item["plainLyrics"].toString().trim().isNotEmpty) {
-              fallbackPlain = item["plainLyrics"].toString();
-            }
-          }
-        }
-        if (bestMatch != null) {
-          String? synced = bestMatch["syncedLyrics"]?.toString();
-          if (synced != null && ytFirstVocalMs > 0) {
-            synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
-          }
-          printINFO("Synced Lyrics found via LRCLIB general search for $cleanTitle");
-          final lyricsData = {
-            "synced": synced,
-            "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
-            "provider": "lrclib",
-            "captionAligned": ytFirstVocalMs > 0,
-          };
-          await lyricsBox.put(song.id, lyricsData);
-          return lyricsData;
         }
       }
     } catch (_) {}

@@ -63,16 +63,34 @@ class HomeScreenController extends GetxController {
       quickPicks.value = QuickPicks(
           quickPicksData.map((e) => MediaItemBuilder.fromJson(e)).toList(),
           title: quickPicksType);
-      middleContent.value = middleContentData
-          .map((e) => e["type"] == "Album Content"
-              ? AlbumContent.fromJson(e)
-              : PlaylistContent.fromJson(e))
-          .toList();
-      fixedContent.value = fixedContentData
-          .map((e) => e["type"] == "Album Content"
-              ? AlbumContent.fromJson(e)
-              : PlaylistContent.fromJson(e))
-          .toList();
+      middleContent.value = middleContentData.map((e) {
+        if (e["type"] == "Album Content") {
+          return AlbumContent.fromJson(e);
+        } else if (e["type"] == "QuickPicks") {
+          return QuickPicks(
+            (e["songList"] as List)
+                .map((s) => MediaItemBuilder.fromJson(s))
+                .toList(),
+            title: e["title"] ?? "Recommended",
+          );
+        } else {
+          return PlaylistContent.fromJson(e);
+        }
+      }).toList();
+      fixedContent.value = fixedContentData.map((e) {
+        if (e["type"] == "Album Content") {
+          return AlbumContent.fromJson(e);
+        } else if (e["type"] == "QuickPicks") {
+          return QuickPicks(
+            (e["songList"] as List)
+                .map((s) => MediaItemBuilder.fromJson(s))
+                .toList(),
+            title: e["title"] ?? "Recommended",
+          );
+        } else {
+          return PlaylistContent.fromJson(e);
+        }
+      }).toList();
       isContentFetched.value = true;
       printINFO("Loaded from offline db");
       return true;
@@ -85,19 +103,18 @@ class HomeScreenController extends GetxController {
     final box = Hive.box("AppPrefs");
     String contentType = box.get("discoverContentType") ?? "QP";
 
+    bool isYtmLoggedIn = false;
+    if (Get.isRegistered<YtmAuthService>()) {
+      isYtmLoggedIn = Get.find<YtmAuthService>().isLoggedIn.value;
+    }
+
     networkError.value = false;
     try {
       List middleContentTemp = [];
       final homeContentListMap = await _musicServices.getHome(
-          limit:
-              Get.find<SettingsScreenController>().noOfHomeScreenContent.value);
+          limit: isYtmLoggedIn ? 25 : 15);
 
-      bool isYtmLoggedIn = false;
-      if (Get.isRegistered<YtmAuthService>()) {
-        isYtmLoggedIn = Get.find<YtmAuthService>().isLoggedIn.value;
-      }
-
-      if (contentType == "TR") {
+      if (!isYtmLoggedIn && contentType == "TR") {
         final index = homeContentListMap
             .indexWhere((element) => element['title'] == "Trending");
         if (index != -1 && index != 0) {
@@ -259,20 +276,27 @@ class HomeScreenController extends GetxController {
   ) {
     List contentTemp = [];
     for (var content in contents) {
-      if((content["contents"]).isEmpty) continue;
-      if ((content["contents"][0]).runtimeType == Playlist) {
+      if ((content["contents"]).isEmpty) continue;
+      final first = content["contents"][0];
+      if (first is Playlist) {
         final tmp = PlaylistContent(
             playlistList: (content["contents"]).whereType<Playlist>().toList(),
             title: content["title"]);
         if (tmp.playlistList.length >= 2) {
           contentTemp.add(tmp);
         }
-      } else if ((content["contents"][0]).runtimeType == Album) {
+      } else if (first is Album) {
         final tmp = AlbumContent(
             albumList: (content["contents"]).whereType<Album>().toList(),
             title: content["title"]);
         if (tmp.albumList.length >= 2) {
           contentTemp.add(tmp);
+        }
+      } else if (first is MediaItem) {
+        final songs = (content["contents"]).whereType<MediaItem>().toList();
+        if (songs.isNotEmpty) {
+          contentTemp.add(
+              QuickPicks(songs, title: content["title"] ?? "Recommended"));
         }
       }
     }
@@ -436,8 +460,15 @@ class HomeScreenController extends GetxController {
       return content.toList().map((e) => MediaItemBuilder.toJson(e)).toList();
     } else {
       return content.map((e) {
-        if (e.runtimeType == AlbumContent) {
-          return (e as AlbumContent).toJson();
+        if (e is AlbumContent) {
+          return e.toJson();
+        } else if (e is QuickPicks) {
+          return {
+            "type": "QuickPicks",
+            "title": e.title,
+            "songList":
+                e.songList.map((s) => MediaItemBuilder.toJson(s)).toList(),
+          };
         } else {
           return (e as PlaylistContent).toJson();
         }

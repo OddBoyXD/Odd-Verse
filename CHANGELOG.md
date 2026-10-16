@@ -2,7 +2,15 @@
 
 ## [v1.0.3] - Latest Release
 
+### 🌐 Pure YouTube Music Recommendation & Continuous Queue Engine (BitChord Parity)
+- **Eliminated Home Content Count Limitation**: Removed the conflicting `homeContentCount` setting from Settings that was artificially truncating the home feed to 3–7 shelves. Odd-Verse now dynamically loads the complete YouTube Music personalized feed (up to 25 continuation shelves) without artificial boundaries.
+- **Full Support for Multiple Song Shelves**: Extended `HomeScreenController` and home view list builders to support multiple song shelves (`QuickPicks`), allowing personalized shelves like *"Listen again"*, *"Similar to [Artist]"*, *"Speed dial"*, and *"Forgotten favorites"* to render seamlessly as horizontal song carousels instead of being discarded.
+- **100% YouTube Music Stream for Authenticated Sessions**: When logged into YouTube Music, home recommendations and queue generation bypass manual chart selectors and pull directly from YouTube Music's authenticated automix and continuous radio pipeline (`tunerSettingValue: AUTOMIX_SETTING_NORMAL`).
+- **Continuous Infinite Radio Stream**: Upgraded `_checkAndTriggerInfiniteRadio` to consume YouTube Music's exact `radioContinuationParam` stream directly from `getWatchPlaylist` with automatic deduplication, guaranteeing endless radio playback that matches user listening preferences.
+
 ### 🍎 Multi-Provider Synced Lyrics & Search Engine (BitChord Full Parity)
+- **BitChord Title & Artist Normalizer**: Extended regex sanitization to strip video upload metadata, production credits (`prod. by`), deluxe/bonus tags, and video suffixes (`- Official Video`, `Music Video`) outside parentheses.
+- **Multi-Query Fallback Search**: When artist-tagged searches in LRCLIB return empty due to distributor channel tags, automatically falls back to clean track title searches with duration matching tolerance (±25s) for instant hit rates.
 - **All Top Lyrics Providers Integrated**: Combined the industry's most comprehensive provider chain:
   - **`lrc.red`**: Apple Music TTML syllable timings by recording/ISRC (Tier 0 word-synced).
   - **`BetterLyrics`**: Apple Music word-synced TTML mirror with zero-key instant lookup (Tier 0.5 word-synced).

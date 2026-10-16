@@ -277,6 +277,10 @@ class Body extends StatelessWidget {
         .map((content) {
           final scrollController = ScrollController();
           homeScreenController.contentScrollControllers.add(scrollController);
+          if (content is QuickPicks) {
+            return QuickPicksWidget(
+                content: content, scrollController: scrollController);
+          }
           return ContentListWidget(
               content: content, scrollController: scrollController);
         })
