@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:get/get.dart';
 
 class IndicTransliteration {
   static final Dio _dio = Dio(
@@ -8,6 +9,7 @@ class IndicTransliteration {
     ),
   );
   static final Map<String, String> _universalRomanizeCache = {};
+  static final RxInt cacheVersion = 0.obs;
 
   static bool containsNonLatin(String text) {
     for (int i = 0; i < text.length; i++) {
@@ -57,6 +59,7 @@ class IndicTransliteration {
           final romanized = buffer.toString().trim();
           if (romanized.isNotEmpty) {
             _universalRomanizeCache[text] = romanized;
+            cacheVersion.value++;
             return romanized;
           }
         }
@@ -66,6 +69,7 @@ class IndicTransliteration {
     // Instant offline fallback for Indic scripts
     final offline = transliterateLine(text);
     _universalRomanizeCache[text] = offline;
+    cacheVersion.value++;
     return offline;
   }
 
@@ -292,17 +296,81 @@ class IndicTransliteration {
     return result;
   }
 
+  static final Map<String, String> _cyrillicMap = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo',
+    'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+    'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+    'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch',
+    'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+    'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo',
+    'Ж': 'Zh', 'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M',
+    'Н': 'N', 'О': 'O', 'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U',
+    'Ф': 'F', 'Х': 'Kh', 'Ц': 'Ts', 'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Shch',
+    'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya',
+  };
+
+  static const _hangulChoseong = [
+    'g', 'kk', 'n', 'd', 'tt', 'r', 'm', 'b', 'pp', 's', 'ss', '',
+    'j', 'jj', 'ch', 'k', 't', 'p', 'h'
+  ];
+  static const _hangulJungseong = [
+    'a', 'ae', 'ya', 'yae', 'eo', 'e', 'yeo', 'ye', 'o', 'wa', 'wae', 'oe',
+    'yo', 'u', 'wo', 'we', 'wi', 'yu', 'eu', 'ui', 'i'
+  ];
+  static const _hangulJongseong = [
+    '', 'k', 'k', 'ks', 'n', 'nj', 'nh', 'd', 'l', 'lg', 'lm', 'lb',
+    'ls', 'lt', 'lp', 'lh', 'm', 'b', 'bs', 's', 'ss', 'ng', 'j', 'ch',
+    'k', 't', 'p', 'h'
+  ];
+
+  static String _transliterateHangul(int code) {
+    final syl = code - 0xAC00;
+    final cho = syl ~/ 588;
+    final jung = (syl % 588) ~/ 28;
+    final jong = syl % 28;
+    return '${_hangulChoseong[cho]}${_hangulJungseong[jung]}${_hangulJongseong[jong]}';
+  }
+
+  static final Map<String, String> _kanaMap = {
+    'あ': 'a', 'い': 'i', 'う': 'u', 'え': 'e', 'お': 'o',
+    'か': 'ka', 'き': 'ki', 'く': 'ku', 'け': 'ke', 'こ': 'ko',
+    'さ': 'sa', 'し': 'shi', 'す': 'su', 'せ': 'se', 'そ': 'so',
+    'た': 'ta', 'ち': 'chi', 'つ': 'tsu', 'て': 'te', 'と': 'to',
+    'な': 'na', 'に': 'ni', 'ぬ': 'nu', 'ね': 'ne', 'の': 'no',
+    'は': 'ha', 'ひ': 'hi', 'ふ': 'fu', 'へ': 'he', 'ほ': 'ho',
+    'ま': 'ma', 'み': 'mi', 'む': 'mu', 'め': 'me', 'も': 'mo',
+    'や': 'ya', 'ゆ': 'yu', 'よ': 'yo',
+    'ら': 'ra', 'り': 'ri', 'る': 'ru', 'れ': 're', 'ろ': 'ro',
+    'わ': 'wa', 'を': 'wo', 'ん': 'n',
+    'が': 'ga', 'ぎ': 'gi', 'ぐ': 'gu', 'げ': 'ge', 'ご': 'go',
+    'ざ': 'za', 'じ': 'ji', 'ず': 'zu', 'ぜ': 'ze', 'ぞ': 'zo',
+    'だ': 'da', 'ぢ': 'ji', 'づ': 'dzu', 'で': 'de', 'ど': 'do',
+    'ば': 'ba', 'び': 'bi', 'ぶ': 'bu', 'べ': 'be', 'ぼ': 'bo',
+    'ぱ': 'pa', 'ぴ': 'pi', 'ぷ': 'pu', 'ぺ': 'pe', 'ぽ': 'po',
+    'ア': 'a', 'イ': 'i', 'ウ': 'u', 'エ': 'e', 'オ': 'o',
+    'カ': 'ka', 'キ': 'ki', 'ク': 'ku', 'ケ': 'ke', 'コ': 'ko',
+    'サ': 'sa', 'シ': 'shi', 'ス': 'su', 'セ': 'se', 'ソ': 'so',
+    'タ': 'ta', 'チ': 'chi', 'ツ': 'tsu', 'テ': 'te', 'ト': 'to',
+    'ナ': 'na', 'ニ': 'ni', 'ヌ': 'nu', 'ネ': 'ne', 'ノ': 'no',
+    'ハ': 'ha', 'ヒ': 'hi', 'フ': 'fu', 'ヘ': 'he', 'ホ': 'ho',
+    'マ': 'ma', 'ミ': 'mi', 'ム': 'mu', 'メ': 'me', 'モ': 'mo',
+    'ヤ': 'ya', 'ユ': 'yu', 'ヨ': 'yo',
+    'ラ': 'ra', 'リ': 'ri', 'ル': 'ru', 'レ': 're', 'ロ': 'ro',
+    'ワ': 'wa', 'ヲ': 'wo', 'ン': 'n',
+    'ガ': 'ga', 'ギ': 'gi', 'グ': 'gu', 'ゲ': 'ge', 'ゴ': 'go',
+    'ザ': 'za', 'ジ': 'ji', 'ズ': 'zu', 'ゼ': 'ze', 'ゾ': 'zo',
+    'ダ': 'da', 'ヂ': 'ji', 'ヅ': 'dzu', 'デ': 'de', 'ド': 'do',
+    'バ': 'ba', 'ビ': 'bi', 'ブ': 'bu', 'べ': 'be', 'ボ': 'bo',
+    'パ': 'pa', 'ピ': 'pi', 'プ': 'pu', 'ペ': 'pe', 'ポ': 'po',
+  };
+
   static String transliterateLine(String line) {
+    if (line.isEmpty) return line;
     if (_universalRomanizeCache.containsKey(line)) {
       return _universalRomanizeCache[line]!;
     }
     var text = sanitizeBrokenCombiningMarks(line);
-    if (!containsIndic(text)) {
-      if (containsNonLatin(text)) {
-        romanizeUniversal(text);
-      }
-      return text;
-    }
+    if (!containsNonLatin(text)) return text;
 
     final runes = text.runes.toList();
     final buffer = StringBuffer();
@@ -311,6 +379,27 @@ class IndicTransliteration {
     while (i < runes.length) {
       final char = String.fromCharCode(runes[i]);
       final code = runes[i];
+
+      // Korean Hangul syllables (0xAC00 to 0xD7A3)
+      if (code >= 0xAC00 && code <= 0xD7A3) {
+        buffer.write(_transliterateHangul(code));
+        i++;
+        continue;
+      }
+
+      // Russian / Cyrillic (0x0400 to 0x04FF)
+      if (_cyrillicMap.containsKey(char)) {
+        buffer.write(_cyrillicMap[char]!);
+        i++;
+        continue;
+      }
+
+      // Japanese Kana (Hiragana / Katakana)
+      if (_kanaMap.containsKey(char)) {
+        buffer.write(_kanaMap[char]!);
+        i++;
+        continue;
+      }
 
       // If it's outside Indic range (0x0900 - 0x0D7F), append as-is
       if (code < 0x0900 || code > 0x0D7F) {

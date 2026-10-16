@@ -2,28 +2,13 @@
 
 ### [v1.0.3] - Latest Release
 
-### 🎛️ 15 BitChord Lyrics Sources with Editable Reordering & Universal Romanization (BitChord Full Parity)
-- **15 Integrated Lyrics Providers with Priority Reordering**: Fully matches BitChord's lyrics provider architecture. Users can customize, toggle on/off, and reorder provider lookup priority using drag-and-drop:
-  1. **`lrc.red`**: Syllable-by-syllable Apple Music timings matched to the specific recording.
-  2. **`BiniLyrics`**: Apple timings matched directly on the recording itself.
-  3. **`BetterLyrics`**: Apple Music word-synced TTML mirror with zero-key instant lookup.
-  4. **`BetterLyrics Portato`**: QQ Music karaoke timings through BetterLyrics.
-  5. **`PaxSenix`**: Apple Music timings through the original keyless provider.
-  6. **`PaxSenix: Spotify`**: Spotify synced lyrics with PaxSenix fallback.
-  7. **`PaxSenix: Musixmatch`**: Musixmatch syllable timings through PaxSenix.
-  8. **`LyricsPlus`**: Syllable-by-syllable timings hosted on high-availability community mirrors.
-  9. **`Unison`**: Community listener-contributed timings for rare and unlicenced tracks.
-  10. **`YouTube captions`**: Millisecond-accurate video subtitles matched to the playing video.
-  11. **`YouTube Music`**: Official plain lyrics retrieved directly from the video's Lyrics tab.
-  12. **`KuGou`**: Massive catalog across English, international, Hindi, and Asian tracks.
-  13. **`LRCLIB`**: Verified open-source synced lyrics with duration matching tolerance.
-  14. **`Musixmatch`**: Global catalog search via Musixmatch API.
-  15. **`Genius`**: Complete song annotations and verified plain lyrics.
-- **Interactive Lyrics Sources Sheet**: Added modern `LyricsSourcesSheet` (`showLyricsSourcesDialog`) with drag handles for priority reordering, individual provider switches, and a "Reset to Defaults" option.
-- **Universal Romanize / English Feature (A to Z Languages & Indian Scripts)**: Provides 100% error-free phonetic Romanization to English for ANY language (Hindi, Punjabi, Bengali, Tamil, Telugu, Malayalam, Kannada, Gujarati, Odia, Japanese Romaji, Korean, Chinese Pinyin, Russian/Cyrillic, Arabic, Urdu). Integrates Google's `dt=rm` endpoint with automatic prefetching and offline native Indic phonetics engines.
-- **Dedicated Lyrics Button in Big Player**: Added a dedicated lyrics action button (`Icons.lyrics_rounded` / `Icons.lyrics_outlined`) in the player controls toolbar with an active golden glow (`#FFD54F`).
-- **Decoupled Album Art**: Removed the gesture where tapping on the album artwork toggled lyrics, keeping artwork interactions strictly for song info (long-press) and track skipping (swiping).
-- **Pinned Top Controls in Lyrics View**: Overlay features instant access to the Lyrics Sources manager (`Icons.tune_rounded`), Romanize English toggle (`Icons.translate_rounded`), and Close button (`Icons.close_rounded`).
+### 🎛️ Full-Screen BitChord Lyrics Screen (F2 Parity), Smooth Animated Scaling & Universal Romanization Across All Lines
+- **Full-Screen Immersive Lyrics Mode (BitChord F2 Parity)**: When lyrics are toggled, replaces the cramped 300px square box with a full-height `Expanded` lyrics view featuring `LyricsTopBar` (Mode switch, Romanize toggle, Sources dialog, and provider search). Provides over 500px of silky smooth scrolling space.
+- **Universal Romanization Applied Across All Lines**: Resolved an issue where only the active line was Romanized; now every line (`rawContent`, `LyricLine.text`, and `LyricLine.words`) is completely transliterated in both active and inactive states.
+- **Instant Offline Transliteration for Korean, Russian, and Japanese**: Added native algorithmic Unicode decomposition for Korean Hangul, Cyrillic letter mapping for Russian/Ukrainian, and Romaji mapping for Japanese Kana, operating 100% offline alongside existing Indic engines.
+- **Reactive Cache Notifier (`cacheVersion`)**: Any asynchronous Romanization fetched via Google's `dt=rm` endpoint automatically updates the lyrics view reactively.
+- **Silky BitChord Scaling & Glow Animations**: Active lines animate with `AnimatedScale(scale: 1.05)` and luminous double-layer gold bloom shadows (`#FFD54F`), while inactive lines smoothly recede to `0.96` scale and `0.38` opacity.
+
 
 ### 🎤 Automatic Best-Provider Word-by-Word Singing & Instrumental Break Animation (BitChord Parity)
 - **Automatic Parallel Best-Provider Selection**: Queries all lyrics providers (`lrc.red` Apple Music TTML, `BetterLyrics`, `KuGou`, `LRCLIB`, `Netease`, YouTube Closed Captions) concurrently in parallel with `Future.wait`. Automatically selects true word-by-word synced providers over line-synced ones.

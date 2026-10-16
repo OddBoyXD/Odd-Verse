@@ -91,6 +91,11 @@ class LyricsWidget extends StatelessWidget {
           }
           // Strip word tags for clean line fallback
           rawContent = rawContent.replaceAll(RegExp(r'<.*?>'), '').trim();
+          if (isRomanize && rawContent.isNotEmpty) {
+            rawContent = words.isNotEmpty
+                ? words.map((w) => w.text).join().trim()
+                : IndicTransliteration.transliterateLine(rawContent);
+          }
         } else {
           rawContent = rawContent.trim();
           if (isRomanize && rawContent.isNotEmpty) {
@@ -165,11 +170,15 @@ class LyricsWidget extends StatelessWidget {
         }
       }
 
+      final cleanText = (isRomanize && words.isNotEmpty)
+          ? words.map((w) => w.text).join().trim()
+          : current.text;
+
       result.add(
         LyricLine(
           time: current.time,
           endTime: lineEndTime,
-          text: current.text,
+          text: cleanText.isNotEmpty ? cleanText : current.text,
           words: words,
           isInstrumental: false,
         ),
@@ -217,6 +226,7 @@ class LyricsWidget extends StatelessWidget {
     final settingsController = Get.find<SettingsScreenController>();
 
     return Obx(() {
+      IndicTransliteration.cacheVersion.value;
       if (playerController.isLyricsLoading.isTrue) {
         return const Center(
           child: LoadingIndicator(),
@@ -709,7 +719,11 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                           _resumeTimer?.cancel();
                           _scrollToActive(index);
                         },
-                        child: AnimatedContainer(
+                        child: AnimatedScale(
+                          scale: isActive ? 1.05 : 0.96,
+                          duration: const Duration(milliseconds: 260),
+                          curve: Curves.easeOutCubic,
+                          child: AnimatedContainer(
                           duration: isActive
                               ? const Duration(milliseconds: 240)
                               : Duration.zero,
@@ -732,8 +746,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                                   style: TextStyle(
                                     color: isActive
                                         ? const Color(0xFFFFD54F)
-                                        : Colors.white.withOpacity(0.40),
-                                    fontSize: isActive ? 19.5 : 15.5,
+                                        : Colors.white.withOpacity(0.38),
+                                    fontSize: isActive ? 21.0 : 16.0,
                                     fontWeight:
                                         isActive ? FontWeight.w800 : FontWeight.w500,
                                     letterSpacing: isActive ? 0.2 : 0.0,
@@ -789,11 +803,16 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                                           },
                                         )
                                       : Text(
-                                          line.text,
+                                          line.words.isNotEmpty
+                                              ? line.words
+                                                  .map((w) => w.text)
+                                                  .join()
+                                              : line.text,
                                           textAlign: TextAlign.center,
                                         ),
                                 ),
                         ),
+                      ),
                       ),
                     ),
                   );

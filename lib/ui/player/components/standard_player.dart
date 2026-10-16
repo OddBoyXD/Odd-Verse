@@ -11,6 +11,8 @@ import '../player_controller.dart';
 import 'albumart_lyrics.dart';
 import 'backgroud_image.dart';
 import 'lyrics_switch.dart';
+import 'lyrics_top_bar.dart';
+import 'lyrics_widget.dart';
 import 'player_control.dart';
 
 /// Standard player widget
@@ -108,31 +110,37 @@ class StandardPlayer extends StatelessWidget {
         /// Stack child
         /// Player content in landscape mode
         Padding(
-          padding: const EdgeInsets.only(left: 25, right: 25),
+          padding: const EdgeInsets.only(left: 20, right: 20),
           child: (context.isLandscape)
-              ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    /// Album art with lyrics in .45  of width
-                    SizedBox(
-                      width: size.width * .45,
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: 90.0,
-                        ),
+              ? Obx(() {
+                  final isLyrics = playerController.showLyricsflag.value;
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: size.width * .45,
                         child: Padding(
-                          padding: const EdgeInsets.only(top: 40),
+                          padding: const EdgeInsets.only(bottom: 90.0, top: 40),
                           child: Center(
-                            child: AlbumArtNLyrics(
-                              playerArtImageSize: size.width * .29,
-                            ),
+                            child: isLyrics
+                                ? const Column(
+                                    children: [
+                                      LyricsTopBar(),
+                                      Expanded(
+                                        child: LyricsWidget(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 16, vertical: 16),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : AlbumArtNLyrics(
+                                    playerArtImageSize: size.width * .29,
+                                  ),
                           ),
                         ),
                       ),
-                    ),
-
-                    /// Player controls in .48 of width
-                    SizedBox(
+                      SizedBox(
                         width: size.width * .48,
                         child: Padding(
                           padding: EdgeInsets.only(
@@ -140,50 +148,70 @@ class StandardPlayer extends StatelessWidget {
                               right: 10,
                               bottom: Get.mediaQuery.padding.bottom),
                           child: const PlayerControlWidget(),
-                        ))
-                  ],
-                )
+                        ),
+                      ),
+                    ],
+                  );
+                })
               :
-
-              /// Player content in portrait mode
-              Column(
-                  children: [
-                    /// Work as top padding depending on the lyrics visibility and screen size
-                    Obx(
-                      () => playerController.showLyricsflag.value
-                          ? SizedBox(
-                              height: size.height < 750 ? 60 : 90,
-                            )
-                          : SizedBox(
-                              height: size.height < 750 ? 110 : 140,
-                            ),
-                    ),
-
-                    /// Contains the lyrics switch and album art with lyrics
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+              /// Player content in portrait mode (Full-height BitChord lyrics or Album Art)
+              Obx(() {
+                  final isLyrics = playerController.showLyricsflag.value;
+                  if (isLyrics) {
+                    return Column(
                       children: [
-                        const LyricsSwitch(),
-                        ConstrainedBox(
+                        SizedBox(
+                          height: Get.mediaQuery.padding.top + 60,
+                        ),
+                        // BitChord Top Header Toolbar
+                        const ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: 500),
+                          child: LyricsTopBar(),
+                        ),
+                        // BitChord Full-Height Lyrics Screen
+                        const Expanded(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: 500),
+                            child: LyricsWidget(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 24),
+                            ),
+                          ),
+                        ),
+                        // Player Controls Container
+                        Padding(
+                          padding: EdgeInsets.only(
+                              bottom: 80 + Get.mediaQuery.padding.bottom),
+                          child: Container(
                             constraints: const BoxConstraints(maxWidth: 500),
-                            child: AlbumArtNLyrics(
-                                playerArtImageSize: playerArtImageSize)),
+                            child: const PlayerControlWidget(),
+                          ),
+                        ),
                       ],
-                    ),
+                    );
+                  }
 
-                    /// Extra space container
-                    Expanded(child: Container()),
-
-                    /// Contains the player controls
-                    Padding(
-                      padding: EdgeInsets.only(
-                          bottom: 80 + Get.mediaQuery.padding.bottom),
-                      child: Container(
-                          constraints: const BoxConstraints(maxWidth: 500),
-                          child: const PlayerControlWidget()),
-                    )
-                  ],
-                ),
+                  return Column(
+                    children: [
+                      SizedBox(
+                        height: size.height < 750 ? 110 : 140,
+                      ),
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 500),
+                        child: AlbumArtNLyrics(
+                            playerArtImageSize: playerArtImageSize),
+                      ),
+                      Expanded(child: Container()),
+                      Padding(
+                        padding: EdgeInsets.only(
+                            bottom: 80 + Get.mediaQuery.padding.bottom),
+                        child: Container(
+                            constraints: const BoxConstraints(maxWidth: 500),
+                            child: const PlayerControlWidget()),
+                      ),
+                    ],
+                  );
+                }),
         ),
 
         /// Stack child
