@@ -1275,6 +1275,45 @@ class SettingsScreen extends StatelessWidget {
                           ),
                           ListTile(
                             contentPadding: const EdgeInsets.only(left: 5, right: 10),
+                            leading: const Icon(Icons.favorite_rounded, color: Colors.redAccent),
+                            title: const Text("Sync Liked Songs from YouTube Music"),
+                            subtitle: Text(
+                              "Import all liked tracks from your YouTube Music account into Favorites",
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            trailing: ElevatedButton.icon(
+                              icon: const Icon(Icons.sync_rounded, size: 16),
+                              label: const Text("Sync"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                  snackbar(
+                                    Get.context!,
+                                    "Syncing Liked Music from YouTube Music...",
+                                    size: SanckBarSize.MEDIUM,
+                                  ),
+                                );
+                                final count = await ytmAuth.syncLikedMusicToLocal();
+                                ScaffoldMessenger.of(Get.context!).showSnackBar(
+                                  snackbar(
+                                    Get.context!,
+                                    count > 0
+                                        ? "Successfully synced $count Liked tracks from YouTube Music!"
+                                        : "Your Liked Music is already up to date.",
+                                    size: SanckBarSize.BIG,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.only(left: 5, right: 10),
                             leading: const Icon(Icons.copy_rounded),
                             title: const Text("Copy Cookies to Clipboard"),
                             subtitle: Text(

@@ -2,6 +2,11 @@
 
 ### [v1.0.3] - Latest Release
 
+### ❤️ YouTube Music Favorite & Rating Cloud Synchronization
+- **Real-Time Favorite & Unfavorite Cloud Sync**: When favoriting a song in Odd Verse, the app automatically dispatches an authenticated `POST /like/like` request to YouTube Music, adding it to your YouTube Music "Liked Music" (`LM`) cloud playlist. When unfavoriting, it dispatches `POST /like/removelike` to immediately remove the like rating from your Google account.
+- **One-Tap Liked Music Cloud Import**: Added a dedicated "Sync Liked Songs from YouTube Music" action tile in Settings > Account, allowing instant bulk synchronization of all previously liked tracks from your YouTube Music library into Odd Verse favorites.
+- **Automatic Post-Login Sync**: Logging in to YouTube Music via in-app browser or cookie import now automatically triggers background synchronization of your Liked Music playlist.
+
 ### 🎵 Album Art Tap-to-Lyrics, Button-Only Dismissal & Glitch-Free Word Sweeping
 - **Tap Album Art to Open Lyrics**: Added an intuitive `onTap` gesture to the album art in `AlbumArtNLyrics`. Users can now tap directly on the song thumbnail artwork to instantly toggle and open full-screen synchronized lyrics.
 - **Removed Accidental Swipe-Down Dismissal**: Completely removed vertical drag listeners (`onVerticalDragEnd`) from `StandardPlayer` and `LyricsTopBar`. Scrolling down or browsing lyrics will no longer accidentally close or dismiss the lyrics screen.

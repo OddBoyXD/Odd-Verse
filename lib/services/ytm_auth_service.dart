@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'package:audio_service/audio_service.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import '../models/media_Item_builder.dart';
 import '../ui/screens/Home/home_screen_controller.dart';
 import '../utils/helper.dart';
+import 'music_service.dart';
 
 class YtmAuthService extends GetxService {
   final isLoggedIn = false.obs;
@@ -204,6 +207,8 @@ class YtmAuthService extends GetxService {
       if (Get.isRegistered<HomeScreenController>()) {
         Get.find<HomeScreenController>().loadContentFromNetwork();
       }
+      // Proactively sync user's Liked Music from YouTube Music in the background
+      syncLikedMusicToLocal();
       printINFO("YouTube Music login successful! (User: ${userName.value})");
       return true;
     } catch (e) {
@@ -282,6 +287,64 @@ class YtmAuthService extends GetxService {
     }
     if (userName.value.isEmpty) {
       userName.value = "YouTube Account";
+    }
+  }
+
+  /// Rate a song on YouTube Music (like: true -> like/like, like: false -> like/removelike)
+  Future<bool> rateSong(String videoId, {required bool like}) async {
+    if (!isLoggedIn.value || videoId.isEmpty) return false;
+    try {
+      final dio = Dio();
+      final headers = getAuthHeaders(videoId: videoId);
+      if (headers.isEmpty) return false;
+
+      final endpoint = like ? "like/like" : "like/removelike";
+      final res = await dio.post(
+        "$_domain/youtubei/v1/$endpoint?prettyPrint=false",
+        options: Options(headers: headers),
+        data: {
+          'context': {
+            'client': {
+              'clientName': 'WEB_REMIX',
+              'clientVersion': '1.20260524.14.00',
+            }
+          },
+          'target': {
+            'videoId': videoId,
+          }
+        },
+      );
+      printINFO("YouTube Music rating ($endpoint) for $videoId -> HTTP ${res.statusCode}");
+      return res.statusCode == 200;
+    } catch (e) {
+      printERROR("YouTube Music rating failed for $videoId: $e");
+      return false;
+    }
+  }
+
+  /// Pull all Liked Music tracks from YouTube Music cloud into local favorites box (LIBFAV)
+  Future<int> syncLikedMusicToLocal() async {
+    if (!isLoggedIn.value) return 0;
+    try {
+      if (!Get.isRegistered<MusicServices>()) return 0;
+      final musicServices = Get.find<MusicServices>();
+      final res = await musicServices.getPlaylistOrAlbumSongs(playlistId: "VLLM", limit: 500);
+      final tracks = List<MediaItem>.from(res['tracks'] ?? []);
+      if (tracks.isEmpty) return 0;
+
+      final box = await Hive.openBox("LIBFAV");
+      int addedCount = 0;
+      for (final track in tracks) {
+        if (!box.containsKey(track.id)) {
+          await box.put(track.id, MediaItemBuilder.toJson(track));
+          addedCount++;
+        }
+      }
+      printINFO("Synced $addedCount new Liked Music tracks from YouTube Music (total: ${tracks.length})");
+      return tracks.length;
+    } catch (e) {
+      printERROR("syncLikedMusicToLocal error: $e");
+      return 0;
     }
   }
 

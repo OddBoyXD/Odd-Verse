@@ -875,13 +875,15 @@ class PlayerController extends GetxController
   Future<void> toggleFavourite() async {
     final currMediaItem = currentSong.value!;
     final box = await Hive.openBox("LIBFAV");
-    isCurrentSongFav.isFalse
+    final willBeFav = isCurrentSongFav.isFalse;
+
+    willBeFav
         ? box.put(currMediaItem.id, MediaItemBuilder.toJson(currMediaItem))
         : box.delete(currMediaItem.id);
     try {
       final playlistController = Get.find<PlaylistScreenController>(
           tag: const Key("LIBFAV").hashCode.toString());
-      isCurrentSongFav.isFalse
+      willBeFav
           ? playlistController.addNRemoveItemsinList(currMediaItem,
               action: 'add', index: 0)
           : playlistController.addNRemoveItemsinList(currMediaItem,
@@ -889,7 +891,16 @@ class PlayerController extends GetxController
 
       // ignore: empty_catches
     } catch (e) {}
-    isCurrentSongFav.value = !isCurrentSongFav.value;
+    isCurrentSongFav.value = willBeFav;
+
+    // Direct YouTube Music Cloud Sync: Rate song on YouTube Music account
+    if (Get.isRegistered<YtmAuthService>()) {
+      final ytmAuth = Get.find<YtmAuthService>();
+      if (ytmAuth.isLoggedIn.value && currMediaItem.id.isNotEmpty) {
+        ytmAuth.rateSong(currMediaItem.id, like: willBeFav);
+      }
+    }
+
     if (Get.find<SettingsScreenController>()
             .autoDownloadFavoriteSongEnabled
             .isTrue &&
