@@ -18,6 +18,7 @@ import '../../widgets/shimmer_widgets/home_shimmer.dart';
 import 'home_screen_controller.dart';
 import '/models/quick_picks.dart';
 import '../Settings/settings_screen.dart';
+import '/services/ytm_auth_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

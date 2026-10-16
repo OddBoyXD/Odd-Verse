@@ -414,9 +414,10 @@ class _InstrumentalLineWidget extends StatelessWidget {
       );
     }
 
-    return ValueListenableBuilder<Duration>(
-      valueListenable: animatedPosition,
-      builder: (context, pos, _) {
+    return RepaintBoundary(
+      child: ValueListenableBuilder<Duration>(
+        valueListenable: animatedPosition,
+        builder: (context, pos, _) {
         final totalSpanMs = (line.endTime - line.time).inMilliseconds;
         final elapsedMs = (pos - line.time).inMilliseconds;
         final through = totalSpanMs > 0
@@ -482,7 +483,8 @@ class _InstrumentalLineWidget extends StatelessWidget {
           ],
         );
       },
-    );
+    ),
+  );
   }
 }
 
@@ -499,9 +501,10 @@ class _SweptLyricLineWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<Duration>(
-      valueListenable: animatedPosition,
-      builder: (context, pos, _) {
+    return RepaintBoundary(
+      child: ValueListenableBuilder<Duration>(
+        valueListenable: animatedPosition,
+        builder: (context, pos, _) {
         return Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -590,7 +593,8 @@ class _SweptLyricLineWidget extends StatelessWidget {
           }),
         );
       },
-    );
+    ),
+  );
   }
 }
 
@@ -803,9 +807,10 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                   final line = widget.lyrics[index];
                   final isActive = index == activeIndex;
 
-                  return Center(
+                  return RepaintBoundary(
                     key: _itemKeys[index],
-                    child: Padding(
+                    child: Center(
+                      child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6.0),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
@@ -895,7 +900,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                       ),
                       ),
                     ),
-                  );
+                  ),
+                );
                 }),
                 Padding(
                   padding: const EdgeInsets.only(top: 28.0, bottom: 20.0),

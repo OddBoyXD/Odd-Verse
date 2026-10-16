@@ -22,6 +22,7 @@ import '../widgets/sliding_up_panel.dart';
 import '/models/durationstate.dart';
 import '/services/music_service.dart';
 import '../../services/audio_handler.dart';
+import '../../services/ytm_auth_service.dart';
 
 class PlayerController extends GetxController
     with GetSingleTickerProviderStateMixin {

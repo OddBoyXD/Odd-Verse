@@ -22,7 +22,7 @@ import 'components/custom_expansion_tile.dart';
 import 'components/ytm_login_screen.dart';
 import 'settings_screen_controller.dart';
 import '../Home/home_screen_controller.dart';
-import '../player/components/lyrics_sources_sheet.dart';
+import '../../player/components/lyrics_sources_sheet.dart';
 import 'package:flutter/services.dart';
 import '../../../../services/ytm_auth_service.dart';
 import '../../widgets/cache_dialogs.dart';
