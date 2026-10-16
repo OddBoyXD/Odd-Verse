@@ -538,11 +538,12 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
                 ),
               ],
             ),
-          );
-        },
-      );
-    });
-  }
+          ),
+        );
+      },
+    );
+  });
+}
 }
 
 void showLyricsSearchSheet(
