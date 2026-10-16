@@ -124,6 +124,7 @@ class LyricsTopBar extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
