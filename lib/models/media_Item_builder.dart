@@ -10,9 +10,23 @@ class MediaItemBuilder {
     // Hive.box("SongDownloads").delete('imported_1787400045639');
     // printINFO(json);
 
-    if (json['artists'] != null) {
-      artistName =
-          json['artists']?.map((e) => e['name']).toList().join(', ').toString();
+    if (json['artists'] != null && json['artists'] is List) {
+      final validArtists = (json['artists'] as List)
+          .where((e) {
+            if (e == null || e is! Map) return false;
+            final name = e['name']?.toString().trim().toLowerCase() ?? '';
+            return name.isNotEmpty &&
+                name != 'song' &&
+                name != 'video' &&
+                name != 'single' &&
+                name != 'ep' &&
+                name != 'track';
+          })
+          .map((e) => e['name'].toString().trim())
+          .toList();
+      if (validArtists.isNotEmpty) {
+        artistName = validArtists.join(', ');
+      }
     }
 
     Map? album;

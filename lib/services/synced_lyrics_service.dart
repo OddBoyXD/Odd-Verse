@@ -1040,6 +1040,24 @@ class SyncedLyricsService {
   static String cleanArtistName(String? artist) {
     if (artist == null || artist.trim().isEmpty) return '';
     String clean = artist.trim();
+
+    // Check if the whole string is generic
+    final lowerInitial = clean.toLowerCase();
+    if (lowerInitial == 'song' ||
+        lowerInitial == 'video' ||
+        lowerInitial == 'single' ||
+        lowerInitial == 'ep' ||
+        lowerInitial == 'track' ||
+        lowerInitial == 'unknown' ||
+        lowerInitial == 'unknown artist') {
+      return '';
+    }
+
+    // Remove leading generic prefixes like "Song, " or "Song • " or "Video, "
+    clean = clean.replaceAll(
+        RegExp(r'^(?:song|video|single|ep|track)\s*[,•|-]\s*', caseSensitive: false),
+        '').trim();
+
     // Remove " - Topic" from auto-generated channels
     clean =
         clean.replaceAll(RegExp(r'\s*-\s*Topic$', caseSensitive: false), '');
@@ -1052,6 +1070,17 @@ class SyncedLyricsService {
     )[0].split(
       RegExp(r'\s+(?:feat\.|ft\.|featuring)\s+', caseSensitive: false),
     )[0].trim();
+
+    final lowerClean = clean.toLowerCase();
+    if (lowerClean == 'song' ||
+        lowerClean == 'video' ||
+        lowerClean == 'single' ||
+        lowerClean == 'ep' ||
+        lowerClean == 'track' ||
+        lowerClean == 'unknown' ||
+        lowerClean == 'unknown artist') {
+      return '';
+    }
     return clean;
   }
 
@@ -1137,8 +1166,26 @@ class SyncedLyricsService {
       } catch (_) {}
     }
 
-    final cleanTitle = cleanTrackTitle(song.title, artist: song.artist);
-    final cleanArtist = cleanArtistName(song.artist);
+    var cleanArtist = cleanArtistName(song.artist);
+    if (cleanArtist.isEmpty) {
+      if (song.title.contains(' - ') || song.title.contains(' – ')) {
+        final sep = song.title.contains(' – ') ? ' – ' : ' - ';
+        final possibleArtist = cleanArtistName(song.title.split(sep)[0]);
+        if (possibleArtist.isNotEmpty) {
+          cleanArtist = possibleArtist;
+        }
+      } else if (song.title.contains('[') && song.title.contains(']')) {
+        final match = RegExp(r'\[(.*?)\]').firstMatch(song.title);
+        if (match != null) {
+          final possibleArtist = cleanArtistName(match.group(1)!);
+          if (possibleArtist.isNotEmpty) {
+            cleanArtist = possibleArtist;
+          }
+        }
+      }
+    }
+    final cleanTitle = cleanTrackTitle(song.title,
+        artist: cleanArtist.isNotEmpty ? cleanArtist : song.artist);
     final dur = song.duration?.inSeconds ?? durInSec;
     String? fallbackPlain = cachedLyrics?['plainLyrics']?.toString().trim();
 

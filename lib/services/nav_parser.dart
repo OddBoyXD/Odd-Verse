@@ -278,7 +278,15 @@ Map<String, dynamic> parseSongRuns(List<dynamic> runs) {
       // uneven items are always separators
       continue;
     }
-    String text = run['text'];
+    String text = run['text']?.toString().trim() ?? '';
+    final lowerText = text.toLowerCase();
+    if (lowerText == 'song' ||
+        lowerText == 'video' ||
+        lowerText == 'single' ||
+        lowerText == 'ep' ||
+        lowerText == 'track') {
+      continue;
+    }
     if (run.containsKey('navigationEndpoint')) {
       // artist or album
       Map<String, dynamic> item = {
@@ -364,8 +372,17 @@ List<dynamic> parseSongArtistsRuns(List<dynamic> runs) {
   List<Map<String, dynamic>> artists = [];
   int n = (runs.length / 2).floor() + 1;
   for (var j = 0; j < n; j++) {
+    final text = runs[j * 2]['text']?.toString().trim() ?? '';
+    final lower = text.toLowerCase();
+    if (lower == 'song' ||
+        lower == 'video' ||
+        lower == 'single' ||
+        lower == 'ep' ||
+        lower == 'track') {
+      continue;
+    }
     artists.add({
-      'name': runs[j * 2]['text'],
+      'name': text,
       'id': nav(runs[j * 2], navigation_browse_id,
           noneIfAbsent: false, funName: "parseSongArtistsRuns"),
     });

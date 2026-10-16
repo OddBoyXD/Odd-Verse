@@ -916,15 +916,35 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
 void showLyricsSearchSheet(
     BuildContext context, PlayerController playerController) {
   final current = playerController.currentSong.value;
+  String initArtist = current != null
+      ? SyncedLyricsService.cleanArtistName(current.artist)
+      : "";
+
+  // If artist was "Song" or empty, try recovering artist from track title
+  if (initArtist.isEmpty && current != null) {
+    if (current.title.contains(' - ') || current.title.contains(' – ')) {
+      final sep = current.title.contains(' – ') ? ' – ' : ' - ';
+      final possibleArtist = SyncedLyricsService.cleanArtistName(current.title.split(sep)[0]);
+      if (possibleArtist.isNotEmpty) {
+        initArtist = possibleArtist;
+      }
+    } else if (current.title.contains('[') && current.title.contains(']')) {
+      final match = RegExp(r'\[(.*?)\]').firstMatch(current.title);
+      if (match != null) {
+        final possibleArtist = SyncedLyricsService.cleanArtistName(match.group(1)!);
+        if (possibleArtist.isNotEmpty) {
+          initArtist = possibleArtist;
+        }
+      }
+    }
+  }
+
   final titleController = TextEditingController(
       text: current != null
           ? SyncedLyricsService.cleanTrackTitle(current.title,
-              artist: current.artist)
+              artist: initArtist.isNotEmpty ? initArtist : current.artist)
           : "");
-  final artistController = TextEditingController(
-      text: current != null
-          ? SyncedLyricsService.cleanArtistName(current.artist)
-          : "");
+  final artistController = TextEditingController(text: initArtist);
 
   final allSources = LyricsSourceInfo.loadSavedSources();
 
