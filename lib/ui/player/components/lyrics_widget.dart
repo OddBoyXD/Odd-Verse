@@ -712,51 +712,14 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
     if (!_scrollController.hasClients) return;
 
     final itemContext = _itemKeys[index].currentContext;
-    final viewportContext = _viewportKey.currentContext;
+    if (itemContext == null) return;
 
-    if (itemContext == null || viewportContext == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _scrollToActive(index, jump: jump);
-      });
-      return;
-    }
-
-    final itemBox = itemContext.findRenderObject() as RenderBox?;
-    final viewportBox = viewportContext.findRenderObject() as RenderBox?;
-
-    if (itemBox == null ||
-        viewportBox == null ||
-        !itemBox.hasSize ||
-        !viewportBox.hasSize) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _scrollToActive(index, jump: jump);
-      });
-      return;
-    }
-
-    final itemOffset =
-        itemBox.localToGlobal(Offset.zero, ancestor: viewportBox).dy;
-    final currentScrollOffset = _scrollController.offset;
-    final viewportHeight = viewportBox.size.height;
-    final itemHeight = itemBox.size.height;
-
-    final targetOffset = currentScrollOffset +
-        itemOffset -
-        (viewportHeight / 2) +
-        (itemHeight / 2);
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    final minScroll = _scrollController.position.minScrollExtent;
-    final clampedOffset = targetOffset.clamp(minScroll, maxScroll);
-
-    if (jump) {
-      _scrollController.jumpTo(clampedOffset);
-    } else {
-      _scrollController.animateTo(
-        clampedOffset,
-        duration: const Duration(milliseconds: 320),
-        curve: Curves.easeOutCubic,
-      );
-    }
+    Scrollable.ensureVisible(
+      itemContext,
+      alignment: 0.5,
+      duration: jump ? Duration.zero : const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   void _startResumeTimer() {
@@ -792,15 +755,15 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
       _lastReportedTime = DateTime.now();
       if (widget.playerController.buttonState.value != PlayButtonState.playing) {
         _animatedPosition.value = currentPos;
+        final activeIndex = _findActiveIndex(currentPos);
+        if (activeIndex != _lastActiveIndex) {
+          _lastActiveIndex = activeIndex;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _scrollToActive(activeIndex);
+          });
+        }
       }
       final activeIndex = _findActiveIndex(_animatedPosition.value);
-
-      if (activeIndex != _lastActiveIndex) {
-        _lastActiveIndex = activeIndex;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _scrollToActive(activeIndex);
-        });
-      }
 
       return LayoutBuilder(
         builder: (context, constraints) {
@@ -817,16 +780,6 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                   notification.dragDetails != null) {
                 _userInteracting = true;
                 _resumeTimer?.cancel();
-              } else if (notification is ScrollUpdateNotification) {
-                if (_scrollController.position.pixels <= 0 &&
-                    notification.scrollDelta != null &&
-                    notification.scrollDelta! < -14) {
-                  widget.playerController.showLyricsflag.value = false;
-                }
-              } else if (notification is OverscrollNotification) {
-                if (notification.overscroll < -10) {
-                  widget.playerController.showLyricsflag.value = false;
-                }
               } else if (notification is ScrollEndNotification &&
                   _userInteracting) {
                 _startResumeTimer();
@@ -885,7 +838,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                                       line: line,
                                       animatedPosition: _animatedPosition,
                                     )
-                                  : line.words.isNotEmpty
+                                  : (isActive && line.words.isNotEmpty)
                                       ? _SweptLyricLineWidget(
                                           line: line,
                                           animatedPosition: _animatedPosition,
@@ -899,12 +852,16 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                                           ),
                                         )
                                       : Text(
-                                          line.text,
+                                          line.words.isNotEmpty
+                                              ? line.words
+                                                  .map((w) => w.text)
+                                                  .join()
+                                              : line.text,
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 20.0,
                                             fontWeight: FontWeight.w700,
-                                            letterSpacing: isActive ? 0.2 : 0.0,
+                                            letterSpacing: 0.2,
                                             height: 1.5,
                                             color: Colors.white,
                                             shadows: isActive
