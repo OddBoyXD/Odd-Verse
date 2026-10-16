@@ -544,24 +544,13 @@ class _SweptLyricLineWidget extends StatelessWidget {
               );
             }
 
-            // Fully sung: radiant white text (glow only when this line is active)
+            // Fully sung: radiant white text
             if (progress >= 1.0) {
               return Text(
                 w.text,
                 style: activeStyle.copyWith(
                   color: Colors.white,
-                  shadows: isActive
-                      ? const [
-                          Shadow(
-                            color: Color(0x99FFFFFF),
-                            blurRadius: 14.0,
-                          ),
-                          Shadow(
-                            color: Color(0x44FFFFFF),
-                            blurRadius: 24.0,
-                          ),
-                        ]
-                      : const [],
+                  shadows: const [],
                 ),
               );
             }
@@ -575,11 +564,11 @@ class _SweptLyricLineWidget extends StatelessWidget {
                   end: Alignment.centerRight,
                   stops: [
                     progress,
-                    (progress + 0.08).clamp(0.0, 1.0),
+                    (progress + 0.05).clamp(0.0, 1.0),
                   ],
-                  colors: const [
+                  colors: [
                     Colors.white,
-                    Color(0x66FFFFFF),
+                    Colors.white.withOpacity(0.40),
                   ],
                 ).createShader(bounds);
               },
@@ -751,9 +740,12 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
     return Obx(() {
       final currentPos =
           widget.playerController.progressBarStatus.value.current;
-      _lastReportedPosition = currentPos;
-      _lastReportedTime = DateTime.now();
-      if (widget.playerController.buttonState.value != PlayButtonState.playing) {
+      final isPlaying =
+          widget.playerController.buttonState.value == PlayButtonState.playing;
+
+      if (!isPlaying) {
+        _lastReportedPosition = currentPos;
+        _lastReportedTime = DateTime.now();
         _animatedPosition.value = currentPos;
         final activeIndex = _findActiveIndex(currentPos);
         if (activeIndex != _lastActiveIndex) {
@@ -761,6 +753,13 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) _scrollToActive(activeIndex);
           });
+        }
+      } else {
+        // Prevent backward stutter: reconcile only when seeking (>400ms) or when audio time genuinely leads
+        final diffMs = (currentPos - _animatedPosition.value).inMilliseconds;
+        if (diffMs.abs() > 400 || currentPos > _animatedPosition.value) {
+          _lastReportedPosition = currentPos;
+          _lastReportedTime = DateTime.now();
         }
       }
       final activeIndex = _findActiveIndex(_animatedPosition.value);

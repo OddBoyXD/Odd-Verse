@@ -14,15 +14,8 @@ class LyricsTopBar extends StatelessWidget {
     final settingsController = Get.find<SettingsScreenController>();
     final theme = Theme.of(context);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onVerticalDragEnd: (details) {
-        if ((details.primaryVelocity ?? 0) > 150) {
-          playerController.showLyricsflag.value = false;
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
         margin: const EdgeInsets.only(bottom: 6.0),
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.35),
@@ -124,7 +117,6 @@ class LyricsTopBar extends StatelessWidget {
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 }

@@ -2,6 +2,16 @@
 
 ### [v1.0.3] - Latest Release
 
+### 🎵 Album Art Tap-to-Lyrics, Button-Only Dismissal & Glitch-Free Word Sweeping
+- **Tap Album Art to Open Lyrics**: Added an intuitive `onTap` gesture to the album art in `AlbumArtNLyrics`. Users can now tap directly on the song thumbnail artwork to instantly toggle and open full-screen synchronized lyrics.
+- **Removed Accidental Swipe-Down Dismissal**: Completely removed vertical drag listeners (`onVerticalDragEnd`) from `StandardPlayer` and `LyricsTopBar`. Scrolling down or browsing lyrics will no longer accidentally close or dismiss the lyrics screen.
+- **Dedicated Button-Only Closing**: Lyrics can now only be closed cleanly by tapping the dedicated dropdown/close icon button in the `LyricsTopBar` or toggling the lyrics button in the player control bar.
+- **Eliminated Word-by-Word Animation Glitches & Layout Jitter**:
+  - Removed per-word dynamic `Shadow` filters inside `Wrap` that caused glyph metric shifting, micro-jitters, and word jumping across lines during singing.
+  - Aligned `ShaderMask` gradient endpoint colors and opacities (`Colors.white` to `Colors.white.withOpacity(0.40)`) to seamlessly match unsung text opacity without visual pop.
+  - Implemented monotonic forward position reconciliation in `YtmSyncedLyricsView`: audio position packets lagging by less than 400ms are ignored, preventing backward stutter and ensuring silky-smooth, continuous 60/90/120 FPS lyric sweeping.
+
+
 ### 🛡️ Navigation Bar Safety, Back Button Hierarchy, All-Provider Word-Sync Priority & Playback Race Fix
 - **Navigation Bar SafeArea & Inset Padding**: Wrapped the lyrics search bottom sheet in `SafeArea(top: false)` and enforced `effectiveBottomPadding = bottomInset > 0 ? (bottomInset + 16) : (systemBottomPadding + 20)`, completely eliminating any overlap or collision with Android's system navigation bar (3-button or gesture pill).
 - **Hierarchical Android Back Button Dismissal**: Re-architected `PopScope` in `lib/ui/home.dart` to strictly respect navigation hierarchy:

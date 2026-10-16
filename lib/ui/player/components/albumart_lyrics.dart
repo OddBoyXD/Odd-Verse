@@ -42,6 +42,11 @@ class AlbumArtNLyrics extends StatelessWidget {
 
               // Album Art Image with Gestures & Rounded Corners
               GestureDetector(
+                onTap: () {
+                  if (playerController.currentSong.value != null) {
+                    playerController.toggleLyrics(playerController.currentSong.value!);
+                  }
+                },
                 onLongPress: () {
                   showModalBottomSheet(
                     constraints: const BoxConstraints(maxWidth: 500),
