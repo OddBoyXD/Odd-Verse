@@ -2,6 +2,13 @@
 
 ### [v1.0.3] - Latest Release
 
+### 💎 BitChord Search Parity, Root Navigator Player Persistence & Zero-Reflow Lyrics
+- **Root Navigator Sheet Persistence & Big Player Locking**: Configured `showLyricsSearchSheet` with `useRootNavigator: true` and guarded pops strictly via `Navigator.of(ctx, rootNavigator: true).pop()`. Upon applying lyrics, explicitly re-asserts `showLyricsflag.value = true` and `playerPanelController.open()`, completely resolving the issue where selecting lyrics accidentally closed the big player or collapsed to the miniplayer/home screen.
+- **Current Active Provider Banner**: Added a sleek status card at the top of the lyrics search sheet displaying the currently loaded provider name (e.g. `lrc.red`, `BetterLyrics`, `Musixmatch`) alongside a dynamic sync badge (`Apple Word-Synced 🍎` or `Line-Synced ⏱️`).
+- **BitChord Card-Based Search Results**: Redesigned search results into modern BitChord cards with subtle borders, glowing Apple word-synced badges, provider labels, and dedicated "Apply" buttons.
+- **Zero-Reflow Permanent Swept Line Mounting**: Word-synced lines now permanently mount `_SweptLyricLineWidget` across both active and inactive states (`line.words.isNotEmpty`), eliminating any widget swapping or kerning jumps during line transitions.
+- **Eliminated ShaderMask Shadow Clipping**: Removed text shadows during active letter sweeping inside `ShaderMask`, preventing bounding-box clipping glitches while maintaining glowing radiant white bloom when singing completes.
+
 ### ⚡ BitChord Provider Search Engine, Big Player Top Bar Cleanup & Zero-Lag Playback
 - **BitChord Provider Selector in Search Sheet**: Integrated horizontal provider chips (`All Providers`, `lrc.red 🍎`, `BetterLyrics 🍎`, `KuGou`, `LRCLIB`, `Musixmatch`, `PaxSenix`, `Genius`, etc.) inside the lyrics search sheet. Tapping any provider immediately triggers a search on that exact provider with one-tap apply, delivering 1:1 BitChord provider searching.
 - **Removed Provider Switcher from Player Top Bar**: Removed the cluttered `tune` provider switcher button from `LyricsTopBar`, retaining a clean search icon that directly opens the BitChord provider search modal.

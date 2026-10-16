@@ -493,11 +493,13 @@ class _SweptLyricLineWidget extends StatelessWidget {
   final LyricLine line;
   final ValueNotifier<Duration> animatedPosition;
   final TextStyle activeStyle;
+  final bool isActive;
 
   const _SweptLyricLineWidget({
     required this.line,
     required this.animatedPosition,
     required this.activeStyle,
+    this.isActive = true,
   });
 
   @override
@@ -541,22 +543,24 @@ class _SweptLyricLineWidget extends StatelessWidget {
               );
             }
 
-            // Fully sung: radiant white text
+            // Fully sung: radiant white text (glow only when this line is active)
             if (progress >= 1.0) {
               return Text(
                 w.text,
                 style: activeStyle.copyWith(
                   color: Colors.white,
-                  shadows: const [
-                    Shadow(
-                      color: Color(0x99FFFFFF),
-                      blurRadius: 14.0,
-                    ),
-                    Shadow(
-                      color: Color(0x44FFFFFF),
-                      blurRadius: 24.0,
-                    ),
-                  ],
+                  shadows: isActive
+                      ? const [
+                          Shadow(
+                            color: Color(0x99FFFFFF),
+                            blurRadius: 14.0,
+                          ),
+                          Shadow(
+                            color: Color(0x44FFFFFF),
+                            blurRadius: 24.0,
+                          ),
+                        ]
+                      : const [],
                 ),
               );
             }
@@ -582,12 +586,7 @@ class _SweptLyricLineWidget extends StatelessWidget {
                 w.text,
                 style: activeStyle.copyWith(
                   color: Colors.white,
-                  shadows: [
-                    Shadow(
-                      color: const Color(0x99FFFFFF).withOpacity(progress),
-                      blurRadius: 12.0 * progress,
-                    ),
-                  ],
+                  shadows: const [],
                 ),
               ),
             );
@@ -845,10 +844,11 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                                       line: line,
                                       animatedPosition: _animatedPosition,
                                     )
-                                  : (isActive && line.words.isNotEmpty)
+                                  : line.words.isNotEmpty
                                       ? _SweptLyricLineWidget(
                                           line: line,
                                           animatedPosition: _animatedPosition,
+                                          isActive: isActive,
                                           activeStyle: const TextStyle(
                                             fontSize: 20.0,
                                             fontWeight: FontWeight.w700,
@@ -858,11 +858,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                                           ),
                                         )
                                       : Text(
-                                          line.words.isNotEmpty
-                                              ? line.words
-                                                  .map((w) => w.text)
-                                                  .join()
-                                              : line.text,
+                                          line.text,
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             fontSize: 20.0,
@@ -936,6 +932,7 @@ void showLyricsSearchSheet(
 
   showModalBottomSheet(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     backgroundColor: const Color(0xFF141414),
     shape: const RoundedRectangleBorder(
@@ -948,6 +945,25 @@ void showLyricsSearchSheet(
 
       return StatefulBuilder(
         builder: (context, setSheetState) {
+          final currentLyrics = playerController.lyrics;
+          final currentProviderId = currentLyrics['provider']?.toString() ?? '';
+          final currentSourceName = currentLyrics['sourceName']?.toString() ?? '';
+          LyricsSourceInfo? activeSource;
+          try {
+            activeSource = allSources.firstWhere(
+              (s) =>
+                  s.id.toLowerCase() == currentProviderId.toLowerCase() ||
+                  s.label.toLowerCase() == currentProviderId.toLowerCase(),
+            );
+          } catch (_) {}
+
+          final activeLabel = activeSource?.label ??
+              (currentSourceName.isNotEmpty
+                  ? currentSourceName
+                  : (currentProviderId.isNotEmpty ? currentProviderId : "Default / Auto"));
+          final isCurrentWordSynced = currentLyrics['wordSynced'] == true ||
+              (currentLyrics['synced']?.toString().contains('<') ?? false);
+
           Future<void> doSearch(String providerId) async {
             setSheetState(() {
               isSearching = true;
@@ -970,235 +986,390 @@ void showLyricsSearchSheet(
             }
           }
 
+          Future<void> applyLyrics(Map<String, dynamic> item) async {
+            final sourceName = item['sourceName'] ?? item['provider'] ?? 'Source';
+            await playerController.manualSetLyrics(item);
+            playerController.showLyricsflag.value = true;
+            if (playerController.playerPanelController.isAttached &&
+                !playerController.playerPanelController.isPanelOpen) {
+              playerController.playerPanelController.open();
+            }
+            if (Navigator.of(ctx, rootNavigator: true).canPop()) {
+              Navigator.of(ctx, rootNavigator: true).pop();
+            }
+            ScaffoldMessenger.of(Get.context!).showSnackBar(
+              snackbar(
+                Get.context!,
+                "Applied lyrics from $sourceName!",
+                size: SanckBarSize.MEDIUM,
+              ),
+            );
+          }
+
           return Padding(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom + 16,
               left: 16,
               right: 16,
-              top: 16,
+              top: 12,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Search Lyrics by Provider",
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white70),
-                      onPressed: () => Navigator.pop(ctx),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                // Provider selection chips
-                SizedBox(
-                  height: 38,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: ChoiceChip(
-                          label: const Text("All Providers"),
-                          selected: selectedProviderId == 'all',
-                          selectedColor: const Color(0xFFFFD54F),
-                          backgroundColor: Colors.white10,
-                          labelStyle: TextStyle(
-                            color: selectedProviderId == 'all'
-                                ? Colors.black
-                                : Colors.white70,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                          onSelected: (selected) {
-                            if (selected && !isSearching) {
-                              doSearch('all');
-                            }
-                          },
+                      const Text(
+                        "Search Lyrics by Provider",
+                        style: TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
-                      ...allSources.map((source) {
-                        final isSel = selectedProviderId == source.id;
-                        final labelText =
-                            "${source.label}${source.wordSynced ? " 🍎" : ""}";
-                        return Padding(
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white70),
+                        onPressed: () {
+                          if (Navigator.of(ctx, rootNavigator: true).canPop()) {
+                            Navigator.of(ctx, rootNavigator: true).pop();
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  // Current Active Provider Banner
+                  Container(
+                    margin: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1E1E),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isCurrentWordSynced
+                            ? const Color(0x66FFD54F)
+                            : const Color(0x22FFFFFF),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isCurrentWordSynced
+                              ? Icons.apple
+                              : Icons.music_note,
+                          color: isCurrentWordSynced
+                              ? const Color(0xFFFFD54F)
+                              : Colors.white70,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                "CURRENT ACTIVE PROVIDER",
+                                style: TextStyle(
+                                  color: Colors.white54,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      activeLabel,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: isCurrentWordSynced
+                                          ? const Color(0x33FFD54F)
+                                          : Colors.white12,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      isCurrentWordSynced
+                                          ? "Apple Word-Synced 🍎"
+                                          : "Line-Synced ⏱️",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: isCurrentWordSynced
+                                            ? const Color(0xFFFFD54F)
+                                            : Colors.white70,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // Provider selection chips
+                  SizedBox(
+                    height: 38,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      children: [
+                        Padding(
                           padding: const EdgeInsets.only(right: 8.0),
                           child: ChoiceChip(
-                            label: Text(labelText),
-                            selected: isSel,
+                            label: const Text("All Providers"),
+                            selected: selectedProviderId == 'all',
                             selectedColor: const Color(0xFFFFD54F),
-                            backgroundColor: Colors.white10,
+                            backgroundColor: const Color(0xFF1E1E1E),
                             labelStyle: TextStyle(
-                              color: isSel ? Colors.black : Colors.white70,
-                              fontWeight: isSel
-                                  ? FontWeight.bold
-                                  : FontWeight.normal,
+                              color: selectedProviderId == 'all'
+                                  ? Colors.black
+                                  : Colors.white70,
+                              fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
                             onSelected: (selected) {
                               if (selected && !isSearching) {
-                                doSearch(source.id);
+                                doSearch('all');
                               }
                             },
                           ),
-                        );
-                      }),
-                    ],
+                        ),
+                        ...allSources.map((source) {
+                          final isSel = selectedProviderId == source.id;
+                          final labelText =
+                              "${source.label}${source.wordSynced ? " 🍎" : ""}";
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ChoiceChip(
+                              label: Text(labelText),
+                              selected: isSel,
+                              selectedColor: const Color(0xFFFFD54F),
+                              backgroundColor: const Color(0xFF1E1E1E),
+                              labelStyle: TextStyle(
+                                color: isSel ? Colors.black : Colors.white70,
+                                fontWeight: isSel
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                fontSize: 12,
+                              ),
+                              onSelected: (selected) {
+                                if (selected && !isSearching) {
+                                  doSearch(source.id);
+                                }
+                              },
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: titleController,
-                  decoration: InputDecoration(
-                    labelText: "Track Title",
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: titleController,
+                    decoration: InputDecoration(
+                      labelText: "Track Title",
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: artistController,
-                  decoration: InputDecoration(
-                    labelText: "Artist Name",
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: artistController,
+                    decoration: InputDecoration(
+                      labelText: "Artist Name",
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                    ),
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD54F),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFFD54F),
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: isSearching
+                        ? null
+                        : () => doSearch(selectedProviderId),
+                    icon: isSearching
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.black),
+                          )
+                        : const Icon(Icons.search, size: 18),
+                    label: Text(isSearching
+                        ? "Searching..."
+                        : (selectedProviderId == 'all'
+                            ? "Search All Providers"
+                            : "Search Selected Provider")),
                   ),
-                  onPressed: isSearching
-                      ? null
-                      : () => doSearch(selectedProviderId),
-                  icon: isSearching
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.black),
-                        )
-                      : const Icon(Icons.search, size: 18),
-                  label: Text(isSearching
-                      ? "Searching..."
-                      : (selectedProviderId == 'all'
-                          ? "Search All Providers"
-                          : "Search Selected Provider")),
-                ),
-                const SizedBox(height: 12),
-                if (searchResults.isNotEmpty)
-                  ConstrainedBox(
-                    constraints: const BoxConstraints(maxHeight: 260),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: searchResults.length,
-                      separatorBuilder: (_, __) =>
-                          const Divider(color: Colors.white12),
-                      itemBuilder: (context, index) {
-                        final item = searchResults[index];
-                        final isWord = item['wordSynced'] == true;
-                        final sourceName = item['sourceName'] ??
-                            item['provider'] ??
-                            'Source';
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            "${item['title']} - ${item['artist']}",
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600),
-                          ),
-                          subtitle: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: isWord
-                                      ? const Color(0x33FFD54F)
-                                      : Colors.white12,
-                                  borderRadius: BorderRadius.circular(4),
+                  const SizedBox(height: 12),
+                  if (searchResults.isNotEmpty)
+                    ConstrainedBox(
+                      constraints: const BoxConstraints(maxHeight: 280),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: searchResults.length,
+                        itemBuilder: (context, index) {
+                          final item = searchResults[index];
+                          final isWord = item['wordSynced'] == true;
+                          final sourceName = item['sourceName'] ??
+                              item['provider'] ??
+                              'Source';
+                          final trackTitle =
+                              item['title']?.toString() ?? '';
+                          final trackArtist =
+                              item['artist']?.toString() ?? '';
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1E1E1E),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isWord
+                                    ? const Color(0x44FFD54F)
+                                    : Colors.white12,
+                              ),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              title: Text(
+                                trackTitle.isNotEmpty
+                                    ? "$trackTitle - $trackArtist"
+                                    : sourceName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                 ),
-                                child: Text(
-                                  isWord
-                                      ? "Apple Word-Synced 🍎"
-                                      : "Line-Synced",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: isWord
+                                            ? const Color(0x33FFD54F)
+                                            : Colors.white12,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: Text(
+                                        isWord
+                                            ? "Apple Word-Synced 🍎"
+                                            : "Line-Synced ⏱️",
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: isWord
+                                              ? const Color(0xFFFFD54F)
+                                              : Colors.white70,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        sourceName,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.white54),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              trailing: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFFD54F),
+                                  foregroundColor: Colors.black,
+                                  minimumSize: const Size(64, 32),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                onPressed: () => applyLyrics(item),
+                                child: const Text(
+                                  "Apply",
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    color: isWord
-                                        ? const Color(0xFFFFD54F)
-                                        : Colors.white70,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  sourceName,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontSize: 11, color: Colors.white54),
-                                ),
-                              ),
-                            ],
-                          ),
-                          trailing: const Icon(Icons.check_circle_outline,
-                              color: Color(0xFFFFD54F), size: 20),
-                          onTap: () async {
-                            await playerController.manualSetLyrics(item);
-                            if (context.mounted) {
-                              Navigator.pop(ctx);
-                              ScaffoldMessenger.of(Get.context!).showSnackBar(
-                                snackbar(
-                                  Get.context!,
-                                  "Applied lyrics from $sourceName!",
-                                  size: SanckBarSize.MEDIUM,
-                                ),
-                              );
-                            }
-                          },
-                        );
-                      },
+                              onTap: () => applyLyrics(item),
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  else if (!isSearching &&
+                      searchResults.isEmpty &&
+                      titleController.text.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        selectedProviderId == 'all'
+                            ? "Select a provider above or search to fetch lyrics."
+                            : "No lyrics found from selected provider. Tap another provider above to try.",
+                        textAlign: TextAlign.center,
+                        style:
+                            const TextStyle(color: Colors.white38, fontSize: 12),
+                      ),
                     ),
-                  )
-                else if (!isSearching &&
-                    searchResults.isEmpty &&
-                    titleController.text.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Text(
-                      selectedProviderId == 'all'
-                          ? "Select a provider above or search to fetch lyrics."
-                          : "No lyrics found from selected provider. Tap another provider above to try.",
-                      textAlign: TextAlign.center,
-                      style:
-                          const TextStyle(color: Colors.white38, fontSize: 12),
-                    ),
-                  ),
-              ],
+                ],
+              ),
             ),
           );
         },
