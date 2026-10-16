@@ -189,6 +189,16 @@ class YtmAuthService extends GetxService {
         await box.put("ytm_user_email", directEmail);
       }
 
+      // Clear offline home screen cache to avoid mixing anonymous and authenticated feeds
+      try {
+        if (Hive.isBoxOpen("homeScreenData")) {
+          await Hive.box("homeScreenData").clear();
+        } else {
+          final hBox = await Hive.openBox("homeScreenData");
+          await hBox.clear();
+        }
+      } catch (_) {}
+
       // Attempt to fetch full account details from YouTube Music
       await fetchAccountInfo();
       if (Get.isRegistered<HomeScreenController>()) {
@@ -288,6 +298,16 @@ class YtmAuthService extends GetxService {
     userAvatar.value = "";
     userEmail.value = "";
     printINFO("Logged out of YouTube Music");
+
+    // Clear offline home screen cache to avoid mixing anonymous and authenticated feeds
+    try {
+      if (Hive.isBoxOpen("homeScreenData")) {
+        await Hive.box("homeScreenData").clear();
+      } else {
+        final hBox = await Hive.openBox("homeScreenData");
+        await hBox.clear();
+      }
+    } catch (_) {}
 
     if (Get.isRegistered<HomeScreenController>()) {
       Get.find<HomeScreenController>().loadContentFromNetwork();

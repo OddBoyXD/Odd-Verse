@@ -761,251 +761,76 @@ class SyncedLyricsService {
     final dur = song.duration?.inSeconds ?? durInSec;
     String? fallbackPlain;
 
-    // Check YouTube video captions first to discover the exact vocal onset of THIS specific video
-    Map<String, dynamic>? ytVideoCaptions;
-    try {
-      ytVideoCaptions = await _fetchFromYouTubeCaptions(song.id);
-    } catch (_) {}
+    // Concurrently discover the exact vocal onset from YouTube video captions
+    final ytCaptionsFuture = _fetchFromYouTubeCaptions(song.id).catchError((_) => null);
 
+    // Parallel search across all providers automatically to find the best word-by-word or synced lyrics
+    final queries = <Future<Map<String, dynamic>?>>[
+      _fetchFromLrcRed(cleanTitle, cleanArtist, dur).catchError((_) => null),
+      _fetchFromBetterLyrics(cleanTitle, cleanArtist, dur).catchError((_) => null),
+      if (cleanArtist.isNotEmpty)
+        _fetchFromLrcRed(cleanTitle, '', dur).catchError((_) => null),
+      _fetchFromKuGou(cleanTitle, cleanArtist, dur).catchError((_) => null),
+      _fetchFromLrclib(cleanTitle, cleanArtist, dur).catchError((_) => null),
+      _fetchFromNetease(cleanTitle, cleanArtist).catchError((_) => null),
+    ];
+
+    final providerResponses = await Future.wait(queries);
+    final ytVideoCaptions = await ytCaptionsFuture;
     final ytFirstVocalMs = (ytVideoCaptions != null && ytVideoCaptions['firstVocalMs'] is int)
         ? (ytVideoCaptions['firstVocalMs'] as int)
         : 0;
 
-    // Tier 0: lrc.red (Apple Music TTML / Word-by-word synced lyrics) - BitChord provider
-    try {
-      final lrcRedRes = await _fetchFromLrcRed(cleanTitle, cleanArtist, dur);
-      if (lrcRedRes != null) {
-        String synced = lrcRedRes["synced"] as String;
-        if (ytFirstVocalMs > 0) {
-          synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
-        }
-        final lyricsData = {
-          "synced": synced,
-          "plainLyrics": lrcRedRes["plainLyrics"] ?? "",
-          "provider": "lrc_red",
-          "wordSynced": true,
-          "captionAligned": ytFirstVocalMs > 0,
-        };
-        await lyricsBox.put(song.id, lyricsData);
-        return lyricsData;
-      }
-    } catch (_) {}
+    final candidates = providerResponses.whereType<Map<String, dynamic>>().toList();
 
-    // Tier 0.5: BetterLyrics (Apple Music TTML / Word-by-word mirror)
-    try {
-      final betterLyricsRes =
-          await _fetchFromBetterLyrics(cleanTitle, cleanArtist, dur);
-      if (betterLyricsRes != null) {
-        String synced = betterLyricsRes["synced"] as String;
-        if (ytFirstVocalMs > 0) {
-          synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
-        }
-        final lyricsData = {
-          "synced": synced,
-          "plainLyrics": betterLyricsRes["plainLyrics"] ?? "",
-          "provider": "betterlyrics",
-          "wordSynced": true,
-          "captionAligned": ytFirstVocalMs > 0,
-        };
-        await lyricsBox.put(song.id, lyricsData);
-        return lyricsData;
+    // Priority 1: Word-by-word synced lyrics (Apple Music TTML via lrc.red, BetterLyrics, KuGou)
+    Map<String, dynamic>? bestLyrics;
+    for (final cand in candidates) {
+      if (cand['wordSynced'] == true &&
+          cand['synced'] != null &&
+          cand['synced'].toString().trim().isNotEmpty) {
+        bestLyrics = Map<String, dynamic>.from(cand);
+        break;
       }
-    } catch (_) {}
-
-    // 2. Tier 1: LRCLIB Exact Lookup
-    if (cleanArtist.isNotEmpty && cleanTitle.isNotEmpty) {
-      try {
-        final url =
-            'https://lrclib.net/api/get?artist_name=${Uri.encodeComponent(cleanArtist)}&track_name=${Uri.encodeComponent(cleanTitle)}&duration=$dur';
-        final response = (await _dio.get(url)).data;
-        if (response != null && response is Map) {
-          if (_isStrictMatch(response, cleanTitle, cleanArtist, dur)) {
-            String? synced = response["syncedLyrics"]?.toString();
-            final plain = response["plainLyrics"]?.toString() ?? "";
-            if (synced != null && synced.trim().isNotEmpty) {
-              if (ytFirstVocalMs > 0) {
-                synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
-              }
-              printINFO("Synced Lyrics found via LRCLIB exact match for $cleanTitle");
-              final lyricsData = {
-                "synced": synced,
-                "plainLyrics": plain,
-                "provider": "lrclib",
-                "captionAligned": ytFirstVocalMs > 0,
-              };
-              await lyricsBox.put(song.id, lyricsData);
-              return lyricsData;
-            }
-            if (plain.trim().isNotEmpty) {
-              fallbackPlain = plain;
-            }
-          }
-        }
-      } catch (_) {}
     }
 
-    // 3. Tier 2: LRCLIB Search with Track & Artist (tolerating duration variance)
-    if (cleanTitle.isNotEmpty) {
-      try {
-        final searchUrls = [
-          if (cleanArtist.isNotEmpty)
-            'https://lrclib.net/api/search?track_name=${Uri.encodeComponent(cleanTitle)}&artist_name=${Uri.encodeComponent(cleanArtist)}',
-          'https://lrclib.net/api/search?track_name=${Uri.encodeComponent(cleanTitle)}',
-        ];
-        for (final searchUrl in searchUrls) {
-          final response = (await _dio.get(searchUrl)).data;
-          if (response != null && response is List && response.isNotEmpty) {
-            Map? bestMatch;
-            int minDurDiff = 999999;
-            for (final item in response) {
-              if (item is Map &&
-                  _isStrictMatch(item, cleanTitle, cleanArtist, dur)) {
-                final synced = item["syncedLyrics"]?.toString();
-                if (synced != null && synced.trim().isNotEmpty) {
-                  final itemDur = (item["duration"] is num)
-                      ? (item["duration"] as num).toInt()
-                      : 0;
-                  final diff = (itemDur - dur).abs();
-                  if (diff < minDurDiff) {
-                    minDurDiff = diff;
-                    bestMatch = item;
-                  }
-                } else if (fallbackPlain == null &&
-                    item["plainLyrics"] != null &&
-                    item["plainLyrics"].toString().trim().isNotEmpty) {
-                  fallbackPlain = item["plainLyrics"].toString();
-                }
-              }
-            }
-            if (bestMatch != null) {
-              String? synced = bestMatch["syncedLyrics"]?.toString();
-              if (synced != null && ytFirstVocalMs > 0) {
-                synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
-              }
-              printINFO(
-                  "Synced Lyrics found via LRCLIB track search for $cleanTitle");
-              final lyricsData = {
-                "synced": synced,
-                "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
-                "provider": "lrclib",
-                "captionAligned": ytFirstVocalMs > 0,
-              };
-              await lyricsBox.put(song.id, lyricsData);
-              return lyricsData;
-            }
-          }
-        }
-      } catch (_) {}
-    }
-
-    // 4. Tier 3: LRCLIB General Query Search with Cleaned Title & Artist
-    try {
-      final queries = [
-        if (cleanArtist.isNotEmpty) '$cleanTitle $cleanArtist'.trim(),
-        cleanTitle,
-      ];
-      for (final qText in queries) {
-        final q = Uri.encodeComponent(qText);
-        final qUrl = 'https://lrclib.net/api/search?q=$q';
-        final response = (await _dio.get(qUrl)).data;
-        if (response != null && response is List && response.isNotEmpty) {
-          Map? bestMatch;
-          int minDurDiff = 999999;
-          for (final item in response) {
-            if (item is Map &&
-                _isStrictMatch(item, cleanTitle, cleanArtist, dur)) {
-              final synced = item["syncedLyrics"]?.toString();
-              if (synced != null && synced.trim().isNotEmpty) {
-                final itemDur = (item["duration"] is num)
-                    ? (item["duration"] as num).toInt()
-                    : 0;
-                final diff = (itemDur - dur).abs();
-                if (diff < minDurDiff) {
-                  minDurDiff = diff;
-                  bestMatch = item;
-                }
-              } else if (fallbackPlain == null &&
-                  item["plainLyrics"] != null &&
-                  item["plainLyrics"].toString().trim().isNotEmpty) {
-                fallbackPlain = item["plainLyrics"].toString();
-              }
-            }
-          }
-          if (bestMatch != null) {
-            String? synced = bestMatch["syncedLyrics"]?.toString();
-            if (synced != null && ytFirstVocalMs > 0) {
-              synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
-            }
-            printINFO(
-                "Synced Lyrics found via LRCLIB general search for $cleanTitle");
-            final lyricsData = {
-              "synced": synced,
-              "plainLyrics": bestMatch["plainLyrics"] ?? fallbackPlain ?? "",
-              "provider": "lrclib",
-              "captionAligned": ytFirstVocalMs > 0,
-            };
-            await lyricsBox.put(song.id, lyricsData);
-            return lyricsData;
-          }
+    // Priority 2: Line-synced lyrics (LRCLIB, KuGou, Netease)
+    if (bestLyrics == null) {
+      for (final cand in candidates) {
+        if (cand['synced'] != null &&
+            cand['synced'].toString().trim().isNotEmpty) {
+          bestLyrics = Map<String, dynamic>.from(cand);
+          break;
         }
       }
-    } catch (_) {}
+    }
 
-    // 5. Tier 4: Direct YouTube Closed Captions (Already in memory)
-    if (ytVideoCaptions != null &&
+    // Priority 3: YouTube Video Subtitles / Closed Captions
+    if (bestLyrics == null &&
+        ytVideoCaptions != null &&
         ytVideoCaptions['synced'] != null &&
         ytVideoCaptions['synced'].toString().trim().isNotEmpty) {
-      ytVideoCaptions['captionAligned'] = true;
-      await lyricsBox.put(song.id, ytVideoCaptions);
-      return ytVideoCaptions;
+      bestLyrics = Map<String, dynamic>.from(ytVideoCaptions);
     }
 
-    // 6. Tier 5: KuGou Synced Lyrics Database
-    if (cleanTitle.isNotEmpty) {
-      try {
-        final kugouLyrics =
-            await _fetchFromKuGou(cleanTitle, cleanArtist, dur);
-        if (kugouLyrics != null &&
-            kugouLyrics['synced'] != null &&
-            kugouLyrics['synced'].toString().trim().isNotEmpty) {
-          String? synced = kugouLyrics['synced']?.toString();
-          if (synced != null && ytFirstVocalMs > 0) {
-            synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
-          }
-          final lyricsData = {
-            "synced": synced,
-            "plainLyrics": kugouLyrics['plainLyrics'] ?? "",
-            "provider": "kugou",
-            "wordSynced": kugouLyrics['wordSynced'] == true,
-            "captionAligned": ytFirstVocalMs > 0,
-          };
-          await lyricsBox.put(song.id, lyricsData);
-          return lyricsData;
-        }
-      } catch (_) {}
+    // Gather plain lyrics fallback from candidates if any
+    for (final cand in candidates) {
+      if (cand['plainLyrics'] != null && cand['plainLyrics'].toString().trim().isNotEmpty) {
+        fallbackPlain ??= cand['plainLyrics'].toString().trim();
+      }
     }
 
-    // 7. Tier 6: Netease Cloud Music Synced Database
-    if (cleanTitle.isNotEmpty) {
-      try {
-        final neteaseLyrics = await _fetchFromNetease(cleanTitle, cleanArtist);
-        if (neteaseLyrics != null &&
-            neteaseLyrics['synced'] != null &&
-            neteaseLyrics['synced'].toString().trim().isNotEmpty) {
-          String? synced = neteaseLyrics['synced']?.toString();
-          if (synced != null && ytFirstVocalMs > 0) {
-            synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
-          }
-          final lyricsData = {
-            "synced": synced,
-            "plainLyrics": neteaseLyrics['plainLyrics'] ?? "",
-            "provider": "netease",
-            "captionAligned": ytFirstVocalMs > 0,
-          };
-          await lyricsBox.put(song.id, lyricsData);
-          return lyricsData;
-        }
-      } catch (_) {}
+    if (bestLyrics != null) {
+      String synced = bestLyrics['synced']?.toString() ?? '';
+      if (synced.isNotEmpty &&
+          ytFirstVocalMs > 0 &&
+          bestLyrics['provider'] != 'youtube_captions') {
+        synced = alignStudioLyricsWithCaptions(synced, ytFirstVocalMs);
+        bestLyrics['synced'] = synced;
+        bestLyrics['captionAligned'] = true;
+      }
+      await lyricsBox.put(song.id, bestLyrics);
+      return bestLyrics;
     }
 
     // 6. Tier 6: YouTube Music Official Lyrics Fallback (Plain Text)

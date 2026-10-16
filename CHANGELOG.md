@@ -1,12 +1,17 @@
 # 🚀 Odd Verse Changelog
 
-## [v1.0.3] - Latest Release
+### [v1.0.3] - Latest Release
 
-### 🌐 Pure YouTube Music Recommendation & Continuous Queue Engine (BitChord Parity)
-- **Eliminated Home Content Count Limitation**: Removed the conflicting `homeContentCount` setting from Settings that was artificially truncating the home feed to 3–7 shelves. Odd-Verse now dynamically loads the complete YouTube Music personalized feed (up to 25 continuation shelves) without artificial boundaries.
-- **Full Support for Multiple Song Shelves**: Extended `HomeScreenController` and home view list builders to support multiple song shelves (`QuickPicks`), allowing personalized shelves like *"Listen again"*, *"Similar to [Artist]"*, *"Speed dial"*, and *"Forgotten favorites"* to render seamlessly as horizontal song carousels instead of being discarded.
-- **100% YouTube Music Stream for Authenticated Sessions**: When logged into YouTube Music, home recommendations and queue generation bypass manual chart selectors and pull directly from YouTube Music's authenticated automix and continuous radio pipeline (`tunerSettingValue: AUTOMIX_SETTING_NORMAL`).
-- **Continuous Infinite Radio Stream**: Upgraded `_checkAndTriggerInfiniteRadio` to consume YouTube Music's exact `radioContinuationParam` stream directly from `getWatchPlaylist` with automatic deduplication, guaranteeing endless radio playback that matches user listening preferences.
+### 🎤 Automatic Best-Provider Word-by-Word Singing & Instrumental Break Animation (BitChord Parity)
+- **Automatic Parallel Best-Provider Selection**: Queries all lyrics providers (`lrc.red` Apple Music TTML, `BetterLyrics`, `KuGou`, `LRCLIB`, `Netease`, YouTube Closed Captions) concurrently in parallel with `Future.wait`. Automatically selects true word-by-word synced providers over line-synced ones.
+- **Universal Word-by-Word Singing Engine**: For songs where only line-synced lyrics exist, dynamically synthesizes word-level progression proportional to token lengths across the line duration, guaranteeing EVERY song animates and sings word-by-word with radiant golden illumination.
+- **Instrumental Break & Silence Animation ("Silent at Z")**: Detects instrumental gaps before singing begins ($\ge 4.5$s intro), interludes between lyric lines ($\ge 5$s), and outros. Renders an animated pulsating musical indicator (`♪  •  •  •`) pulsing in radiant gold (`#FFD54F`), transitioning seamlessly when vocals resume.
+- **60 FPS High-Frequency Ticker for Silky-Smooth Singing Animation**: Integrated a Flutter VSYNC-synchronized ticker in `YtmSyncedLyricsView` to smoothly interpolate position between `AudioService.position` updates, delivering fluid 60fps word-by-word illumination without stepping or lag.
+
+### 🌐 Pure YouTube Music Home Feed & Official Automix Queue (BitChord Parity)
+- **Zero-Conflict Home Screen Separation**: When logged in with YouTube Music, completely isolates the feed to authentic YouTube Music shelves (`FEmusic_home`). Bypasses all in-app chart and recent song injections (`middleContent = []`), directing the top song shelf (*"Listen again"* or *"Speed dial"*) to `quickPicks` and all subsequent shelves to `fixedContent`. Anonymous sessions retain the standard app homepage.
+- **Cache Isolation on Login & Logout**: Automatically wipes cached `homeScreenData` upon login and logout, preventing anonymous suggestions from bleeding into authenticated accounts.
+- **Authentic YouTube Music Automix Queue**: Enforced `params: "wAEB"` in `getWatchPlaylist` for all `RDAMVM` and `RD` playlist IDs, guaranteeing that starting playback on any song fetches YouTube Music's genuine 25-song automix queue matching the official YouTube Music mobile app.
 
 ### 🍎 Multi-Provider Synced Lyrics & Search Engine (BitChord Full Parity)
 - **BitChord Title & Artist Normalizer**: Extended regex sanitization to strip video upload metadata, production credits (`prod. by`), deluxe/bonus tags, and video suffixes (`- Official Video`, `Music Video`) outside parentheses.

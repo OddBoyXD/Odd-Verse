@@ -17,13 +17,25 @@ class LyricWord {
 
 class LyricLine {
   final Duration time;
+  final Duration endTime;
   final String text;
   final List<LyricWord> words;
+  final bool isInstrumental;
+
   LyricLine({
     required this.time,
     required this.text,
+    Duration? endTime,
     this.words = const [],
-  });
+    this.isInstrumental = false,
+  }) : endTime = endTime ?? time;
+}
+
+class _RawParsedLine {
+  final Duration time;
+  final String text;
+  final List<LyricWord> words;
+  _RawParsedLine({required this.time, required this.text, required this.words});
 }
 
 class LyricsWidget extends StatelessWidget {
@@ -31,10 +43,11 @@ class LyricsWidget extends StatelessWidget {
   const LyricsWidget({super.key, required this.padding});
 
   List<LyricLine> _parseLrc(
-      String lrc, bool isRomanize, Duration sponsorOffset) {
+      String lrc, bool isRomanize, Duration sponsorOffset,
+      {Duration? totalDuration}) {
     if (lrc.trim().isEmpty) return [];
     final lines = lrc.split('\n');
-    final result = <LyricLine>[];
+    final parsed = <_RawParsedLine>[];
     final lineRegex = RegExp(r'\[(\d{2}):(\d{2})\.(\d{2,3})\](.*)');
     final wordRegex = RegExp(r'<(\d{2}):(\d{2})\.(\d{2,3})>([^<]*)');
 
@@ -84,11 +97,115 @@ class LyricsWidget extends StatelessWidget {
         }
 
         if (rawContent.isNotEmpty) {
-          result.add(LyricLine(time: duration, text: rawContent, words: words));
+          parsed.add(_RawParsedLine(time: duration, text: rawContent, words: words));
         }
       }
     }
-    result.sort((a, b) => a.time.compareTo(b.time));
+    parsed.sort((a, b) => a.time.compareTo(b.time));
+    if (parsed.isEmpty) return [];
+
+    final result = <LyricLine>[];
+
+    // 1. Intro Instrumental Break
+    if (parsed.first.time >= const Duration(milliseconds: 4500)) {
+      result.add(
+        LyricLine(
+          time: Duration.zero,
+          endTime: parsed.first.time,
+          text: "♪",
+          isInstrumental: true,
+        ),
+      );
+    }
+
+    // 2. Synthesize word progression for line-synced lyrics & detect interlude gaps
+    for (int i = 0; i < parsed.length; i++) {
+      final current = parsed[i];
+      Duration nextTime;
+      if (i + 1 < parsed.length) {
+        nextTime = parsed[i + 1].time;
+      } else if (totalDuration != null && totalDuration > current.time) {
+        nextTime = totalDuration;
+      } else {
+        nextTime = current.time + const Duration(seconds: 4);
+      }
+
+      final lineGap = nextTime - current.time;
+      List<LyricWord> words;
+      Duration lineEndTime;
+
+      if (current.words.isNotEmpty) {
+        words = current.words;
+        lineEndTime = words.last.time + const Duration(milliseconds: 700);
+      } else {
+        final tokens = current.text.split(' ');
+        final estDurationMs = (tokens.length * 420).clamp(1800, 5500);
+        final vocalDurationMs = lineGap.inMilliseconds < estDurationMs
+            ? lineGap.inMilliseconds
+            : estDurationMs;
+        lineEndTime = current.time + Duration(milliseconds: vocalDurationMs);
+
+        words = <LyricWord>[];
+        int currentMs = current.time.inMilliseconds;
+        final totalChars = current.text.length;
+        for (int w = 0; w < tokens.length; w++) {
+          final token = tokens[w];
+          if (token.isEmpty) continue;
+          final suffix = (w < tokens.length - 1) ? ' ' : '';
+          words.add(LyricWord(
+            time: Duration(milliseconds: currentMs),
+            text: '$token$suffix',
+          ));
+          final wordShareMs = totalChars > 0
+              ? (vocalDurationMs * (token.length / totalChars)).round()
+              : (vocalDurationMs ~/ tokens.length);
+          currentMs += wordShareMs.clamp(100, 2000);
+        }
+      }
+
+      result.add(
+        LyricLine(
+          time: current.time,
+          endTime: lineEndTime,
+          text: current.text,
+          words: words,
+          isInstrumental: false,
+        ),
+      );
+
+      // 3. Interlude Instrumental Break
+      if (i + 1 < parsed.length) {
+        final nextStart = parsed[i + 1].time;
+        final gapMs = (nextStart - lineEndTime).inMilliseconds;
+        if (gapMs >= 5000) {
+          result.add(
+            LyricLine(
+              time: lineEndTime,
+              endTime: nextStart,
+              text: "♪",
+              isInstrumental: true,
+            ),
+          );
+        }
+      }
+    }
+
+    // 4. Outro Instrumental Break
+    if (totalDuration != null && result.isNotEmpty) {
+      final lastEndTime = result.last.endTime;
+      final outroGapMs = (totalDuration - lastEndTime).inMilliseconds;
+      if (outroGapMs >= 6000) {
+        result.add(
+          LyricLine(
+            time: lastEndTime,
+            endTime: totalDuration,
+            text: "♪",
+            isInstrumental: true,
+          ),
+        );
+      }
+    }
+
     return result;
   }
 
@@ -128,7 +245,8 @@ class LyricsWidget extends StatelessWidget {
 
       final rawSynced =
           playerController.lyrics['synced']?.toString().trim() ?? '';
-      final parsedSynced = _parseLrc(rawSynced, isRomanize, effectiveOffset);
+      final parsedSynced = _parseLrc(rawSynced, isRomanize, effectiveOffset,
+          totalDuration: playerController.progressBarStatus.value.total);
 
       // Mode 1: Plain Lyrics
       if (playerController.lyricsMode.toInt() == 1) {
@@ -248,6 +366,117 @@ class LyricsWidget extends StatelessWidget {
   }
 }
 
+class _InstrumentalLineWidget extends StatefulWidget {
+  final bool isActive;
+  const _InstrumentalLineWidget({required this.isActive});
+
+  @override
+  State<_InstrumentalLineWidget> createState() => _InstrumentalLineWidgetState();
+}
+
+class _InstrumentalLineWidgetState extends State<_InstrumentalLineWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!widget.isActive) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.music_note, color: Colors.white.withOpacity(0.25), size: 18),
+          const SizedBox(width: 8),
+          Text(
+            "•  •  •",
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.25),
+              fontSize: 16,
+              letterSpacing: 2,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return AnimatedBuilder(
+      animation: _animController,
+      builder: (context, child) {
+        final val = _animController.value;
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.music_note,
+              color: Color(0xFFFFD54F),
+              size: 22,
+              shadows: [
+                Shadow(
+                  color: Color(0xCCFFD54F),
+                  blurRadius: 14.0,
+                ),
+                Shadow(
+                  color: Color(0x55FFA000),
+                  blurRadius: 24.0,
+                ),
+              ],
+            ),
+            const SizedBox(width: 10),
+            for (int i = 0; i < 3; i++) ...[
+              if (i > 0) const SizedBox(width: 8),
+              Builder(
+                builder: (context) {
+                  final dotProgress = ((val * 3) - i).clamp(0.0, 1.0);
+                  final pulse = dotProgress == 0.0 || dotProgress == 1.0
+                      ? 0.0
+                      : (dotProgress * (1.0 - dotProgress) * 4);
+                  final scale = 0.8 + 0.45 * pulse;
+                  return Transform.scale(
+                    scale: scale,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: Color.lerp(
+                          const Color(0x88FFD54F),
+                          const Color(0xFFFFD54F),
+                          pulse,
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xCCFFD54F).withOpacity(0.3 + 0.7 * pulse),
+                            blurRadius: 6.0 + 8.0 * pulse,
+                            spreadRadius: 1.0 + 2.0 * pulse,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
 class YtmSyncedLyricsView extends StatefulWidget {
   final List<LyricLine> lyrics;
   final PlayerController playerController;
@@ -264,22 +493,48 @@ class YtmSyncedLyricsView extends StatefulWidget {
   State<YtmSyncedLyricsView> createState() => _YtmSyncedLyricsViewState();
 }
 
-class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
+class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
+    with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   final GlobalKey _viewportKey = GlobalKey();
   final List<GlobalKey> _itemKeys = [];
   int _lastActiveIndex = -1;
   bool _userInteracting = false;
   Timer? _resumeTimer;
+  Ticker? _ticker;
+  Duration _lastReportedPosition = Duration.zero;
+  DateTime _lastReportedTime = DateTime.now();
+  late final ValueNotifier<Duration> _animatedPosition;
 
   @override
   void initState() {
     super.initState();
     _initKeys();
+    final currentPos =
+        widget.playerController.progressBarStatus.value.current;
+    _lastReportedPosition = currentPos;
+    _lastReportedTime = DateTime.now();
+    _animatedPosition = ValueNotifier<Duration>(currentPos);
+
+    _ticker = createTicker((elapsed) {
+      if (!mounted) return;
+      if (widget.playerController.buttonState.value == PlayButtonState.playing) {
+        final now = DateTime.now();
+        final delta = now.difference(_lastReportedTime);
+        final interpolated = _lastReportedPosition + delta;
+        _animatedPosition.value = interpolated;
+
+        final activeIndex = _findActiveIndex(interpolated);
+        if (activeIndex != _lastActiveIndex) {
+          _lastActiveIndex = activeIndex;
+          _scrollToActive(activeIndex);
+        }
+      }
+    });
+    _ticker?.start();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        final currentPos =
-            widget.playerController.progressBarStatus.value.current;
         final activeIndex = _findActiveIndex(currentPos);
         if (activeIndex >= 0) {
           _lastActiveIndex = activeIndex;
@@ -309,6 +564,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
 
   @override
   void dispose() {
+    _ticker?.dispose();
+    _animatedPosition.dispose();
     _resumeTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
@@ -381,7 +638,12 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
     return Obx(() {
       final currentPos =
           widget.playerController.progressBarStatus.value.current;
-      final activeIndex = _findActiveIndex(currentPos);
+      _lastReportedPosition = currentPos;
+      _lastReportedTime = DateTime.now();
+      if (widget.playerController.buttonState.value != PlayButtonState.playing) {
+        _animatedPosition.value = currentPos;
+      }
+      final activeIndex = _findActiveIndex(_animatedPosition.value);
 
       if (activeIndex != _lastActiveIndex) {
         _lastActiveIndex = activeIndex;
@@ -433,6 +695,9 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
                         highlightColor: const Color(0x1AFFD54F),
                         onTap: () {
                           widget.playerController.seek(line.time);
+                          _lastReportedPosition = line.time;
+                          _lastReportedTime = DateTime.now();
+                          _animatedPosition.value = line.time;
                           _userInteracting = false;
                           _resumeTimer?.cancel();
                           _scrollToActive(index);
@@ -452,68 +717,75 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView> {
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(14),
                           ),
-                          child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 240),
-                            curve: Curves.easeOutCubic,
-                            style: TextStyle(
-                              color: isActive
-                                  ? const Color(0xFFFFD54F)
-                                  : Colors.white.withOpacity(0.40),
-                              fontSize: isActive ? 19.5 : 15.5,
-                              fontWeight:
-                                  isActive ? FontWeight.w800 : FontWeight.w500,
-                              letterSpacing: isActive ? 0.2 : 0.0,
-                              height: 1.5,
-                              shadows: (isActive && line.words.isEmpty)
-                                  ? const [
-                                      Shadow(
-                                        color: Color(0xCCFFD54F),
-                                        blurRadius: 14.0,
-                                      ),
-                                      Shadow(
-                                        color: Color(0x55FFA000),
-                                        blurRadius: 24.0,
-                                      ),
-                                    ]
-                                  : const [],
-                            ),
-                            child: (isActive && line.words.isNotEmpty)
-                                ? Text.rich(
-                                    TextSpan(
-                                      children: line.words.map((w) {
-                                        final isSung = currentPos >= w.time;
-                                        return TextSpan(
-                                          text: w.text,
-                                          style: TextStyle(
-                                            color: isSung
-                                                ? const Color(0xFFFFD54F)
-                                                : Colors.white.withOpacity(0.50),
-                                            fontWeight: isSung
-                                                ? FontWeight.w800
-                                                : FontWeight.w600,
-                                            shadows: isSung
-                                                ? const [
-                                                    Shadow(
-                                                      color: Color(0xCCFFD54F),
-                                                      blurRadius: 14.0,
-                                                    ),
-                                                    Shadow(
-                                                      color: Color(0x55FFA000),
-                                                      blurRadius: 24.0,
-                                                    ),
-                                                  ]
-                                                : const [],
-                                          ),
-                                        );
-                                      }).toList(),
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  )
-                                : Text(
-                                    line.text,
-                                    textAlign: TextAlign.center,
+                          child: line.isInstrumental
+                              ? _InstrumentalLineWidget(isActive: isActive)
+                              : AnimatedDefaultTextStyle(
+                                  duration: const Duration(milliseconds: 240),
+                                  curve: Curves.easeOutCubic,
+                                  style: TextStyle(
+                                    color: isActive
+                                        ? const Color(0xFFFFD54F)
+                                        : Colors.white.withOpacity(0.40),
+                                    fontSize: isActive ? 19.5 : 15.5,
+                                    fontWeight:
+                                        isActive ? FontWeight.w800 : FontWeight.w500,
+                                    letterSpacing: isActive ? 0.2 : 0.0,
+                                    height: 1.5,
+                                    shadows: (isActive && line.words.isEmpty)
+                                        ? const [
+                                            Shadow(
+                                              color: Color(0xCCFFD54F),
+                                              blurRadius: 14.0,
+                                            ),
+                                            Shadow(
+                                              color: Color(0x55FFA000),
+                                              blurRadius: 24.0,
+                                            ),
+                                          ]
+                                        : const [],
                                   ),
-                          ),
+                                  child: (isActive && line.words.isNotEmpty)
+                                      ? ValueListenableBuilder<Duration>(
+                                          valueListenable: _animatedPosition,
+                                          builder: (context, pos, _) {
+                                            return Text.rich(
+                                              TextSpan(
+                                                children: line.words.map((w) {
+                                                  final isSung = pos >= w.time;
+                                                  return TextSpan(
+                                                    text: w.text,
+                                                    style: TextStyle(
+                                                      color: isSung
+                                                          ? const Color(0xFFFFD54F)
+                                                          : Colors.white.withOpacity(0.50),
+                                                      fontWeight: isSung
+                                                          ? FontWeight.w800
+                                                          : FontWeight.w600,
+                                                      shadows: isSung
+                                                          ? const [
+                                                              Shadow(
+                                                                color: Color(0xCCFFD54F),
+                                                                blurRadius: 14.0,
+                                                              ),
+                                                              Shadow(
+                                                                color: Color(0x55FFA000),
+                                                                blurRadius: 24.0,
+                                                              ),
+                                                            ]
+                                                          : const [],
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            );
+                                          },
+                                        )
+                                      : Text(
+                                          line.text,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                ),
                         ),
                       ),
                     ),

@@ -56,9 +56,21 @@ class HomeScreenController extends GetxController {
   Future<bool> loadContentFromDb() async {
     final homeScreenData = await Hive.openBox("homeScreenData");
     if (homeScreenData.keys.isNotEmpty) {
-      final String quickPicksType = homeScreenData.get("quickPicksType");
-      final List quickPicksData = homeScreenData.get("quickPicks");
-      final List middleContentData = homeScreenData.get("middleContent") ?? [];
+      bool isYtmLoggedIn = false;
+      if (Get.isRegistered<YtmAuthService>()) {
+        isYtmLoggedIn = Get.find<YtmAuthService>().isLoggedIn.value;
+      }
+      final bool cachedWasLoggedIn =
+          homeScreenData.get("isYtmLoggedIn") ?? false;
+      if (isYtmLoggedIn != cachedWasLoggedIn) {
+        return false;
+      }
+
+      final String quickPicksType =
+          homeScreenData.get("quickPicksType") ?? "Quick picks";
+      final List quickPicksData = homeScreenData.get("quickPicks") ?? [];
+      final List middleContentData =
+          isYtmLoggedIn ? [] : (homeScreenData.get("middleContent") ?? []);
       final List fixedContentData = homeScreenData.get("fixedContent") ?? [];
       quickPicks.value = QuickPicks(
           quickPicksData.map((e) => MediaItemBuilder.fromJson(e)).toList(),
@@ -110,9 +122,57 @@ class HomeScreenController extends GetxController {
 
     networkError.value = false;
     try {
+      if (isYtmLoggedIn) {
+        middleContent.value = [];
+        final homeContentListMap = await _musicServices.getHome(limit: 25);
+
+        int songShelfIndex = -1;
+        final candidateTitles = [
+          "Listen again",
+          "Speed dial",
+          "Quick picks",
+          "Mixed for you",
+          "From your library",
+          "Forgotten favorites",
+        ];
+        for (final candidate in candidateTitles) {
+          songShelfIndex = homeContentListMap.indexWhere((element) =>
+              element['title']?.toString().toLowerCase() ==
+                  candidate.toLowerCase() &&
+              element['contents'] != null &&
+              (element['contents'] as List).isNotEmpty &&
+              element['contents'][0] is MediaItem);
+          if (songShelfIndex != -1) break;
+        }
+
+        if (songShelfIndex == -1) {
+          songShelfIndex = homeContentListMap.indexWhere((element) =>
+              element['contents'] != null &&
+              (element['contents'] as List).isNotEmpty &&
+              element['contents'][0] is MediaItem);
+        }
+
+        if (songShelfIndex != -1) {
+          final con = homeContentListMap.removeAt(songShelfIndex);
+          final songs =
+              (con["contents"] as List).whereType<MediaItem>().toList();
+          if (songs.isNotEmpty) {
+            quickPicks.value =
+                QuickPicks(songs, title: con["title"] ?? "Quick picks");
+          }
+        }
+
+        fixedContent.value = _setContentList(homeContentListMap);
+        isContentFetched.value = true;
+
+        cachedHomeScreenData(updateAll: true);
+        await Hive.box("AppPrefs")
+            .put("homeScreenDataTime", DateTime.now().millisecondsSinceEpoch);
+        return;
+      }
+
       List middleContentTemp = [];
-      final homeContentListMap = await _musicServices.getHome(
-          limit: isYtmLoggedIn ? 25 : 15);
+      final homeContentListMap = await _musicServices.getHome(limit: 15);
 
       if (!isYtmLoggedIn && contentType == "TR") {
         final index = homeContentListMap
@@ -434,8 +494,14 @@ class HomeScreenController extends GetxController {
 
     final homeScreenData = Hive.box("homeScreenData");
 
+    bool isYtmLoggedIn = false;
+    if (Get.isRegistered<YtmAuthService>()) {
+      isYtmLoggedIn = Get.find<YtmAuthService>().isLoggedIn.value;
+    }
+
     if (updateQuickPicksNMiddleContent) {
       await homeScreenData.putAll({
+        "isYtmLoggedIn": isYtmLoggedIn,
         "quickPicksType": quickPicks.value.title,
         "quickPicks": _getContentDataInJson(quickPicks.value.songList,
             isQuickPicks: true),
@@ -443,6 +509,7 @@ class HomeScreenController extends GetxController {
       });
     } else if (updateAll) {
       await homeScreenData.putAll({
+        "isYtmLoggedIn": isYtmLoggedIn,
         "quickPicksType": quickPicks.value.title,
         "quickPicks": _getContentDataInJson(quickPicks.value.songList,
             isQuickPicks: true),

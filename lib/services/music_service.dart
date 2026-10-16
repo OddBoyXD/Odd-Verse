@@ -271,8 +271,7 @@ class MusicServices extends getx.GetxService {
         playlistId.startsWith('PL') || playlistId.startsWith('OLA');
     if (shuffle) {
       data['params'] = "wAEB8gECKAE%3D";
-    }
-    if (radio) {
+    } else if (radio || playlistId.startsWith('RDAMVM') || playlistId.startsWith('RD')) {
       data['params'] = "wAEB";
     }
 
