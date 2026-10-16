@@ -1006,15 +1006,16 @@ void showLyricsSearchSheet(
 
           Future<void> applyLyrics(Map<String, dynamic> item) async {
             final sourceName = item['sourceName'] ?? item['provider'] ?? 'Source';
+            if (Navigator.canPop(ctx)) {
+              Navigator.pop(ctx);
+            }
             await playerController.manualSetLyrics(item);
             playerController.showLyricsflag.value = true;
-            if (playerController.playerPanelController.isAttached &&
-                !playerController.playerPanelController.isPanelOpen) {
-              playerController.playerPanelController.open();
-            }
-            if (Navigator.of(ctx, rootNavigator: true).canPop()) {
-              Navigator.of(ctx, rootNavigator: true).pop();
-            }
+            Future.delayed(const Duration(milliseconds: 150), () {
+              if (playerController.playerPanelController.isAttached) {
+                playerController.playerPanelController.open();
+              }
+            });
             ScaffoldMessenger.of(Get.context!).showSnackBar(
               snackbar(
                 Get.context!,
