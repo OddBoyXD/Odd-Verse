@@ -16,6 +16,7 @@ import '../../widgets/content_list_widget.dart';
 import '../../widgets/quickpickswidget.dart';
 import '../../widgets/shimmer_widgets/home_shimmer.dart';
 import 'home_screen_controller.dart';
+import '../../models/quick_picks.dart';
 import '../Settings/settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
