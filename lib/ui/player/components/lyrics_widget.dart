@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:get/get.dart';
+import 'package:harmonymusic/models/lyrics_source_model.dart';
 import 'package:harmonymusic/services/synced_lyrics_service.dart';
 import 'package:harmonymusic/ui/screens/Settings/settings_screen_controller.dart';
 import 'package:harmonymusic/ui/widgets/snackbar.dart';
@@ -888,7 +889,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                         ),
                       ),
                     ),
-                  );
+                  ),
+                );
                 }),
                 Padding(
                   padding: const EdgeInsets.only(top: 28.0, bottom: 20.0),

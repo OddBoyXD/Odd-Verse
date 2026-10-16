@@ -824,7 +824,12 @@ class SyncedLyricsService {
     final allSources = LyricsSourceInfo.loadSavedSources();
     final source = allSources.firstWhere(
       (s) => s.id == providerId,
-      orElse: () => LyricsSourceInfo(id: providerId, label: providerId),
+      orElse: () => LyricsSourceInfo(
+        id: providerId,
+        label: providerId,
+        detail: providerId,
+        wordSynced: false,
+      ),
     );
 
     final res = await _dispatchProvider(
@@ -1209,6 +1214,9 @@ class SyncedLyricsService {
 
     if (bestLyrics != null) {
       String synced = bestLyrics['synced']?.toString() ?? '';
+      final int ytFirstVocalMs = (bestLyrics['firstVocalMs'] is int)
+          ? (bestLyrics['firstVocalMs'] as int)
+          : 0;
       if (synced.isNotEmpty &&
           ytFirstVocalMs > 0 &&
           bestLyrics['provider'] != 'youtube_captions') {
