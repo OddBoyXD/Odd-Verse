@@ -15,10 +15,6 @@ class LyricsDialog extends StatelessWidget {
       maxWidth: 700,
       child: Column(
         children: [
-        Padding(
-          padding: EdgeInsets.only(bottom:10.0,top: 20),
-          child: LyricsSwitch(),
-        ),
         Expanded(
           child: LyricsWidget(padding: EdgeInsets.symmetric(vertical: 40))
         ),

@@ -269,119 +269,96 @@ class LyricsWidget extends StatelessWidget {
       final parsedSynced = _parseLrc(rawSynced, isRomanize, effectiveOffset,
           totalDuration: playerController.progressBarStatus.value.total);
 
-      // Mode 1: Plain Lyrics
-      if (playerController.lyricsMode.toInt() == 1) {
-        if (displayPlain.isEmpty || displayPlain == "NA") {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.lyrics_outlined,
-                  color: Colors.white54,
-                  size: 36,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  "lyricsNotAvailable".tr,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextButton.icon(
-                  style: TextButton.styleFrom(
-                    foregroundColor: const Color(0xFFFFD54F),
-                  ),
-                  onPressed: () => showLyricsSearchSheet(context, playerController),
-                  icon: const Icon(Icons.search, size: 18),
-                  label: const Text("Search Lyrics Providers"),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Center(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: padding,
-            child: TextSelectionTheme(
-              data: Theme.of(context).textSelectionTheme,
-              child: SelectableText(
-                displayPlain,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  height: 1.8,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ),
-          ),
+      // Automatic Fallback Hierarchy:
+      // 1. Synced lyrics (word-by-word or line-by-line)
+      if (parsedSynced.isNotEmpty) {
+        return YtmSyncedLyricsView(
+          lyrics: parsedSynced,
+          playerController: playerController,
+          padding: padding,
         );
       }
 
-      // Mode 0: Synced Lyrics (YouTube Music style tap-on-line seeking)
-      if (parsedSynced.isEmpty) {
-        return Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.music_note_outlined,
-                color: Colors.white54,
-                size: 36,
+      // 2. Plain lyrics fallback (rendered in same 20pt bold style as synced lyrics)
+      if (displayPlain.isNotEmpty && displayPlain != "NA") {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final verticalPad = constraints.maxHeight / 3;
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
               ),
-              const SizedBox(height: 10),
-              Text(
-                "syncedLyricsNotAvailable".tr,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                ),
+              padding: EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: verticalPad > 40.0 ? verticalPad : 40.0,
               ),
-              const SizedBox(height: 12),
-              Row(
+              child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  TextSelectionTheme(
+                    data: Theme.of(context).textSelectionTheme,
+                    child: SelectableText(
+                      displayPlain,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20.0,
+                        height: 1.6,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 36),
                   TextButton.icon(
                     style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFFFFD54F),
+                      foregroundColor: Colors.white54,
                     ),
-                    onPressed: () => showLyricsSearchSheet(context, playerController),
-                    icon: const Icon(Icons.search, size: 18),
-                    label: const Text("Search Providers"),
+                    onPressed: () =>
+                        showLyricsSearchSheet(context, playerController),
+                    icon: const Icon(Icons.search, size: 16),
+                    label: const Text(
+                      "Wrong lyrics? Search Providers",
+                      style: TextStyle(fontSize: 12),
+                    ),
                   ),
-                  if (displayPlain.isNotEmpty && displayPlain != "NA") ...[
-                    const SizedBox(width: 8),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white70,
-                      ),
-                      onPressed: () {
-                        playerController.changeLyricsMode(1);
-                      },
-                      icon: const Icon(Icons.text_snippet_outlined, size: 18),
-                      label: Text("plain".tr),
-                    ),
-                  ],
                 ],
               ),
-            ],
-          ),
+            );
+          },
         );
       }
 
-      return YtmSyncedLyricsView(
-        lyrics: parsedSynced,
-        playerController: playerController,
-        padding: padding,
+      // 3. Fallback: Neither synced nor plain lyrics available
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.music_note_outlined,
+              color: Colors.white54,
+              size: 36,
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "lyricsNotAvailable".tr,
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFFFD54F),
+              ),
+              onPressed: () => showLyricsSearchSheet(context, playerController),
+              icon: const Icon(Icons.search, size: 18),
+              label: const Text("Search Lyrics Providers"),
+            ),
+          ],
+        ),
       );
     });
   }
@@ -614,6 +591,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
   final List<GlobalKey> _itemKeys = [];
   int _lastActiveIndex = -1;
   bool _userInteracting = false;
+  bool _isPointerDown = false;
   Timer? _resumeTimer;
   Ticker? _ticker;
   Duration _lastReportedPosition = Duration.zero;
@@ -669,7 +647,9 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
         _lastActiveIndex = activeIndex;
         if (mounted) setState(() {});
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) _scrollToActive(activeIndex);
+          if (mounted && !_userInteracting && !_isPointerDown) {
+            _scrollToActive(activeIndex);
+          }
         });
       }
     });
@@ -728,7 +708,7 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
   }
 
   void _scrollToActive(int index, {bool jump = false}) {
-    if (_userInteracting || index < 0 || index >= _itemKeys.length) return;
+    if (_userInteracting || _isPointerDown || index < 0 || index >= _itemKeys.length) return;
     if (!_scrollController.hasClients) return;
 
     final itemContext = _itemKeys[index].currentContext;
@@ -781,7 +761,9 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
         if (activeIndex != _lastActiveIndex) {
           _lastActiveIndex = activeIndex;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _scrollToActive(activeIndex);
+            if (mounted && !_userInteracting && !_isPointerDown) {
+              _scrollToActive(activeIndex);
+            }
           });
         }
       } else {
@@ -817,30 +799,56 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
 
           return NotificationListener<ScrollNotification>(
             onNotification: (notification) {
-              if (notification is ScrollStartNotification ||
-                  notification is ScrollUpdateNotification) {
-                _userInteracting = true;
-                _resumeTimer?.cancel();
+              if (notification is UserScrollNotification) {
+                if (notification.direction != ScrollDirection.idle) {
+                  _userInteracting = true;
+                  _resumeTimer?.cancel();
+                } else if (!_isPointerDown) {
+                  _startResumeTimer();
+                }
+              } else if (notification is ScrollStartNotification) {
+                if (notification.dragDetails != null) {
+                  _userInteracting = true;
+                  _resumeTimer?.cancel();
+                }
+              } else if (notification is ScrollUpdateNotification) {
+                if (notification.dragDetails != null) {
+                  _userInteracting = true;
+                  _resumeTimer?.cancel();
+                }
               } else if (notification is ScrollEndNotification) {
-                _startResumeTimer();
+                if (_userInteracting && !_isPointerDown) {
+                  _startResumeTimer();
+                }
               }
               return false;
             },
             child: Listener(
               behavior: HitTestBehavior.translucent,
               onPointerDown: (_) {
+                _isPointerDown = true;
                 _userInteracting = true;
                 _resumeTimer?.cancel();
+                if (_scrollController.hasClients) {
+                  _scrollController.jumpTo(_scrollController.offset);
+                }
               },
               onPointerMove: (_) {
+                _isPointerDown = true;
                 _userInteracting = true;
                 _resumeTimer?.cancel();
               },
               onPointerUp: (_) {
-                _startResumeTimer();
+                _isPointerDown = false;
+                if (_userInteracting) {
+                  _startResumeTimer();
+                }
               },
               onPointerCancel: (_) {
-                _startResumeTimer();
+                _isPointerDown = false;
+                if (_userInteracting) {
+                  _startResumeTimer();
+                }
               },
               child: SingleChildScrollView(
                 key: _viewportKey,

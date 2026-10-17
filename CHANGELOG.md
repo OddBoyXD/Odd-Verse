@@ -2,6 +2,23 @@
 
 ### [v1.0.3] - Latest Release
 
+### 📜 Automatic Lyrics Fallback Hierarchy, 20pt Bold Plain Lyrics & Unrestricted Scrolling
+- **Automatic Fallback Hierarchy (No Manual Switching Needed)**:
+  - If synchronized lyrics (word-by-word or line-by-line) are available, they are automatically displayed.
+  - If no synced lyrics exist, but plain lyrics exist, the app automatically falls back to plain lyrics.
+  - If neither is available, a clean empty state is displayed with a direct button to search lyrics providers.
+- **Removed Synced / Plain Switch Button**:
+  - Removed the manual "Plain / Synced" toggle pill from `LyricsTopBar` and desktop lyrics view.
+  - Completely streamlined the lyrics interface with zero manual switching needed.
+- **Plain Lyrics Styling Parity**:
+  - Plain lyrics now render with the exact same 20pt bold typographic styling as synced lyrics (`fontSize: 20.0, fontWeight: FontWeight.w700, height: 1.6, letterSpacing: 0.2, color: Colors.white`).
+- **Fixed Word-by-Word Scrolling & 3-Second Idle Auto-Centering**:
+  - Disabled `SlidingUpPanel` gesture dragging whenever lyrics are displayed (`!playerController.showLyricsflag.value`), completely preventing the queue panel recognizer from intercepting vertical touch drags.
+  - Refined gesture recognition in `YtmSyncedLyricsView`: programmatic auto-scrolling (`ensureVisible`) no longer triggers the resume timer or loops infinitely.
+  - Instant manual touch responsiveness: touching the screen halts in-flight animations and yields full scrolling control immediately.
+  - Auto-centering occurs smoothly 3 seconds after the user finishes scrolling and is idle.
+
+
 ### ⚡ Deep RAM Optimization & Memory Leak Prevention (0% Quality Loss)
 - **Lazy Audio Queue Preparation**: Enabled `useLazyPreparation: true` in `ConcatenatingAudioSource`. ExoPlayer now loads and buffers only the current and immediately adjacent track rather than preparing 30–50 queue tracks concurrently in memory.
 - **Tuned In-Memory Image Cache (18MB / 35 Images)**: Capped `PaintingBinding.instance.imageCache` to 35 images / 18MB, eliminating memory bloat over time while preserving 100% full-resolution local disk caching.

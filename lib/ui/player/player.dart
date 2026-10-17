@@ -44,7 +44,8 @@ class Player extends StatelessWidget {
                 boxShadow: const [],
                 minHeight: 0,
                 maxHeight: size.height,
-                isDraggable: !GetPlatform.isDesktop,
+                isDraggable:
+                    !GetPlatform.isDesktop && !playerController.showLyricsflag.value,
                 onPanelSlide: (position) {
                   playerController.queueSlidePosition.value = position;
                 },
