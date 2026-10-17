@@ -2,6 +2,16 @@
 
 ### [v1.0.3] - Latest Release
 
+### 🔒 Strictly Bound Audio Clock Sync & Anchored Player Controls (Zero Vertical Shift)
+- **Audio Clock Strict Synchronization (No Independent Drift)**:
+  - Fixed the glitch where lyrics ran ahead on independent wall-clock time (`DateTime.now()`).
+  - Actively monitor and anchor `_lastReportedPosition` directly to player position ticks (`currentPos != _lastReportedPosition`).
+  - Clamped sub-frame letter progression to a strict 120ms maximum lookahead window; if audio buffers, lags, or pauses, lyrics instantly halt and stay 100% time-bound with the song.
+- **Stationary & Anchored Bottom Player Controls**:
+  - Restructured portrait player layout in `standard_player.dart` so `PlayerControlWidget` is permanently anchored at the bottom outside of `AnimatedSwitcher`.
+  - Removed vertical slide/scale transitions: opening and closing lyrics now performs a clean cross-fade on the upper artwork/lyrics section, while playback buttons, progress bar, and bottom toolbar remain 100% stationary without shifting up.
+
+
 ### 🎯 Professional Player Toolbar, 3s Idle Lyric Centering & Duplicate Close Button Elimination
 - **Bulletproof 3-Second Idle Auto-Centering**:
   - Identified root cause of instant jump-on-finger-release: `LyricsWidget.build` re-parsed LRC into a new List instance on every 200ms progress tick, causing `didUpdateWidget` to repeatedly reset `_userInteracting` to false.

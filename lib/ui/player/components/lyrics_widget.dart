@@ -666,16 +666,31 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
         _lastReportedPosition = currentPos;
         _lastReportedTime = DateTime.now();
         _animatedPosition.value = currentPos;
-        return;
-      }
+      } else {
+        // Track audio packet changes directly from playerController
+        if (currentPos != _lastReportedPosition) {
+          _lastReportedPosition = currentPos;
+          _lastReportedTime = DateTime.now();
 
-      final now = DateTime.now();
-      final delta = now.difference(_lastReportedTime);
-      final interpolated = _lastReportedPosition + delta;
+          // Immediately re-anchor if audio position jumped or drifted backwards
+          final driftMs = (currentPos - _animatedPosition.value).inMilliseconds;
+          if (driftMs.abs() > 150 || currentPos < _animatedPosition.value) {
+            _animatedPosition.value = currentPos;
+          }
+        }
 
-      // Keep position strictly monotonic during normal continuous playback
-      if (interpolated >= _animatedPosition.value) {
-        _animatedPosition.value = interpolated;
+        // Sub-frame smooth progression between audio ticks, strictly capped to 120ms
+        final now = DateTime.now();
+        final elapsedSincePacket = now.difference(_lastReportedTime);
+        final clampedElapsed = elapsedSincePacket < const Duration(milliseconds: 120)
+            ? elapsedSincePacket
+            : const Duration(milliseconds: 120);
+
+        final syncedPos = _lastReportedPosition + clampedElapsed;
+        if (syncedPos >= _animatedPosition.value ||
+            (syncedPos - _animatedPosition.value).inMilliseconds.abs() > 200) {
+          _animatedPosition.value = syncedPos;
+        }
       }
 
       final activeIndex = _findActiveIndex(_animatedPosition.value);
@@ -814,16 +829,11 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
           _lastReportedPosition = currentPos;
           _lastReportedTime = DateTime.now();
           _animatedPosition.value = currentPos;
-        } else {
-          final diffMs = (currentPos - _animatedPosition.value).inMilliseconds;
-          // Reconcile when user seeks (>500ms jump) or when audio stream is ahead
-          if (diffMs.abs() > 500) {
-            _lastReportedPosition = currentPos;
-            _lastReportedTime = DateTime.now();
-            _animatedPosition.value = currentPos;
-          } else if (currentPos > _animatedPosition.value) {
-            _lastReportedPosition = currentPos;
-            _lastReportedTime = DateTime.now();
+        } else if (currentPos != _lastReportedPosition) {
+          _lastReportedPosition = currentPos;
+          _lastReportedTime = DateTime.now();
+          final driftMs = (currentPos - _animatedPosition.value).inMilliseconds;
+          if (driftMs.abs() > 150 || currentPos < _animatedPosition.value) {
             _animatedPosition.value = currentPos;
           }
         }
