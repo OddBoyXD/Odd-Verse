@@ -74,11 +74,17 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(data => {
       if (data && data.tag_name) {
         const latestTag = data.tag_name;
-        // Dynamically update version badges and buttons on the page
-        document.querySelectorAll('.brand-badge, .pill-text, .section-title, .mobile-item').forEach(el => {
-          if (el.textContent.includes('v1.')) {
+        // Dynamically update all version badges, hero buttons, and download text
+        document.querySelectorAll('.brand-badge, .pill-text, .section-title, .mobile-item, .hero-actions a, .btn, span, h2').forEach(el => {
+          if (el.children.length === 0 && el.textContent.includes('v1.')) {
             el.textContent = el.textContent.replace(/v1\.\d+\.\d+/g, latestTag);
           }
+        });
+
+        // Automatically update all download release links to point to the latest tag
+        document.querySelectorAll('a[href*="/releases/download/"]').forEach(a => {
+          a.href = a.href.replace(/\/releases\/download\/v1\.\d+\.\d+\//, `/releases/download/${latestTag}/`)
+                         .replace(/OddVerse-v1\.\d+\.\d+-/, `OddVerse-${latestTag}-`);
         });
       }
       if (data && data.assets && data.assets.length > 0) {
