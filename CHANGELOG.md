@@ -1,5 +1,11 @@
 # 🚀 Odd Verse Changelog
 
+## [v1.0.4] - In Development
+
+### 🔒 Security, Signing Key Isolation & Build Hardening
+- **Dynamic Gradle Keystore Resolution**: Integrated environment variable fallback for signing passwords (`KEYSTORE_PASSWORD`), enabling zero-plaintext key exposure.
+- **Workflow Security Hardening**: Completely eliminated all hardcoded base64 fallbacks from CI/CD release and dev pipelines.
+
 ## [v1.0.3] - Latest Release
 
 ### ✨ Fluid Synchronized Lyrics & Smart Display
