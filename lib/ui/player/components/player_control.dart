@@ -55,38 +55,42 @@ class PlayerControlWidget extends StatelessWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Marquee(
-                          delay: const Duration(milliseconds: 300),
-                          duration: const Duration(seconds: 10),
-                          id: "${playerController.currentSong.value}_title",
-                          child: Text(
-                            playerController.currentSong.value != null
-                                ? playerController.currentSong.value!.title
-                                : "No Song Playing",
-                            textAlign: TextAlign.start,
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 22,
-                              letterSpacing: -0.4,
+                        RepaintBoundary(
+                          child: Marquee(
+                            delay: const Duration(milliseconds: 2500),
+                            duration: const Duration(seconds: 10),
+                            id: "${playerController.currentSong.value}_title",
+                            child: Text(
+                              playerController.currentSong.value != null
+                                  ? playerController.currentSong.value!.title
+                                  : "No Song Playing",
+                              textAlign: TextAlign.start,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 22,
+                                letterSpacing: -0.4,
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Marquee(
-                          delay: const Duration(milliseconds: 300),
-                          duration: const Duration(seconds: 10),
-                          id: "${playerController.currentSong.value}_subtitle",
-                          child: Text(
-                            playerController.currentSong.value != null
-                                ? playerController.currentSong.value!.artist!
-                                : "Odd-Verse",
-                            textAlign: TextAlign.start,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.textTheme.bodyMedium?.color
-                                  ?.withOpacity(0.75),
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
+                        RepaintBoundary(
+                          child: Marquee(
+                            delay: const Duration(milliseconds: 2500),
+                            duration: const Duration(seconds: 10),
+                            id: "${playerController.currentSong.value}_subtitle",
+                            child: Text(
+                              playerController.currentSong.value != null
+                                  ? playerController.currentSong.value!.artist!
+                                  : "Odd-Verse",
+                              textAlign: TextAlign.start,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.textTheme.bodyMedium?.color
+                                    ?.withOpacity(0.75),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ),

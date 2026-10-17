@@ -56,11 +56,11 @@ jobs:
       - name: Prepare Artifact
         run: |
           mkdir -p dev_artifacts
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dev_artifacts/OddVerse-v1.0.3-arm64-v8a.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk dev_artifacts/OddVerse-v1.0.4-arm64-v8a.apk
 
       - name: Upload 64-bit APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OddVerse-v1.0.3-arm64-v8a
-          path: dev_artifacts/OddVerse-v1.0.3-arm64-v8a.apk
+          name: OddVerse-v1.0.4-arm64-v8a
+          path: dev_artifacts/OddVerse-v1.0.4-arm64-v8a.apk
           retention-days: 7

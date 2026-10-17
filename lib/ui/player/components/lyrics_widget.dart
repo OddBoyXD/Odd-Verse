@@ -634,6 +634,8 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
   DateTime _lastReportedTime = DateTime.now();
   late final ValueNotifier<Duration> _animatedPosition;
   bool _wasPlaying = false;
+  bool _isSeeking = false;
+  Duration _seekTarget = Duration.zero;
 
   @override
   void initState() {
@@ -661,6 +663,21 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
       final currentPos =
           widget.playerController.progressBarStatus.value.current;
 
+      // If waiting for audio to finish buffering after seek
+      if (_isSeeking) {
+        final diffFromTarget = (currentPos - _seekTarget).inMilliseconds.abs();
+        if (diffFromTarget <= 600) {
+          _isSeeking = false;
+          _lastReportedPosition = currentPos;
+          _lastReportedTime = DateTime.now();
+          _animatedPosition.value = currentPos;
+        } else {
+          // Keep lyrics strictly anchored at seek target while audio buffers
+          _animatedPosition.value = _seekTarget;
+          return;
+        }
+      }
+
       if (!_wasPlaying) {
         _wasPlaying = true;
         _lastReportedPosition = currentPos;
@@ -669,12 +686,13 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
       } else {
         // Track audio packet changes directly from playerController
         if (currentPos != _lastReportedPosition) {
+          final jumpDelta = (currentPos - _lastReportedPosition).inMilliseconds;
           _lastReportedPosition = currentPos;
           _lastReportedTime = DateTime.now();
 
           // Immediately re-anchor if audio position jumped or drifted backwards
           final driftMs = (currentPos - _animatedPosition.value).inMilliseconds;
-          if (driftMs.abs() > 150 || currentPos < _animatedPosition.value) {
+          if (driftMs.abs() > 150 || currentPos < _animatedPosition.value || jumpDelta.abs() > 500) {
             _animatedPosition.value = currentPos;
           }
         }
@@ -682,14 +700,19 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
         // Sub-frame smooth progression between audio ticks, strictly capped to 120ms
         final now = DateTime.now();
         final elapsedSincePacket = now.difference(_lastReportedTime);
-        final clampedElapsed = elapsedSincePacket < const Duration(milliseconds: 120)
-            ? elapsedSincePacket
-            : const Duration(milliseconds: 120);
+        // If elapsed time exceeds 180ms, audio is buffering/stalled; freeze progression!
+        if (elapsedSincePacket > const Duration(milliseconds: 180)) {
+          // Stalled or buffering: hold position
+        } else {
+          final clampedElapsed = elapsedSincePacket < const Duration(milliseconds: 120)
+              ? elapsedSincePacket
+              : const Duration(milliseconds: 120);
 
-        final syncedPos = _lastReportedPosition + clampedElapsed;
-        if (syncedPos >= _animatedPosition.value ||
-            (syncedPos - _animatedPosition.value).inMilliseconds.abs() > 200) {
-          _animatedPosition.value = syncedPos;
+          final syncedPos = _lastReportedPosition + clampedElapsed;
+          if (syncedPos >= _animatedPosition.value ||
+              (syncedPos - _animatedPosition.value).inMilliseconds.abs() > 200) {
+            _animatedPosition.value = syncedPos;
+          }
         }
       }
 
@@ -811,10 +834,12 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
 
       if (!isPlaying) {
         _wasPlaying = false;
-        _lastReportedPosition = currentPos;
-        _lastReportedTime = DateTime.now();
-        _animatedPosition.value = currentPos;
-        final activeIndex = _findActiveIndex(currentPos);
+        if (!_isSeeking) {
+          _lastReportedPosition = currentPos;
+          _lastReportedTime = DateTime.now();
+          _animatedPosition.value = currentPos;
+        }
+        final activeIndex = _findActiveIndex(_animatedPosition.value);
         if (activeIndex != _lastActiveIndex) {
           _lastActiveIndex = activeIndex;
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -824,16 +849,25 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
           });
         }
       } else {
-        if (!_wasPlaying) {
+        if (_isSeeking) {
+          final diffFromTarget = (currentPos - _seekTarget).inMilliseconds.abs();
+          if (diffFromTarget <= 600) {
+            _isSeeking = false;
+            _lastReportedPosition = currentPos;
+            _lastReportedTime = DateTime.now();
+            _animatedPosition.value = currentPos;
+          }
+        } else if (!_wasPlaying) {
           _wasPlaying = true;
           _lastReportedPosition = currentPos;
           _lastReportedTime = DateTime.now();
           _animatedPosition.value = currentPos;
         } else if (currentPos != _lastReportedPosition) {
+          final jumpDelta = (currentPos - _lastReportedPosition).inMilliseconds;
           _lastReportedPosition = currentPos;
           _lastReportedTime = DateTime.now();
           final driftMs = (currentPos - _animatedPosition.value).inMilliseconds;
-          if (driftMs.abs() > 150 || currentPos < _animatedPosition.value) {
+          if (driftMs.abs() > 150 || currentPos < _animatedPosition.value || jumpDelta.abs() > 500) {
             _animatedPosition.value = currentPos;
           }
         }
@@ -927,10 +961,13 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
                               highlightColor: const Color(0x11FFFFFF),
                               onTap: () {
                                 HapticFeedback.selectionClick();
-                                widget.playerController.seek(line.time);
-                                _lastReportedPosition = line.time;
+                                final targetTime = line.time;
+                                _isSeeking = true;
+                                _seekTarget = targetTime;
+                                widget.playerController.seek(targetTime);
+                                _lastReportedPosition = targetTime;
                                 _lastReportedTime = DateTime.now();
-                                _animatedPosition.value = line.time;
+                                _animatedPosition.value = targetTime;
                                 _lastActiveIndex = index;
                                 _userInteracting = false;
                                 _resumeTimer?.cancel();

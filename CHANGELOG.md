@@ -2,6 +2,14 @@
 
 ## [v1.0.4] - In Development
 
+### 🎵 Song Startup Fluidity & Zero-Lag Title/Artist Marquee
+- **2.5s Marquee Startup Settling**: Extended horizontal text scrolling start delay from 300ms to 2.5 seconds across player controls and mini player. Audio stream resolution, image decoding, and initial track loading settle 100% smoothly before text begins scrolling.
+- **Isolated Repaint Boundaries**: Wrapped scrolling title and artist marquees in isolated render boundaries, eliminating UI thread frame drops during song transitions.
+
+### ⏱️ Lyrics Seek Buffering Freeze & Flawless Sync
+- **Seek-Buffering Freeze Gate**: When tapping any lyric line to seek, lyrics immediately anchor to that line and hold word sweeping frozen while network audio buffers.
+- **Instant Audio Resumption Sync**: Lyrics only begin sweeping the exact millisecond genuine audio frames start playing through the speakers, eliminating desynchronization when jumping across song sections.
+
 ### 🔒 Security, Signing Key Isolation & Build Hardening
 - **Dynamic Gradle Keystore Resolution**: Integrated environment variable fallback for signing passwords (`KEYSTORE_PASSWORD`), enabling zero-plaintext key exposure.
 - **Workflow Security Hardening**: Completely eliminated all hardcoded base64 fallbacks from CI/CD release and dev pipelines.

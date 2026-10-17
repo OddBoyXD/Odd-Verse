@@ -214,7 +214,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                                     children: [
                                       Marquee(
                                         delay: const Duration(
-                                            milliseconds: 300),
+                                            milliseconds: 2500),
                                         duration:
                                             const Duration(seconds: 10),
                                         id: "${playerController.currentSong.value}_title",
@@ -235,7 +235,7 @@ class _MiniPlayerState extends State<MiniPlayer>
                                       const SizedBox(height: 2),
                                       Marquee(
                                         delay: const Duration(
-                                            milliseconds: 300),
+                                            milliseconds: 2500),
                                         duration:
                                             const Duration(seconds: 10),
                                         id: "${playerController.currentSong.value}_subtitle",
