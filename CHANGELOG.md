@@ -2,6 +2,21 @@
 
 ### [v1.0.3] - Latest Release
 
+### 🎯 Professional Player Toolbar, 3s Idle Lyric Centering & Duplicate Close Button Elimination
+- **Bulletproof 3-Second Idle Auto-Centering**:
+  - Identified root cause of instant jump-on-finger-release: `LyricsWidget.build` re-parsed LRC into a new List instance on every 200ms progress tick, causing `didUpdateWidget` to repeatedly reset `_userInteracting` to false.
+  - Implemented `_LyricsCache.getOrParse` and guarded `didUpdateWidget` with deep content equality: user interaction state and the 3-second resume timer now persist flawlessly after lifting finger, smoothly returning to the active line only after 3 seconds of true inactivity.
+- **Symmetrical 4-Button Action Toolbar**:
+  - Replaced the stretched asymmetric "Speed & Pitch" pill with a matching 44x44 circular glass action button (`Icons.tune_rounded`).
+  - Standardized all 4 bottom actions (Speed & Pitch, Sleep Timer, Song Info, Lyrics) into identical circular glass squircle designs with active state accents (secondary color for speed & timer, gold for lyrics).
+  - Added subtle active modifier badges (e.g. `1.2x`) and timer state indicators without distorting the layout.
+- **Removed Duplicate Close Button in Lyrics**:
+  - Removed redundant down-arrow button from `LyricsTopBar` and replaced it with a clean "Lyrics" icon badge.
+  - Tapping the top player minimize button (`Icons.keyboard_arrow_down_rounded`) now intuitively minimizes lyrics back to the player when lyrics are active, eliminating double close buttons.
+- **Apple Music / Spotify-Grade Lyrics Entrance Animation**:
+  - Enhanced lyrics toggle with combined `FadeTransition` + gentle vertical slide (`SlideTransition`) and scale curve (`ScaleTransition`) for a buttery smooth, professional opening feel.
+
+
 ### 📜 Automatic Lyrics Fallback Hierarchy, 20pt Bold Plain Lyrics & Unrestricted Scrolling
 - **Automatic Fallback Hierarchy (No Manual Switching Needed)**:
   - If synchronized lyrics (word-by-word or line-by-line) are available, they are automatically displayed.

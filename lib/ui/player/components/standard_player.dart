@@ -158,13 +158,41 @@ class StandardPlayer extends StatelessWidget {
               Obx(() {
                   final isLyrics = playerController.showLyricsflag.value;
                   return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 280),
+                    duration: const Duration(milliseconds: 320),
                     switchInCurve: Curves.easeOutCubic,
                     switchOutCurve: Curves.easeInCubic,
                     transitionBuilder: (child, animation) {
+                      final isLyricsNode =
+                          (child.key as ValueKey?)?.value == "lyrics_screen";
+                      final slideIn = Tween<Offset>(
+                        begin: isLyricsNode
+                            ? const Offset(0.0, 0.04)
+                            : const Offset(0.0, -0.02),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ),
+                      );
+                      final scale = Tween<double>(
+                        begin: isLyricsNode ? 0.96 : 1.0,
+                        end: 1.0,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        ),
+                      );
                       return FadeTransition(
                         opacity: animation,
-                        child: child,
+                        child: SlideTransition(
+                          position: slideIn,
+                          child: ScaleTransition(
+                            scale: scale,
+                            child: child,
+                          ),
+                        ),
                       );
                     },
                     child: isLyrics
@@ -257,6 +285,10 @@ class StandardPlayer extends StatelessWidget {
                     size: 30,
                   ),
                   onPressed: () {
+                    if (playerController.showLyricsflag.value) {
+                      playerController.showLyricsflag.value = false;
+                      return;
+                    }
                     if (playerController.queuePanelController.isAttached &&
                         !playerController.queuePanelController.isPanelClosed) {
                       playerController.queuePanelController.close();

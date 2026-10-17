@@ -44,6 +44,36 @@ class _RawParsedLine {
   _RawParsedLine({required this.time, required this.text, required this.words});
 }
 
+class _LyricsCache {
+  static String lastSyncedLrc = '';
+  static bool lastRomanize = false;
+  static Duration lastOffset = Duration.zero;
+  static Duration? lastTotalDuration;
+  static List<LyricLine> cachedList = [];
+
+  static List<LyricLine> getOrParse(
+    String lrc,
+    bool isRomanize,
+    Duration sponsorOffset, {
+    Duration? totalDuration,
+    required List<LyricLine> Function(String, bool, Duration, {Duration? totalDuration}) parseFn,
+  }) {
+    if (lrc == lastSyncedLrc &&
+        isRomanize == lastRomanize &&
+        sponsorOffset == lastOffset &&
+        totalDuration == lastTotalDuration &&
+        cachedList.isNotEmpty) {
+      return cachedList;
+    }
+    lastSyncedLrc = lrc;
+    lastRomanize = isRomanize;
+    lastOffset = sponsorOffset;
+    lastTotalDuration = totalDuration;
+    cachedList = parseFn(lrc, isRomanize, sponsorOffset, totalDuration: totalDuration);
+    return cachedList;
+  }
+}
+
 class LyricsWidget extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   const LyricsWidget({super.key, required this.padding});
@@ -266,8 +296,14 @@ class LyricsWidget extends StatelessWidget {
       } else if (rawPlain.isNotEmpty) {
         IndicTransliteration.prefetchRomanization(rawPlain);
       }
-      final parsedSynced = _parseLrc(rawSynced, isRomanize, effectiveOffset,
-          totalDuration: playerController.progressBarStatus.value.total);
+      final totalDuration = playerController.currentSong.value?.duration;
+      final parsedSynced = _LyricsCache.getOrParse(
+        rawSynced,
+        isRomanize,
+        effectiveOffset,
+        totalDuration: totalDuration,
+        parseFn: _parseLrc,
+      );
 
       // Automatic Fallback Hierarchy:
       // 1. Synced lyrics (word-by-word or line-by-line)
@@ -669,25 +705,31 @@ class _YtmSyncedLyricsViewState extends State<YtmSyncedLyricsView>
   @override
   void didUpdateWidget(covariant YtmSyncedLyricsView oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.lyrics != widget.lyrics) {
-      _initKeys();
-      _lastActiveIndex = -1;
-      _userInteracting = false;
-      _resumeTimer?.cancel();
-      final curPos = widget.playerController.progressBarStatus.value.current;
-      _lastReportedPosition = curPos;
-      _lastReportedTime = DateTime.now();
-      _animatedPosition.value = curPos;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          final activeIndex = _findActiveIndex(curPos);
-          if (activeIndex >= 0) {
-            _lastActiveIndex = activeIndex;
-            _scrollToActive(activeIndex, jump: true);
-            setState(() {});
+    if (!identical(oldWidget.lyrics, widget.lyrics)) {
+      final isDifferentContent = oldWidget.lyrics.length != widget.lyrics.length ||
+          (oldWidget.lyrics.isNotEmpty &&
+              widget.lyrics.isNotEmpty &&
+              oldWidget.lyrics.first.text != widget.lyrics.first.text);
+      if (isDifferentContent) {
+        _initKeys();
+        _lastActiveIndex = -1;
+        _userInteracting = false;
+        _resumeTimer?.cancel();
+        final curPos = widget.playerController.progressBarStatus.value.current;
+        _lastReportedPosition = curPos;
+        _lastReportedTime = DateTime.now();
+        _animatedPosition.value = curPos;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            final activeIndex = _findActiveIndex(curPos);
+            if (activeIndex >= 0) {
+              _lastActiveIndex = activeIndex;
+              _scrollToActive(activeIndex, jump: true);
+              setState(() {});
+            }
           }
-        }
-      });
+        });
+      }
     }
   }
 

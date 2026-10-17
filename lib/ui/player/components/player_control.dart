@@ -277,165 +277,236 @@ class PlayerControlWidget extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
 
-        // Quick Actions Toolbar (Speed/Pitch, Sleep Timer, Song Info)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Speed & Pitch Preset Badge Button (Steady fixed layout)
-            InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(28)),
-                  ),
-                  builder: (context) =>
-                      const PlaybackSpeedPitchBottomSheet(),
-                );
-              },
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.08)
-                      : Colors.black.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isDark
-                        ? Colors.white.withOpacity(0.12)
-                        : Colors.black.withOpacity(0.06),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.tune_rounded,
-                      size: 16,
-                      color: theme.colorScheme.secondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Obx(() {
-                      final speed = playerController.playbackSpeed.value;
-                      final pitch = playerController.playbackPitch.value;
-                      final isModified = speed != 1.0 || pitch != 1.0;
+        // Quick Actions Toolbar (Speed/Pitch, Sleep Timer, Song Info, Lyrics)
+        Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 320),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                // 1. Speed & Pitch
+                Obx(() {
+                  final speed = playerController.playbackSpeed.value;
+                  final pitch = playerController.playbackPitch.value;
+                  final isModified = speed != 1.0 || pitch != 1.0;
 
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
+                  return Tooltip(
+                    message: isModified
+                        ? "Speed: ${speed.toStringAsFixed(1)}x"
+                        : "Speed & Pitch",
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(22),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(28)),
+                          ),
+                          builder: (context) =>
+                              const PlaybackSpeedPitchBottomSheet(),
+                        );
+                      },
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.center,
                         children: [
-                          Text(
-                            "Speed & Pitch",
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              fontWeight: isModified
-                                  ? FontWeight.bold
-                                  : FontWeight.w600,
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isModified
+                                  ? theme.colorScheme.secondary.withOpacity(0.18)
+                                  : (isDark
+                                      ? Colors.white.withOpacity(0.08)
+                                      : Colors.black.withOpacity(0.05)),
+                              border: Border.all(
+                                color: isModified
+                                    ? theme.colorScheme.secondary.withOpacity(0.5)
+                                    : (isDark
+                                        ? Colors.white.withOpacity(0.12)
+                                        : Colors.black.withOpacity(0.06)),
+                                width: 1.1,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.tune_rounded,
+                              size: 20,
                               color: isModified
                                   ? theme.colorScheme.secondary
-                                  : Colors.white.withOpacity(0.85),
+                                  : Colors.white.withOpacity(0.80),
                             ),
                           ),
-                          if (isModified) ...[
-                            const SizedBox(width: 5),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 1.5),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.secondary,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                "${speed.toStringAsFixed(1)}x",
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
+                          if (isModified)
+                            Positioned(
+                              top: -2,
+                              right: -4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 1),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.secondary,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  "${speed.toStringAsFixed(1)}x",
+                                  style: const TextStyle(
+                                    fontSize: 8.5,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
-                          ],
                         ],
-                      );
-                    }),
-                  ],
-                ),
-              ),
-            ),
+                      ),
+                    ),
+                  );
+                }),
 
-            const SizedBox(width: 12),
+                // 2. Sleep Timer Action
+                Obx(() {
+                  final isTimerActive = playerController.isSleepTimerActive.isTrue;
+                  return Tooltip(
+                    message: isTimerActive ? "Sleep Timer Active" : "Sleep Timer",
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(22),
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(24)),
+                          ),
+                          builder: (context) => const SleepTimerBottomSheet(),
+                        );
+                      },
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isTimerActive
+                              ? theme.colorScheme.secondary.withOpacity(0.18)
+                              : (isDark
+                                  ? Colors.white.withOpacity(0.08)
+                                  : Colors.black.withOpacity(0.05)),
+                          border: Border.all(
+                            color: isTimerActive
+                                ? theme.colorScheme.secondary.withOpacity(0.5)
+                                : (isDark
+                                    ? Colors.white.withOpacity(0.12)
+                                    : Colors.black.withOpacity(0.06)),
+                            width: 1.1,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.timer_outlined,
+                          size: 20,
+                          color: isTimerActive
+                              ? theme.colorScheme.secondary
+                              : Colors.white.withOpacity(0.80),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
 
-            // Sleep Timer Action
-            IconButton(
-              tooltip: "Sleep Timer",
-              splashRadius: 20,
-              icon: const Icon(Icons.timer_outlined, size: 22),
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(24)),
+                // 3. Song Info Action
+                Tooltip(
+                  message: "Song Info",
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: () {
+                      if (playerController.currentSong.value != null) {
+                        showModalBottomSheet(
+                          constraints: const BoxConstraints(maxWidth: 500),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(20.0)),
+                          ),
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (context) => SongInfoBottomSheet(
+                            playerController.currentSong.value!,
+                            calledFromPlayer: true,
+                          ),
+                        ).whenComplete(() => Get.delete<SongInfoController>());
+                      }
+                    },
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isDark
+                            ? Colors.white.withOpacity(0.08)
+                            : Colors.black.withOpacity(0.05),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.12)
+                              : Colors.black.withOpacity(0.06),
+                          width: 1.1,
+                        ),
+                      ),
+                      child: Icon(
+                        Icons.info_outline_rounded,
+                        size: 20,
+                        color: Colors.white.withOpacity(0.80),
+                      ),
+                    ),
                   ),
-                  builder: (context) => const SleepTimerBottomSheet(),
-                );
-              },
-            ),
-
-            const SizedBox(width: 4),
-
-            // Song Info Action
-            IconButton(
-              tooltip: "Song Info",
-              splashRadius: 20,
-              icon: const Icon(Icons.info_outline_rounded, size: 22),
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
-              onPressed: () {
-                if (playerController.currentSong.value != null) {
-                  showModalBottomSheet(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(20.0)),
-                    ),
-                    isScrollControlled: true,
-                    context: context,
-                    builder: (context) => SongInfoBottomSheet(
-                      playerController.currentSong.value!,
-                      calledFromPlayer: true,
-                    ),
-                  ).whenComplete(() => Get.delete<SongInfoController>());
-                }
-              },
-            ),
-
-            const SizedBox(width: 4),
-
-            // Dedicated Lyrics Action Button
-            Obx(() {
-              final isLyricsOpen = playerController.showLyricsflag.value;
-              return IconButton(
-                tooltip: "Lyrics",
-                splashRadius: 20,
-                icon: Icon(
-                  isLyricsOpen ? Icons.lyrics_rounded : Icons.lyrics_outlined,
-                  size: 22,
                 ),
-                color: isLyricsOpen
-                    ? const Color(0xFFFFD54F)
-                    : theme.textTheme.bodySmall?.color?.withOpacity(0.75),
-                onPressed: () {
-                  playerController.showLyrics();
-                },
-              );
-            }),
-          ],
+
+                // 4. Dedicated Lyrics Action Button
+                Obx(() {
+                  final isLyricsOpen = playerController.showLyricsflag.value;
+                  return Tooltip(
+                    message: isLyricsOpen ? "Close Lyrics" : "Lyrics",
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(22),
+                      onTap: () {
+                        playerController.showLyrics();
+                      },
+                      child: Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isLyricsOpen
+                              ? const Color(0x28FFD54F)
+                              : (isDark
+                                  ? Colors.white.withOpacity(0.08)
+                                  : Colors.black.withOpacity(0.05)),
+                          border: Border.all(
+                            color: isLyricsOpen
+                                ? const Color(0x88FFD54F)
+                                : (isDark
+                                    ? Colors.white.withOpacity(0.12)
+                                    : Colors.black.withOpacity(0.06)),
+                            width: 1.1,
+                          ),
+                        ),
+                        child: Icon(
+                          isLyricsOpen
+                              ? Icons.lyrics_rounded
+                              : Icons.lyrics_outlined,
+                          size: 20,
+                          color: isLyricsOpen
+                              ? const Color(0xFFFFD54F)
+                              : Colors.white.withOpacity(0.80),
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
         ),
       ],
     );

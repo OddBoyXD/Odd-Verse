@@ -28,18 +28,29 @@ class LyricsTopBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // Close / Minimize Lyrics Button
-            IconButton(
-              tooltip: "Close Lyrics",
-              splashRadius: 20,
-              icon: const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: Colors.white,
-                size: 28,
+            // Left: Lyrics Badge / Label
+            Padding(
+              padding: const EdgeInsets.only(left: 6.0),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.lyrics_rounded,
+                    size: 16,
+                    color: Color(0xFFFFD54F),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "lyrics".tr.isNotEmpty ? "lyrics".tr : "Lyrics",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                      letterSpacing: 0.3,
+                    ),
+                  ),
+                ],
               ),
-              onPressed: () {
-                playerController.showLyricsflag.value = false;
-              },
             ),
 
             // Right action buttons: Romanize, Sources, Search
